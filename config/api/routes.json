@@ -1,0 +1,432 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Routes Management API",
+    "version": "1.0.0",
+    "description": "API for managing transportation routes"
+  },
+  "paths": {
+    "/routes": {
+      "get": {
+        "summary": "List all routes",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "find",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search by route name"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "inactive"]
+            }
+          },
+          {
+            "in": "query",
+            "name": "vehicleId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of routes retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Route"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "pages": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new route",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Route created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/routes/{id}": {
+      "get": {
+        "summary": "Get route by ID",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "findById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Route details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Route not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update route",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "updateById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Route updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Route not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete route",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "deleteById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Route deleted successfully"
+          },
+          "404": {
+            "description": "Route not found"
+          }
+        }
+      }
+    },
+    "/routes/{id}/tracking": {
+      "get": {
+        "summary": "Get route tracking information",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "custom",
+        "x-custom-function": "tracking",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Route tracking data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteTracking"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/routes/{id}/optimize": {
+      "post": {
+        "summary": "Optimize route stops sequence",
+        "tags": ["Routes"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "custom",
+        "x-custom-function": "optimize",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Route optimized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Route": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "routeName": { "type": "string" },
+          "startPoint": {
+            "type": "object",
+            "properties": {
+              "address": { "type": "string" },
+              "location": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["Point"] },
+                  "coordinates": { "type": "array", "items": { "type": "number" } }
+                }
+              }
+            }
+          },
+          "endPoint": {
+            "type": "object",
+            "properties": {
+              "address": { "type": "string" },
+              "location": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["Point"] },
+                  "coordinates": { "type": "array", "items": { "type": "number" } }
+                }
+              }
+            }
+          },
+          "stops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "order": { "type": "integer" },
+                "address": { "type": "string" },
+                "location": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "enum": ["Point"] },
+                    "coordinates": { "type": "array", "items": { "type": "number" } }
+                  }
+                }
+              }
+            }
+          },
+          "vehicleId": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "inactive"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RouteCreate": {
+        "type": "object",
+        "required": ["routeName", "startPoint", "endPoint", "vehicleId"],
+        "properties": {
+          "routeName": { "type": "string" },
+          "startPoint": {
+            "type": "object",
+            "required": ["address", "location"],
+            "properties": {
+              "address": { "type": "string" },
+              "location": { "type": "object", "properties": { "coordinates": { "type": "array", "items": { "type": "number" } } } }
+            }
+          },
+          "endPoint": {
+            "type": "object",
+            "required": ["address", "location"],
+            "properties": {
+              "address": { "type": "string" },
+              "location": { "type": "object", "properties": { "coordinates": { "type": "array", "items": { "type": "number" } } } }
+            }
+          },
+          "stops": { "type": "array", "items": { "type": "object", "properties": { "address": { "type": "string" }, "location": { "type": "object", "properties": { "coordinates": { "type": "array", "items": { "type": "number" } } } } } } },
+          "vehicleId": { "type": "string" }
+        }
+      },
+      "RouteUpdate": {
+        "type": "object",
+        "properties": {
+          "routeName": { "type": "string" },
+          "stops": {
+            "type": "array",
+            "items": { "type": "object", "properties": { "order": { "type": "integer" }, "address": { "type": "string" }, "location": { "type": "object", "properties": { "coordinates": { "type": "array", "items": { "type": "number" } } } } } }
+          },
+          "vehicleId": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "inactive"] }
+        }
+      },
+      "RouteTracking": {
+        "type": "object",
+        "properties": {
+          "routeId": { "type": "string" },
+          "currentLocation": {
+            "type": "object",
+            "properties": {
+              "coordinates": { "type": "array", "items": { "type": "number" } },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          },
+          "completedStops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stopId": { "type": "string" },
+                "arrivalTime": { "type": "string", "format": "date-time" }
+              }
+            }
+          },
+          "nextStop": {
+            "type": "object",
+            "properties": {
+              "stopId": { "type": "string" },
+              "estimatedArrival": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

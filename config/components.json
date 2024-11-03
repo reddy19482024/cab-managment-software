@@ -1,0 +1,265 @@
+{
+    "components": {
+      "base": {
+        "Form": {
+          "extends": "antd.Form",
+          "variants": ["default", "filter", "modal", "inline"],
+          "defaultProps": {
+            "layout": "vertical",
+            "requiredMark": true,
+            "size": "middle"
+          },
+          "fields": {
+            "Input": {
+              "extends": "antd.Input",
+              "variants": ["text", "textarea", "password", "search"],
+              "defaultProps": {
+                "allowClear": true
+              }
+            },
+            "Select": {
+              "extends": "antd.Select",
+              "variants": ["single", "multiple", "tags"],
+              "defaultProps": {
+                "allowClear": true,
+                "showSearch": true,
+                "optionFilterProp": "label"
+              }
+            },
+            "DatePicker": {
+              "extends": "antd.DatePicker",
+              "variants": ["date", "range", "week", "month"],
+              "defaultProps": {
+                "format": "YYYY-MM-DD"
+              }
+            },
+            "Upload": {
+              "extends": "antd.Upload",
+              "variants": ["file", "image", "dragger"],
+              "defaultProps": {
+                "multiple": false,
+                "showUploadList": true
+              }
+            },
+            "Switch": {
+              "extends": "antd.Switch",
+              "defaultProps": {
+                "size": "default"
+              }
+            }
+          }
+        },
+        "Table": {
+          "extends": "antd.Table",
+          "variants": ["default", "list", "card"],
+          "defaultProps": {
+            "size": "middle",
+            "bordered": true,
+            "scroll": { "x": "max-content" }
+          },
+          "features": {
+            "selection": {
+              "type": "checkbox",
+              "actions": ["bulk"]
+            },
+            "pagination": {
+              "defaultPageSize": 10,
+              "showSizeChanger": true,
+              "showTotal": true
+            },
+            "sorting": {
+              "enabled": true,
+              "multiple": false
+            },
+            "filtering": {
+              "enabled": true
+            }
+          }
+        },
+        "Card": {
+          "extends": "antd.Card",
+          "variants": ["default", "hoverable", "selectable", "action"],
+          "defaultProps": {
+            "size": "default",
+            "bordered": true
+          }
+        }
+      },
+      "data": {
+        "DataList": {
+          "extends": "antd.List",
+          "variants": ["default", "grid", "vertical"],
+          "features": {
+            "loading": true,
+            "pagination": true,
+            "selection": true,
+            "actions": true
+          }
+        },
+        "Stats": {
+          "extends": "antd.Statistic",
+          "variants": ["number", "currency", "percentage", "trend"],
+          "features": {
+            "prefix": true,
+            "suffix": true,
+            "trend": true,
+            "precision": true
+          }
+        }
+      },
+      "feedback": {
+        "Modal": {
+          "extends": "antd.Modal",
+          "variants": ["default", "confirm", "form", "drawer"],
+          "defaultProps": {
+            "closable": true,
+            "maskClosable": false
+          }
+        },
+        "Notification": {
+          "extends": "antd.notification",
+          "variants": ["success", "error", "warning", "info"],
+          "defaultProps": {
+            "placement": "topRight",
+            "duration": 4.5
+          }
+        },
+        "Alert": {
+          "extends": "antd.Alert",
+          "variants": ["success", "error", "warning", "info"],
+          "defaultProps": {
+            "showIcon": true,
+            "closable": true
+          }
+        }
+      },
+      "navigation": {
+        "Menu": {
+          "extends": "antd.Menu",
+          "variants": ["horizontal", "vertical", "inline"],
+          "features": {
+            "collapsible": true,
+            "icons": true,
+            "subMenu": true
+          }
+        },
+        "Tabs": {
+          "extends": "antd.Tabs",
+          "variants": ["default", "card", "editable"],
+          "features": {
+            "closable": true,
+            "addable": true,
+            "animated": true
+          }
+        },
+        "Breadcrumb": {
+          "extends": "antd.Breadcrumb",
+          "defaultProps": {
+            "separator": "/"
+          }
+        }
+      },
+      "layout": {
+        "Grid": {
+          "components": ["antd.Row", "antd.Col"],
+          "features": {
+            "responsive": true,
+            "gutter": true,
+            "offset": true
+          }
+        },
+        "Space": {
+          "extends": "antd.Space",
+          "variants": ["horizontal", "vertical"],
+          "features": {
+            "size": ["small", "middle", "large"],
+            "wrap": true,
+            "split": true
+          }
+        },
+        "Divider": {
+          "extends": "antd.Divider",
+          "variants": ["horizontal", "vertical"],
+          "features": {
+            "orientation": ["left", "center", "right"],
+            "text": true
+          }
+        }
+      },
+      "display": {
+        "Tag": {
+          "extends": "antd.Tag",
+          "variants": ["status", "priority", "category"],
+          "features": {
+            "closable": true,
+            "icon": true,
+            "color": true
+          }
+        },
+        "Badge": {
+          "extends": "antd.Badge",
+          "variants": ["dot", "count", "status"],
+          "features": {
+            "overflow": true,
+            "offset": true
+          }
+        },
+        "Avatar": {
+          "extends": "antd.Avatar",
+          "variants": ["circle", "square"],
+          "features": {
+            "group": true,
+            "size": true
+          }
+        }
+      },
+      "patterns": {
+        "SearchBar": {
+          "composition": ["Input.Search", "Select", "Button"],
+          "features": {
+            "filters": true,
+            "suggestions": true,
+            "history": true
+          }
+        },
+        "FilterPanel": {
+          "composition": ["Form", "Space", "Button"],
+          "features": {
+            "collapsible": true,
+            "clearAll": true,
+            "saveFilters": true
+          }
+        },
+        "ActionBar": {
+          "composition": ["Space", "Button", "Dropdown"],
+          "features": {
+            "primaryAction": true,
+            "secondaryActions": true,
+            "moreActions": true
+          }
+        },
+        "PageHeader": {
+          "composition": ["Title", "Breadcrumb", "ActionBar"],
+          "features": {
+            "back": true,
+            "subtitle": true,
+            "extra": true
+          }
+        }
+      },
+      "hooks": {
+        "useForm": {
+          "features": ["validation", "submission", "reset", "values"],
+          "events": ["onChange", "onSubmit", "onReset", "onError"]
+        },
+        "useTable": {
+          "features": ["pagination", "sorting", "filtering", "selection"],
+          "events": ["onPageChange", "onSort", "onFilter", "onSelect"]
+        },
+        "useModal": {
+          "features": ["visibility", "confirmation", "data"],
+          "events": ["onOpen", "onClose", "onConfirm", "onCancel"]
+        }
+      }
+    }
+  }

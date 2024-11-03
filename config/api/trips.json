@@ -1,0 +1,392 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Trips Management API",
+    "version": "1.0.0",
+    "description": "API for managing transportation trips"
+  },
+  "paths": {
+    "/trips": {
+      "get": {
+        "summary": "List all trips",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "find",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "routeId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "vehicleId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["scheduled", "in-progress", "completed", "cancelled"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trips retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Trip"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer" },
+                        "pages": { "type": "integer" },
+                        "page": { "type": "integer" },
+                        "limit": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "description": "Forbidden - Insufficient permissions" }
+        }
+      },
+      "post": {
+        "summary": "Create new trip",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Trip created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" }
+        }
+      }
+    },
+    "/trips/{id}": {
+      "get": {
+        "summary": "Get trip by ID",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "findById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trip details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          },
+          "404": { "description": "Trip not found" }
+        }
+      },
+      "put": {
+        "summary": "Update trip status",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "updateById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trip updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          },
+          "404": { "description": "Trip not found" }
+        }
+      }
+    },
+    "/trips/{id}/tracking": {
+      "get": {
+        "summary": "Get trip tracking information",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "custom",
+        "x-custom-function": "getTripTracking",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trip tracking data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripTracking"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}/attendance": {
+      "post": {
+        "summary": "Mark attendance for trip",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "custom",
+        "x-custom-function": "markTripAttendance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripAttendance"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attendance marked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get trip attendance",
+        "tags": ["Trips"],
+        "security": [{ "bearerAuth": [] }],
+        "x-operation-type": "custom",
+        "x-custom-function": "getTripAttendance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trip attendance retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TripAttendance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "routeId": { "type": "string" },
+          "vehicleId": { "type": "string" },
+          "date": { "type": "string", "format": "date" },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" },
+          "status": {
+            "type": "string",
+            "enum": ["scheduled", "in-progress", "completed", "cancelled"]
+          },
+          "attendance": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TripAttendance"
+            }
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TripCreate": {
+        "type": "object",
+        "required": ["routeId", "vehicleId", "date", "startTime"],
+        "properties": {
+          "routeId": { "type": "string" },
+          "vehicleId": { "type": "string" },
+          "date": { "type": "string", "format": "date" },
+          "startTime": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TripUpdate": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["scheduled", "in-progress", "completed", "cancelled"]
+          },
+          "endTime": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TripTracking": {
+        "type": "object",
+        "properties": {
+          "currentLocation": {
+            "type": "object",
+            "properties": {
+              "coordinates": {
+                "type": "array",
+                "items": { "type": "number" }
+              },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          },
+          "nextStop": {
+            "type": "object",
+            "properties": {
+              "address": { "type": "string" },
+              "estimatedArrival": { "type": "string", "format": "date-time" }
+            }
+          },
+          "completedStops": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "address": { "type": "string" },
+                "arrivalTime": { "type": "string", "format": "date-time" }
+              }
+            }
+          }
+        }
+      },
+      "TripAttendance": {
+        "type": "object",
+        "required": ["employeeId", "status"],
+        "properties": {
+          "employeeId": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["present", "absent", "late"]
+          },
+          "pickupTime": { "type": "string", "format": "date-time" },
+          "remarks": { "type": "string" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

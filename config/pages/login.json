@@ -1,0 +1,229 @@
+{
+    "page": {
+      "id": "login",
+      "path": "/auth/login",
+      "layout": "auth",
+      "meta": {
+        "title": "Login - Employee Transport",
+        "description": "Login to Employee Transport System",
+        "public": true
+      },
+      "components": {
+        "loginForm": {
+          "extends": "base.Form",
+          "variant": "default",
+          "config": {
+            "name": "loginForm",
+            "layout": "vertical",
+            "requiredMark": true,
+            "size": "large",
+            "styles": {
+              "width": "100%"
+            }
+          },
+          "fields": [
+            {
+              "name": "employeeId",
+              "component": "Input",
+              "label": "Employee ID",
+              "props": {
+                "placeholder": "Enter your employee ID",
+                "autoComplete": "username",
+                "size": "large",
+                "allowClear": true,
+                "prefix": {
+                  "icon": "UserOutlined"
+                }
+              },
+              "rules": [
+                {
+                  "required": true,
+                  "message": "Please enter your employee ID"
+                }
+              ],
+              "styles": {
+                "marginBottom": "${theme.spacing.md}"
+              }
+            },
+            {
+              "name": "password",
+              "component": "Input.Password",
+              "label": "Password",
+              "props": {
+                "placeholder": "Enter your password",
+                "autoComplete": "current-password",
+                "size": "large",
+                "prefix": {
+                  "icon": "LockOutlined"
+                }
+              },
+              "rules": [
+                {
+                  "required": true,
+                  "message": "Please enter your password"
+                }
+              ],
+              "styles": {
+                "marginBottom": "${theme.spacing.lg}"
+              }
+            }
+          ],
+          "buttons": [
+            {
+              "extends": "base.Button",
+              "variant": "primary",
+              "props": {
+                "type": "primary",
+                "htmlType": "submit",
+                "size": "large",
+                "block": true,
+                "text": "Login"
+              },
+              "styles": {
+                "height": "${theme.components.button.height.large}"
+              }
+            }
+          ]
+        }
+      },
+      "sections": [
+        {
+          "id": "header",
+          "component": "display.Header",
+          "config": {
+            "align": "center",
+            "styles": {
+              "marginBottom": "${theme.spacing.xl}"
+            },
+            "content": {
+              "logo": {
+                "component": "Image",
+                "props": {
+                  "src": "/assets/logo.svg",
+                  "alt": "${app.name}",
+                  "width": 140,
+                  "height": 40,
+                  "preview": false
+                },
+                "styles": {
+                  "marginBottom": "${theme.spacing.md}"
+                }
+              },
+              "title": {
+                "component": "Typography.Title",
+                "props": {
+                  "level": 2,
+                  "text": "${app.name}"
+                },
+                "styles": {
+                  "marginBottom": "${theme.spacing.xs}",
+                  "fontSize": "${theme.typography.scale.xxl}"
+                }
+              },
+              "subtitle": {
+                "component": "Typography.Text",
+                "props": {
+                  "text": "Login to your account"
+                },
+                "styles": {
+                  "fontSize": "${theme.typography.scale.md}",
+                  "color": "${theme.colors.text.secondary}"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "formSection",
+          "component": "loginForm",
+          "styles": {
+            "marginBottom": "${theme.spacing.xl}"
+          }
+        },
+        {
+          "id": "footer",
+          "component": "display.Footer",
+          "config": {
+            "align": "center",
+            "content": {
+              "links": [
+                {
+                  "component": "Typography.Link",
+                  "props": {
+                    "text": "Forgot Password?",
+                    "href": "#"
+                  },
+                  "styles": {
+                    "fontSize": "${theme.typography.scale.sm}",
+                    "color": "${theme.colors.primary}"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "api": {
+        "login": {
+          "endpoint": "/auth/login",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "employeeId": "string",
+            "password": "string"
+          },
+          "response": {
+            "success": {
+              "token": "string",
+              "user": "object"
+            },
+            "error": {
+              "message": "string"
+            }
+          }
+        }
+      },
+      "hooks": {
+        "useForm": {
+          "initial": {},
+          "validate": true,
+          "submit": {
+            "api": "login",
+            "onSuccess": {
+              "type": "redirect",
+              "path": "${app.settings.app.defaultRoute}",
+              "notification": {
+                "type": "success",
+                "message": "Login successful"
+              }
+            },
+            "onError": {
+              "type": "notification",
+              "variant": "error",
+              "message": "Invalid credentials"
+            }
+          }
+        }
+      },
+      "styles": {
+        "container": {
+          "minHeight": "100vh",
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "center",
+          "padding": "${theme.spacing.layout.containerPadding}",
+          "background": "${theme.colors.background.default}"
+        },
+        "content": {
+          "width": "100%",
+          "maxWidth": "400px",
+          "padding": "${theme.spacing.xl}",
+          "background": "${theme.colors.background.paper}",
+          "borderRadius": "${theme.borderRadius.lg}",
+          "boxShadow": "${theme.shadows.md}"
+        }
+      }
+    }
+  }

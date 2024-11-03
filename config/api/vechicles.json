@@ -1,0 +1,373 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Vehicles Management API",
+      "version": "1.0.0",
+      "description": "API for managing transport vehicles"
+    },
+    "paths": {
+      "/vehicles": {
+        "get": {
+          "summary": "List all vehicles",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "find",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "page",
+              "schema": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              }
+            },
+            {
+              "in": "query",
+              "name": "limit",
+              "schema": {
+                "type": "integer",
+                "default": 10,
+                "minimum": 1,
+                "maximum": 100
+              }
+            },
+            {
+              "in": "query",
+              "name": "search",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Search by vehicle number"
+            },
+            {
+              "in": "query",
+              "name": "type",
+              "schema": {
+                "type": "string",
+                "enum": ["bus", "van", "car"]
+              }
+            },
+            {
+              "in": "query",
+              "name": "status",
+              "schema": {
+                "type": "string",
+                "enum": ["active", "maintenance", "inactive"]
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of vehicles retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Vehicle"
+                        }
+                      },
+                      "pagination": {
+                        "type": "object",
+                        "properties": {
+                          "total": { "type": "integer" },
+                          "pages": { "type": "integer" },
+                          "page": { "type": "integer" },
+                          "limit": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Forbidden - Insufficient permissions",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "summary": "Create new vehicle",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "create",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleCreate"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Vehicle created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid input",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/vehicles/{id}": {
+        "get": {
+          "summary": "Get vehicle by ID",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "findById",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Vehicle details retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            },
+            "404": { "description": "Vehicle not found" }
+          }
+        },
+        "put": {
+          "summary": "Update vehicle",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "updateById",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleUpdate"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Vehicle updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            },
+            "404": { "description": "Vehicle not found" }
+          }
+        },
+        "delete": {
+          "summary": "Delete vehicle",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "deleteById",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "204": { "description": "Vehicle deleted successfully" },
+            "404": { "description": "Vehicle not found" }
+          }
+        }
+      },
+      "/vehicles/{id}/maintenance": {
+        "post": {
+          "summary": "Mark vehicle for maintenance",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "custom",
+          "x-custom-function": "markVehicleMaintenance",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Vehicle marked for maintenance successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/vehicles/available": {
+        "get": {
+          "summary": "Get available vehicles",
+          "tags": ["Vehicles"],
+          "security": [{ "bearerAuth": [] }],
+          "x-operation-type": "custom",
+          "x-custom-function": "getAvailableVehicles",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "date",
+              "schema": {
+                "type": "string",
+                "format": "date"
+              },
+              "required": true
+            },
+            {
+              "in": "query",
+              "name": "type",
+              "schema": {
+                "type": "string",
+                "enum": ["bus", "van", "car"]
+              }
+            },
+            {
+              "in": "query",
+              "name": "capacity",
+              "schema": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of available vehicles",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Vehicle"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Vehicle": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "vehicleNumber": { "type": "string" },
+            "type": { "type": "string", "enum": ["bus", "van", "car"] },
+            "capacity": { "type": "integer", "minimum": 1 },
+            "status": { "type": "string", "enum": ["active", "maintenance", "inactive"] },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" }
+          }
+        },
+        "VehicleCreate": {
+          "type": "object",
+          "required": ["vehicleNumber", "type", "capacity"],
+          "properties": {
+            "vehicleNumber": { "type": "string" },
+            "type": { "type": "string", "enum": ["bus", "van", "car"] },
+            "capacity": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "VehicleUpdate": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["bus", "van", "car"] },
+            "capacity": { "type": "integer", "minimum": 1 },
+            "status": { "type": "string", "enum": ["active", "maintenance", "inactive"] }
+          }
+        },
+        "MaintenanceRequest": {
+          "type": "object",
+          "required": ["startDate", "reason"],
+          "properties": {
+            "startDate": { "type": "string", "format": "date" },
+            "endDate": { "type": "string", "format": "date" },
+            "reason": { "type": "string" },
+            "notes": { "type": "string" }
+          }
+        },
+        "Error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+  

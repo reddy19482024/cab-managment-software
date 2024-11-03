@@ -1,0 +1,234 @@
+{
+  "app": {
+    "name": "Employee Transport Management",
+    "version": "2.0.0",
+    "meta": {
+      "description": "Enterprise Employee Transport Management System",
+      "organization": "Your Company Name",
+      "defaultLanguage": "en",
+      "supportedLanguages": ["en", "es", "fr"]
+    },
+    "pages": {
+      "auth": {
+        "login": {
+          "path": "/auth/login",
+          "layout": "auth",
+          "public": true,
+          "roles": ["*"]
+        }
+      },
+      "app": {
+        "dashboard": {
+          "path": "/dashboard",
+          "layout": "default",
+          "public": false,
+          "roles": ["admin", "employee"]
+        },
+        "employees": {
+          "list": {
+            "path": "/employees",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "create": {
+            "path": "/employees/create",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "edit": {
+            "path": "/employees/:id",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          }
+        },
+        "routes": {
+          "list": {
+            "path": "/routes",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "create": {
+            "path": "/routes/create",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "edit": {
+            "path": "/routes/:id",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "tracking": {
+            "path": "/routes/tracking",
+            "layout": "map",
+            "public": false,
+            "roles": ["admin", "employee"]
+          }
+        },
+        "vehicles": {
+          "list": {
+            "path": "/vehicles",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "create": {
+            "path": "/vehicles/create",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "edit": {
+            "path": "/vehicles/:id",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          }
+        },
+        "trips": {
+          "list": {
+            "path": "/trips",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin", "employee"]
+          },
+          "create": {
+            "path": "/trips/create",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          },
+          "tracking": {
+            "path": "/trips/:id/tracking",
+            "layout": "map",
+            "public": false,
+            "roles": ["admin", "employee"]
+          },
+          "attendance": {
+            "path": "/trips/:id/attendance",
+            "layout": "default",
+            "public": false,
+            "roles": ["admin"]
+          }
+        }
+      }
+    },
+    "layouts": {
+      "types": {
+        "auth": {
+          "template": "AuthLayout",
+          "config": {
+            "centered": true,
+            "maxWidth": 400
+          }
+        },
+        "default": {
+          "template": "DefaultLayout",
+          "config": {
+            "header": {
+              "height": 64,
+              "fixed": true,
+              "components": ["Logo", "MainNav", "UserMenu"]
+            },
+            "sidebar": {
+              "width": 280,
+              "collapsible": true
+            },
+            "footer": {
+              "height": 48,
+              "components": ["Copyright"]
+            }
+          }
+        },
+        "map": {
+          "template": "MapLayout",
+          "config": {
+            "sidebarPosition": "right",
+            "sidebarWidth": 320,
+            "collapsible": true
+          }
+        }
+      }
+    },
+    "navigation": {
+      "main": [
+        {
+          "key": "dashboard",
+          "title": "Dashboard",
+          "icon": "DashboardOutlined",
+          "path": "/dashboard",
+          "roles": ["admin", "employee"]
+        },
+        {
+          "key": "employees",
+          "title": "Employees",
+          "icon": "TeamOutlined",
+          "roles": ["admin"],
+          "children": [
+            {
+              "key": "employees-list",
+              "title": "All Employees",
+              "path": "/employees"
+            },
+            {
+              "key": "employees-create",
+              "title": "Add Employee",
+              "path": "/employees/create"
+            }
+          ]
+        },
+        {
+          "key": "routes",
+          "title": "Routes",
+          "icon": "RouteOutlined",
+          "roles": ["admin"],
+          "children": [
+            {
+              "key": "routes-list",
+              "title": "All Routes",
+              "path": "/routes"
+            },
+            {
+              "key": "route-tracking",
+              "title": "Live Tracking",
+              "path": "/routes/tracking"
+            }
+          ]
+        },
+        {
+          "key": "vehicles",
+          "title": "Vehicles",
+          "icon": "CarOutlined",
+          "roles": ["admin"],
+          "path": "/vehicles"
+        },
+        {
+          "key": "trips",
+          "title": "Trips",
+          "icon": "ClockCircleOutlined",
+          "path": "/trips",
+          "roles": ["admin", "employee"]
+        },
+        {
+          "key": "reports",
+          "title": "Reports",
+          "icon": "BarChartOutlined",
+          "path": "/reports",
+          "roles": ["admin"]
+        }
+      ]
+    },
+    "settings": {
+      "app": {
+        "defaultRoute": "/dashboard",
+        "sessionTimeout": 3600,
+        "idleTimeout": 1800
+      }
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+    "layouts": {
+      "types": {
+        "auth": {
+          "template": "AuthLayout",
+          "config": {
+            "centered": true,
+            "maxWidth": "${theme.spacing.layout.containerWidth}",
+            "background": "${theme.colors.background.paper}",
+            "padding": "${theme.spacing.layout.containerPadding}",
+            "sections": ["header", "content", "footer"],
+            "styles": {
+              "wrapper": {
+                "minHeight": "100vh",
+                "display": "flex",
+                "alignItems": "center",
+                "justifyContent": "center"
+              },
+              "container": {
+                "width": "100%",
+                "borderRadius": "${theme.borderRadius.lg}",
+                "boxShadow": "${theme.shadows.md}"
+              }
+            }
+          }
+        },
+        "default": {
+          "template": "DefaultLayout",
+          "config": {
+            "header": {
+              "height": "${theme.spacing.layout.headerHeight}",
+              "fixed": true,
+              "background": "${theme.colors.background.paper}",
+              "boxShadow": "${theme.shadows.sm}",
+              "components": ["Logo", "MainNav", "UserMenu"]
+            },
+            "sidebar": {
+              "width": "${theme.spacing.layout.sidebarWidth}",
+              "collapsible": true,
+              "background": "${theme.colors.background.paper}",
+              "borderRight": "1px solid ${theme.colors.border.light}"
+            },
+            "content": {
+              "padding": "${theme.spacing.layout.containerPadding}",
+              "background": "${theme.colors.background.layout}"
+            },
+            "footer": {
+              "height": "${theme.spacing.layout.footerHeight}",
+              "background": "${theme.colors.background.paper}",
+              "borderTop": "1px solid ${theme.colors.border.light}",
+              "components": ["Copyright"]
+            }
+          }
+        },
+        "map": {
+          "template": "MapLayout",
+          "config": {
+            "header": {
+              "height": "${theme.spacing.layout.headerHeight}",
+              "fixed": true
+            },
+            "sidebar": {
+              "position": "right",
+              "width": "320px",
+              "collapsible": true,
+              "background": "${theme.colors.background.paper}",
+              "boxShadow": "${theme.shadows.md}"
+            },
+            "content": {
+              "padding": 0
+            }
+          }
+        }
+      },
+      "components": {
+        "Logo": {
+          "config": {
+            "height": 32,
+            "margin": "${theme.spacing.md}"
+          }
+        },
+        "MainNav": {
+          "config": {
+            "mode": "horizontal",
+            "theme": "light"
+          }
+        },
+        "UserMenu": {
+          "config": {
+            "align": "right",
+            "icons": ["notifications", "settings", "user"]
+          }
+        },
+        "Copyright": {
+          "config": {
+            "align": "center",
+            "text": "© ${app.meta.organization} ${currentYear}"
+          }
+        }
+      }
+    }
+  }
