@@ -1,25 +1,22 @@
-// vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 3000 // Optional: Customize the dev server port
+  },
   resolve: {
     alias: {
-      '@config': path.resolve(__dirname, './config'),
-      '@': path.resolve(__dirname, './frontend/src')
+      '@': '/src' // Optional: Alias for easier imports
     }
   },
-  server: {
-    fs: {
-      strict: false,
-      allow: ['..']
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import "./src/styles/variables.scss";`
+      }
     }
-  },
-  esbuild: {
-    loader: 'jsx', // Enables JSX in .jsx files
-    include: /src\/.*\.[tj]sx?$/, // Include .js, .jsx, .ts, .tsx files in src folder
-    exclude: /node_modules/, // Exclude node_modules
   }
 });

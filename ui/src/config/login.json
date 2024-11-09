@@ -1,0 +1,177 @@
+{
+  "title": "Login",
+  "layout": {
+    "header": {
+      "enabled": false
+    },
+    "content": {
+      "style": {
+        "minHeight": "100vh",
+        "padding": "0"
+      },
+      "layout": {
+        "type": "flex",
+        "justify": "center",
+        "gutter": 0
+      }
+    },
+    "footer": {
+      "enabled": false
+    }
+  },
+  "sections": [
+    {
+      "type": "form",
+      "containerStyle": {
+        "width": "100%",
+        "padding": "10% 30% 10% 30%"
+      },
+      "wrapperStyle": {
+        "maxWidth": "100%",
+        "background": "#ffffff",
+        "padding": "32px",
+        "borderRadius": "8px",
+        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+      },
+      "title": "Sign In",
+      "subtitle": "Enter your credentials to access your account",
+      "layout": {
+        "type": "vertical",
+        "labelCol": {
+          "span": 24
+        },
+        "wrapperCol": {
+          "span": 24
+        }
+      },
+      "fields": [
+        {
+          "name": "email",
+          "type": "email",
+          "label": "Email Address",
+          "placeholder": "Email address or phone number",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please enter your email or phone number"
+            },
+            {
+              "type": "email",
+              "message": "Please enter a valid email"
+            }
+          ]
+        },
+        {
+          "name": "password",
+          "type": "password",
+          "label": "Password",
+          "placeholder": "Enter your password",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please enter your password"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "type": "submit",
+          "label": "Sign In",
+          "buttonProps": {
+            "type": "primary",
+            "size": "large",
+            "block": true
+          },
+          "style": {
+            "marginTop": "24px"
+          },
+          "api": {
+            "method": "POST",
+            "endpoint": "/api/auth/login",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "messages": {
+            "success": "Login successful!",
+            "failure": "Invalid credentials. Please try again."
+          }
+        }
+      ],
+      "divider": {
+        "type": "divider",
+        "text": "OR",
+        "orientation": "center",
+        "style": {
+          "margin": "24px 0"
+        }
+      },
+      "socialButtons": [
+        {
+          "provider": "google",
+          "label": "Continue with Google",
+          "icon": "google",
+          "buttonProps": {
+            "size": "large",
+            "block": true
+          },
+          "style": {
+            "marginBottom": "16px"
+          }
+        },
+        {
+          "provider": "microsoft",
+          "label": "Continue with Microsoft",
+          "icon": "microsoft",
+          "buttonProps": {
+            "size": "large",
+            "block": true
+          },
+          "style": {
+            "marginBottom": "16px"
+          }
+        },
+        {
+          "provider": "apple",
+          "label": "Continue with Apple",
+          "icon": "apple",
+          "buttonProps": {
+            "size": "large",
+            "block": true
+          }
+        }
+      ],
+      "links": [
+        {
+          "text": "Forgot your password?",
+          "url": "/forgot-password",
+          "style": {
+            "textAlign": "right",
+            "marginTop": "8px",
+            "marginBottom": "24px",
+            "display": "block"
+          }
+        },
+        {
+          "text": "Don't have an account? Sign up",
+          "url": "/register",
+          "style": {
+            "textAlign": "center",
+            "marginTop": "24px",
+            "display": "block"
+          }
+        }
+      ]
+    }
+  ],
+  "theme": {
+    "token": {
+      "colorPrimary": "#10B981",
+      "borderRadius": 8,
+      "fontSize": 16
+    }
+  }
+}

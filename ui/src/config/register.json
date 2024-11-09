@@ -1,0 +1,198 @@
+{
+  "title": "Registration",
+  "layout": {
+    "header": {
+      "enabled": true,
+      "logo": "/assets/logo.png",
+      "style": {
+        "background": "#ffffff",
+        "boxShadow": "0 2px 4px rgba(0,0,0,0.1)"
+      }
+    },
+    "content": {
+      "style": {
+        "minHeight": "100vh",
+        "padding": "0"
+      },
+      "layout": {
+        "type": "flex",
+        "justify": "center",
+        "gutter": 0
+      }
+    },
+    "footer": {
+      "enabled": true,
+      "text": "© 2024 My Application. All rights reserved.",
+      "style": {
+        "textAlign": "center",
+        "padding": "20px",
+        "background": "#f9fafb"
+      },
+      "links": [
+        {
+          "text": "Terms of Service",
+          "url": "/terms"
+        },
+        {
+          "text": "Privacy Policy",
+          "url": "/privacy"
+        }
+      ]
+    }
+  },
+  "sections": [
+    {
+      "type": "form",
+      "containerStyle": {
+        "width": "100%",
+        "padding": "20px 30%"
+      },
+      "wrapperStyle": {
+        "maxWidth": "100%",
+        "background": "#ffffff",
+        "padding": "32px",
+        "borderRadius": "8px",
+        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
+      },
+      "title": "Create Your Account",
+      "subtitle": "Fill in your details to get started",
+      "layout": {
+        "type": "vertical",
+        "labelCol": { 
+          "span": 24 
+        },
+        "wrapperCol": { 
+          "span": 24 
+        }
+      },
+      "fields": [
+        {
+          "name": "fullName",
+          "type": "text",
+          "label": "Full Name",
+          "placeholder": "John Doe",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please enter your full name"
+            },
+            {
+              "min": 2,
+              "message": "Name must be at least 2 characters"
+            }
+          ]
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "label": "Email Address",
+          "placeholder": "you@example.com",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please enter your email"
+            },
+            {
+              "type": "email",
+              "message": "Please enter a valid email"
+            }
+          ]
+        },
+        {
+          "name": "password",
+          "type": "password",
+          "label": "Password",
+          "placeholder": "Create a strong password",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please enter a password"
+            },
+            {
+              "min": 8,
+              "message": "Password must be at least 8 characters"
+            }
+          ]
+        },
+        {
+          "name": "confirmPassword",
+          "type": "password",
+          "label": "Confirm Password",
+          "placeholder": "Confirm your password",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please confirm your password"
+            }
+          ]
+        },
+        {
+          "name": "phoneNumber",
+          "type": "text",
+          "label": "Phone Number",
+          "placeholder": "+1 (555) 000-0000",
+          "size": "large",
+          "rules": [
+            {
+              "required": true,
+              "message": "Please enter your phone number"
+            }
+          ]
+        },
+        {
+          "name": "termsAccepted",
+          "type": "checkbox",
+          "label": "I agree to the Terms of Service and Privacy Policy",
+          "rules": [
+            {
+              "required": true,
+              "message": "You must accept the terms and conditions"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "type": "submit",
+          "label": "Create Account",
+          "style": {
+            "width": "100%",
+            "height": "40px",
+            "marginTop": "24px"
+          },
+          "buttonProps": {
+            "type": "primary",
+            "size": "large",
+            "block": true
+          },
+          "api": {
+            "method": "POST",
+            "endpoint": "/api/auth/register",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "messages": {
+            "success": "Registration successful! Please check your email to verify your account.",
+            "failure": "Registration failed. Please try again or contact support if the problem persists."
+          }
+        }
+      ],
+      "links": [
+        {
+          "text": "Already have an account? Sign in",
+          "url": "/login",
+          "style": {
+            "textAlign": "center",
+            "marginTop": "16px",
+            "display": "block"
+          }
+        }
+      ]
+    }
+  ]
+}

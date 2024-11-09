@@ -1,0 +1,20 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "componentConfig": "LoginPage",
+      "title": "Login",
+      "mainPage": true
+    },
+    {
+      "path": "/register",
+      "componentConfig": "RegisterPage",
+      "title": "Register"
+    },
+    {
+      "path": "/employees",
+      "componentConfig": "EmployeeManagement",
+      "title": "EmployeeManagement"
+    }
+  ]
+}

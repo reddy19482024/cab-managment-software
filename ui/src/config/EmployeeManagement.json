@@ -1,0 +1,449 @@
+{
+  "title": "Employee Management",
+  "layout": {
+    "header": {
+      "enabled": true,
+      "logo": "/images/company-logo.png",
+      "style": {
+        "background": "#fff",
+        "padding": "0 24px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)",
+        "height": "64px",
+        "lineHeight": "64px"
+      }
+    },
+    "sidebar": {
+      "enabled": true,
+      "collapsed": false,
+      "width": 100,
+      "collapsedWidth": 100,
+      "theme": "dark",
+      "style": {
+        "background": "#001529",
+        "minHeight": "100vh"
+      },
+      "menu": {
+        "items": [
+          {
+            "key": "dashboard",
+            "label": "Dashboard",
+            "icon": "DashboardOutlined",
+            "path": "/dashboard"
+          },
+          {
+            "type": "group",
+            "label": "Management",
+            "children": [
+              {
+                "key": "employees",
+                "label": "Employees",
+                "icon": "UserOutlined",
+                "path": "/employees"
+              },
+              {
+                "key": "vehicles",
+                "label": "Vehicles",
+                "icon": "CarOutlined",
+                "path": "/vehicles"
+              },
+              {
+                "key": "trips",
+                "label": "Trips",
+                "icon": "CompassOutlined",
+                "path": "/trips"
+              }
+            ]
+          },
+          {
+            "type": "group",
+            "label": "Administration",
+            "children": [
+              {
+                "key": "roles",
+                "label": "Roles & Permissions",
+                "icon": "SafetyOutlined",
+                "path": "/roles"
+              },
+              {
+                "key": "settings",
+                "label": "Settings",
+                "icon": "SettingOutlined",
+                "path": "/settings"
+              }
+            ]
+          },
+          {
+            "type": "group",
+            "label": "Reports",
+            "children": [
+              {
+                "key": "analytics",
+                "label": "Analytics",
+                "icon": "BarChartOutlined",
+                "path": "/analytics"
+              },
+              {
+                "key": "expenses",
+                "label": "Expenses",
+                "icon": "DollarOutlined",
+                "path": "/expenses"
+              },
+              {
+                "key": "maintenance",
+                "label": "Maintenance",
+                "icon": "ToolOutlined",
+                "path": "/maintenance"
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "enabled": true,
+        "collapsible": true,
+        "content": {
+          "expanded": {
+            "avatar": "/images/user-avatar.png",
+            "name": "John Doe",
+            "role": "Admin"
+          },
+          "collapsed": {
+            "avatar": "/images/user-avatar.png"
+          }
+        },
+        "style": {
+          "padding": "16px",
+          "background": "rgba(0, 0, 0, 0.25)",
+          "color": "#fff",
+          "position": "absolute",
+          "bottom": 0,
+          "width": "100%"
+        }
+      }
+    },
+    "content": {
+      "style": {
+        "minHeight": "calc(100vh - 64px)",
+        "background": "#f0f2f5"
+      }
+    },
+    "footer": {
+      "enabled": true,
+      "text": "© 2024 My Application. All rights reserved.",
+      "style": {
+        "textAlign": "center",
+        "padding": "16px",
+        "background": "#f7f7f7"
+      },
+      "links": [
+        { "text": "Privacy Policy", "url": "/privacy" },
+        { "text": "Terms", "url": "/terms" }
+      ]
+    }
+  },
+  "sections": [
+    {
+      "type": "banner",
+      "style": {
+        "background": "#1890ff",
+        "padding": "24px",
+        "marginBottom": "24px"
+      },
+      "content": {
+        "title": "Employee Management",
+        "description": "Manage your organization's employees",
+        "style": {
+          "maxWidth": "100%",
+          "padding": "0 24px"
+        }
+      }
+    },
+    {
+      "type": "form",
+      "containerStyle": {
+        "padding": "0 24px"
+      },
+      "wrapperStyle": {
+        "background": "#ffffff",
+        "padding": "24px",
+        "borderRadius": "8px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
+      },
+      "title": "Employee List",
+      "subtitle": "View and manage employees",
+      "layout": {
+        "type": "vertical"
+      },
+      "table": {
+        "enabled": true,
+        "columns": [
+          { 
+            "title": "Name", 
+            "dataIndex": "name", 
+            "key": "name",
+            "width": "20%"
+          },
+          { 
+            "title": "Email", 
+            "dataIndex": "email", 
+            "key": "email",
+            "width": "30%"
+          },
+          { 
+            "title": "Role", 
+            "dataIndex": "role", 
+            "key": "role",
+            "width": "15%"
+          },
+          { 
+            "title": "Phone", 
+            "dataIndex": "phone", 
+            "key": "phone",
+            "width": "20%"
+          },
+          {
+            "title": "Actions",
+            "key": "actions",
+            "width": "15%",
+            "render": {
+              "type": "actions",
+              "items": [
+                {
+                  "type": "button",
+                  "buttonProps": {
+                    "type": "link",
+                    "icon": "EditOutlined"
+                  },
+                  "onClick": {
+                    "type": "modal",
+                    "modalId": "editEmployeeModal"
+                  }
+                },
+                {
+                  "type": "button",
+                  "buttonProps": {
+                    "type": "link",
+                    "danger": true,
+                    "icon": "DeleteOutlined"
+                  },
+                  "onClick": {
+                    "type": "modal",
+                    "modalId": "deleteEmployeeModal"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "api": {
+          "endpoint": "/api/employees",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "fallbackData": [
+          {
+            "id": "1",
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "role": "Admin",
+            "phone": "123-456-7890"
+          },
+          {
+            "id": "2",
+            "name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "role": "Employee",
+            "phone": "098-765-4321"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "label": "Add Employee",
+          "buttonProps": {
+            "type": "primary",
+            "icon": "PlusOutlined"
+          },
+          "style": {
+            "marginBottom": "16px"
+          },
+          "onClick": {
+            "type": "modal",
+            "modalId": "addEmployeeModal"
+          }
+        }
+      ]
+    }
+  ],
+  "modals": {
+    "addEmployeeModal": {
+      "title": "Add New Employee",
+      "layout": {
+        "type": "vertical"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "placeholder": "Enter employee name",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter employee name" }]
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "label": "Email",
+          "placeholder": "Enter email address",
+          "size": "large",
+          "rules": [
+            { "required": true, "message": "Please enter email" },
+            { "type": "email", "message": "Please enter valid email" }
+          ]
+        },
+        {
+          "name": "role",
+          "type": "select",
+          "label": "Role",
+          "placeholder": "Select role",
+          "size": "large",
+          "options": [
+            { "label": "Admin", "value": "Admin" },
+            { "label": "Employee", "value": "Employee" }
+          ],
+          "rules": [{ "required": true, "message": "Please select role" }]
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "label": "Phone",
+          "placeholder": "Enter phone number",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter phone number" }]
+        }
+      ],
+      "actions": [
+        {
+          "label": "Add Employee",
+          "buttonProps": {
+            "type": "primary",
+            "htmlType": "submit",
+            "block": true
+          },
+          "style": {
+            "marginTop": "24px"
+          },
+          "api": {
+            "endpoint": "/api/employees",
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "messages": {
+            "success": "Employee added successfully",
+            "failure": "Failed to add employee"
+          }
+        }
+      ]
+    },
+    "editEmployeeModal": {
+      "title": "Edit Employee",
+      "layout": {
+        "type": "vertical"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "placeholder": "Enter employee name",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter employee name" }]
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "label": "Email",
+          "placeholder": "Enter email address",
+          "size": "large",
+          "rules": [
+            { "required": true, "message": "Please enter email" },
+            { "type": "email", "message": "Please enter valid email" }
+          ]
+        },
+        {
+          "name": "role",
+          "type": "select",
+          "label": "Role",
+          "placeholder": "Select role",
+          "size": "large",
+          "options": [
+            { "label": "Admin", "value": "Admin" },
+            { "label": "Employee", "value": "Employee" }
+          ],
+          "rules": [{ "required": true, "message": "Please select role" }]
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "label": "Phone",
+          "placeholder": "Enter phone number",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter phone number" }]
+        }
+      ],
+      "actions": [
+        {
+          "label": "Update Employee",
+          "buttonProps": {
+            "type": "primary",
+            "htmlType": "submit",
+            "block": true
+          },
+          "style": {
+            "marginTop": "24px"
+          },
+          "api": {
+            "endpoint": "/api/employees/{id}",
+            "method": "PUT",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "messages": {
+            "success": "Employee updated successfully",
+            "failure": "Failed to update employee"
+          }
+        }
+      ]
+    },
+    "deleteEmployeeModal": {
+      "title": "Delete Employee",
+      "type": "confirm",
+      "content": "Are you sure you want to delete this employee? This action cannot be undone.",
+      "actions": [
+        {
+          "label": "Delete",
+          "buttonProps": {
+            "type": "primary",
+            "danger": true
+          },
+          "api": {
+            "endpoint": "/api/employees/{id}",
+            "method": "DELETE",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "messages": {
+            "success": "Employee deleted successfully",
+            "failure": "Failed to delete employee"
+          }
+        }
+      ]
+    }
+  }
+}
