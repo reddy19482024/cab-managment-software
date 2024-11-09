@@ -1,0 +1,129 @@
+  {
+      "Trip": {
+        "endpoints": {
+          "schedule": {
+            "path": "/api/trips",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Schedule a new trip",
+            "request_payload": {
+              "pickup_location": "123 Main St",
+              "dropoff_location": "456 Elm St",
+              "driver_id": "uuid-driver-id",
+              "vehicle_id": "uuid-vehicle-id",
+              "start_time": "2023-10-12T09:00:00Z",
+              "end_time": "2023-10-12T10:00:00Z",
+              "status": "scheduled",
+              "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"]
+            },
+            "constraints": {
+              "assigned_employees_limit": "The number of assigned employees cannot exceed the vehicle's seating capacity."
+            },
+            "response": {
+              "trip_id": "uuid-generated-id",
+              "pickup_location": "123 Main St",
+              "dropoff_location": "456 Elm St",
+              "driver_id": "uuid-driver-id",
+              "vehicle_id": "uuid-vehicle-id",
+              "start_time": "2023-10-12T09:00:00Z",
+              "end_time": "2023-10-12T10:00:00Z",
+              "status": "scheduled",
+              "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"],
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/trips/{trip_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Retrieve details of a specific trip by ID",
+            "response": {
+              "trip_id": "uuid-trip-id",
+              "pickup_location": "123 Main St",
+              "dropoff_location": "456 Elm St",
+              "driver_id": "uuid-driver-id",
+              "vehicle_id": "uuid-vehicle-id",
+              "start_time": "2023-10-12T09:00:00Z",
+              "end_time": "2023-10-12T10:00:00Z",
+              "status": "scheduled",
+              "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"],
+              "created_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/trips/{trip_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update an existing trip",
+            "request_payload": {
+              "pickup_location": "123 Main St",
+              "dropoff_location": "789 Oak St",
+              "driver_id": "uuid-driver-id",
+              "vehicle_id": "uuid-vehicle-id",
+              "start_time": "2023-10-12T10:00:00Z",
+              "end_time": "2023-10-12T11:00:00Z",
+              "status": "completed",
+              "assigned_employees": ["uuid-employee-id-1"]
+            },
+            "response": {
+              "trip_id": "uuid-trip-id",
+              "pickup_location": "123 Main St",
+              "dropoff_location": "789 Oak St",
+              "driver_id": "uuid-driver-id",
+              "vehicle_id": "uuid-vehicle-id",
+              "start_time": "2023-10-12T10:00:00Z",
+              "end_time": "2023-10-12T11:00:00Z",
+              "status": "completed",
+              "assigned_employees": ["uuid-employee-id-1"],
+              "updated_at": "timestamp"
+            }
+          },
+          "delete": {
+            "path": "/api/trips/{trip_id}",
+            "method": "DELETE",
+            "route_type": "private",
+            "description": "Delete a trip by ID",
+            "response": {
+              "message": "Trip deleted successfully",
+              "trip_id": "uuid-trip-id"
+            }
+          },
+          "list": {
+            "path": "/api/trips",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List all trips with filtering options",
+            "params": {
+              "search": "pickup_location, dropoff_location",
+              "sort": "start_time, status",
+              "filter": "status, driver_id, vehicle_id"
+            },
+            "response": [
+              {
+                "trip_id": "uuid-1",
+                "pickup_location": "123 Main St",
+                "dropoff_location": "456 Elm St",
+                "driver_id": "uuid-driver-id",
+                "vehicle_id": "uuid-vehicle-id",
+                "start_time": "2023-10-12T09:00:00Z",
+                "end_time": "2023-10-12T10:00:00Z",
+                "status": "completed",
+                "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"]
+              },
+              {
+                "trip_id": "uuid-2",
+                "pickup_location": "789 Pine St",
+                "dropoff_location": "101 Maple St",
+                "driver_id": "uuid-driver-id-2",
+                "vehicle_id": "uuid-vehicle-id-2",
+                "start_time": "2023-10-13T15:00:00Z",
+                "end_time": "2023-10-13T16:00:00Z",
+                "status": "scheduled",
+                "assigned_employees": ["uuid-employee-id-3"]
+              }
+            ]
+          }
+        }
+      }
+    }
+    

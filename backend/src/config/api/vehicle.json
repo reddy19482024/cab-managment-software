@@ -1,0 +1,104 @@
+{
+  "Vehicle": {
+    "endpoints": {
+      "create": {
+        "path": "/api/vehicles",
+        "method": "POST",
+        "route_type": "private",
+        "description": "Add a new vehicle to the fleet",
+        "request_payload": {
+          "registration_number": "string",
+          "make": "string",
+          "model": "string",
+          "status": "string",
+          "seats": "integer"
+        },
+        "response": {
+          "vehicle_id": "uuid-generated-id",
+          "registration_number": "ABC1234",
+          "make": "Toyota",
+          "model": "Camry",
+          "status": "available",
+          "seats": 4,
+          "created_at": "timestamp"
+        }
+      },
+      "read": {
+        "path": "/api/vehicles/{vehicle_id}",
+        "method": "GET",
+        "route_type": "private",
+        "description": "Retrieve details of a specific vehicle by ID",
+        "response": {
+          "vehicle_id": "uuid-vehicle-id",
+          "registration_number": "ABC1234",
+          "make": "Toyota",
+          "model": "Camry",
+          "status": "available",
+          "seats": 4,
+          "created_at": "timestamp"
+        }
+      },
+      "update": {
+        "path": "/api/vehicles/{vehicle_id}",
+        "method": "PUT",
+        "route_type": "private",
+        "description": "Update an existing vehicle",
+        "request_payload": {
+          "registration_number": "string",
+          "make": "string",
+          "model": "string",
+          "status": "string",
+          "seats": "integer"
+        },
+        "response": {
+          "vehicle_id": "uuid-vehicle-id",
+          "registration_number": "ABC1234",
+          "make": "Toyota",
+          "model": "Camry",
+          "status": "maintenance",
+          "seats": 5,
+          "updated_at": "timestamp"
+        }
+      },
+      "delete": {
+        "path": "/api/vehicles/{vehicle_id}",
+        "method": "DELETE",
+        "route_type": "private",
+        "description": "Delete a vehicle by ID",
+        "response": {
+          "message": "Vehicle deleted successfully",
+          "vehicle_id": "uuid-vehicle-id"
+        }
+      },
+      "list": {
+        "path": "/api/vehicles",
+        "method": "GET",
+        "route_type": "private",
+        "description": "List all vehicles with filtering options",
+        "params": {
+          "search": "registration_number, make, model",
+          "sort": "status, seats",
+          "filter": "status"
+        },
+        "response": [
+          {
+            "vehicle_id": "uuid-1",
+            "registration_number": "ABC1234",
+            "make": "Toyota",
+            "model": "Camry",
+            "status": "available",
+            "seats": 4
+          },
+          {
+            "vehicle_id": "uuid-2",
+            "registration_number": "DEF5678",
+            "make": "Honda",
+            "model": "Civic",
+            "status": "maintenance",
+            "seats": 5
+          }
+        ]
+      }
+    }
+  }
+}

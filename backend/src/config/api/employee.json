@@ -1,0 +1,131 @@
+{
+    "Employee": {
+      "endpoints": {
+        "register": {
+          "path": "/api/employees/register",
+          "method": "POST",
+          "route_type": "public",
+          "description": "Register a new employee",
+          "request_payload": {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "password": "securePassword123",
+            "role": "admin",
+            "phone": "1234567890"
+          },
+          "response": {
+            "employee_id": "uuid-generated-id",
+            "name": "John Doe",
+            "email": "john@example.com",
+            "role": "admin",
+            "phone": "1234567890",
+            "created_at": "timestamp"
+          }
+        },
+        "login": {
+          "path": "/api/employees/login",
+          "method": "POST",
+          "route_type": "public",
+          "description": "Employee login with employee ID and password",
+          "request_payload": {
+            "email": "email",
+            "password": "securePassword123"
+          },
+          "response": {
+            "token": "jwt-token-for-authentication"
+          }
+        },
+        "create": {
+          "path": "/api/employees",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Create a new employee",
+          "request_payload": {
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "password": "password123",
+            "role": "employee",
+            "phone": "0987654321"
+          },
+          "response": {
+            "employee_id": "uuid-generated-id",
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "role": "employee",
+            "phone": "0987654321",
+            "created_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/employees/{employee_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Retrieve details of a specific employee by ID",
+          "response": {
+            "employee_id": "uuid-employee-id",
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "role": "employee",
+            "phone": "0987654321",
+            "created_at": "timestamp"
+          }
+        },
+        "update": {
+          "path": "/api/employees/{employee_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update an existing employee",
+          "request_payload": {
+            "name": "Jane Doe",
+            "email": "jane.doe@example.com",
+            "phone": "1234567890"
+          },
+          "response": {
+            "employee_id": "uuid-employee-id",
+            "name": "Jane Doe",
+            "email": "jane.doe@example.com",
+            "phone": "1234567890",
+            "updated_at": "timestamp"
+          }
+        },
+        "delete": {
+          "path": "/api/employees/{employee_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete an employee by ID",
+          "response": {
+            "message": "Employee deleted successfully",
+            "employee_id": "uuid-employee-id"
+          }
+        },
+        "list": {
+          "path": "/api/employees",
+          "method": "GET",
+          "route_type": "private",
+          "description": "List all employees with filtering options",
+          "params": {
+            "search": "name, email",
+            "sort": "name, role",
+            "filter": "role"
+          },
+          "response": [
+            {
+              "employee_id": "uuid-1",
+              "name": "John Doe",
+              "email": "john@example.com",
+              "role": "admin",
+              "phone": "1234567890"
+            },
+            {
+              "employee_id": "uuid-2",
+              "name": "Jane Smith",
+              "email": "jane@example.com",
+              "role": "employee",
+              "phone": "0987654321"
+            }
+          ]
+        }
+      }
+    }
+  }
+  

@@ -1,0 +1,91 @@
+{
+    "Schedule": {
+      "endpoints": {
+        "create": {
+          "path": "/api/schedules",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Create a new schedule entry for an employee",
+          "request_payload": {
+            "employee_id": "uuid-employee-id",
+            "trip_id": "uuid-trip-id",
+            "date": "2023-10-12T09:00:00Z"
+          },
+          "response": {
+            "schedule_id": "uuid-generated-id",
+            "employee_id": "uuid-employee-id",
+            "trip_id": "uuid-trip-id",
+            "date": "2023-10-12T09:00:00Z",
+            "created_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/schedules/{schedule_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Retrieve details of a specific schedule entry by ID",
+          "response": {
+            "schedule_id": "uuid-schedule-id",
+            "employee_id": "uuid-employee-id",
+            "trip_id": "uuid-trip-id",
+            "date": "2023-10-12T09:00:00Z",
+            "created_at": "timestamp"
+          }
+        },
+        "update": {
+          "path": "/api/schedules/{schedule_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update an existing schedule entry",
+          "request_payload": {
+            "employee_id": "uuid-employee-id",
+            "trip_id": "uuid-trip-id",
+            "date": "2023-10-13T09:00:00Z"
+          },
+          "response": {
+            "schedule_id": "uuid-schedule-id",
+            "employee_id": "uuid-employee-id",
+            "trip_id": "uuid-trip-id",
+            "date": "2023-10-13T09:00:00Z",
+            "updated_at": "timestamp"
+          }
+        },
+        "delete": {
+          "path": "/api/schedules/{schedule_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete a schedule entry by ID",
+          "response": {
+            "message": "Schedule deleted successfully",
+            "schedule_id": "uuid-schedule-id"
+          }
+        },
+        "list": {
+          "path": "/api/schedules",
+          "method": "GET",
+          "route_type": "private",
+          "description": "List all schedules with filtering options",
+          "params": {
+            "search": "employee_id, trip_id",
+            "sort": "date",
+            "filter": "employee_id, trip_id, date"
+          },
+          "response": [
+            {
+              "schedule_id": "uuid-1",
+              "employee_id": "uuid-employee-id-1",
+              "trip_id": "uuid-trip-id-1",
+              "date": "2023-10-12T09:00:00Z"
+            },
+            {
+              "schedule_id": "uuid-2",
+              "employee_id": "uuid-employee-id-2",
+              "trip_id": "uuid-trip-id-2",
+              "date": "2023-10-13T15:00:00Z"
+            }
+          ]
+        }
+      }
+    }
+  }
+  
