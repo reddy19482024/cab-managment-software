@@ -11,7 +11,6 @@ const FormComponent = ({
   onFormSubmit
 }) => {
   const formSection = config.sections.find(section => section.type === 'form');
-  const isAuthForm = formSection?.containerStyle?.padding?.includes('35%');
 
   const renderFormField = (field) => {
     switch (field.type) {
@@ -55,68 +54,26 @@ const FormComponent = ({
   };
 
   return (
-    <div style={{ flex: 1, padding: '24px' }}>
-      <div style={{
-        ...formSection.wrapperStyle,
-        borderRadius: '8px',
-        background: '#ffffff'
-      }}>
-        {!isAuthForm && (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'flex-start',
-            marginBottom: '24px'
+    <div style={formSection.containerStyle}>
+      <div style={formSection.wrapperStyle}>
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ 
+            fontSize: formSection.title?.fontSize || '24px', 
+            fontWeight: formSection.title?.fontWeight || '600',
+            margin: formSection.title?.margin || 0
           }}>
-            <div>
-              <h2 style={{ 
-                fontSize: '18px', 
-                fontWeight: '600', 
-                margin: 0
-              }}>
-                {formSection.title}
-              </h2>
-              <p style={{ 
-                color: '#6B7280', 
-                margin: '4px 0 0 0',
-                fontSize: '14px'
-              }}>
-                {formSection.subtitle}
-              </p>
-            </div>
-
-            {formSection.actions?.map(action => (
-              action.onClick?.type === 'modal' && (
-                <Button
-                  key={action.label}
-                  {...action.buttonProps}
-                  onClick={() => onModalOpen(action.onClick.modalId)}
-                >
-                  {action.label}
-                </Button>
-              )
-            ))}
-          </div>
-        )}
-
-        {isAuthForm && (
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ 
-              fontSize: '24px', 
-              fontWeight: '600', 
-              margin: 0
-            }}>
-              {formSection.title}
-            </h2>
+            {formSection.title}
+          </h2>
+          {formSection.subtitle && (
             <p style={{ 
-              color: '#6B7280', 
-              margin: '4px 0 0 0',
-              fontSize: '14px'
+              color: formSection.subtitle?.color || '#6B7280',
+              margin: formSection.subtitle?.margin || '4px 0 0 0',
+              fontSize: formSection.subtitle?.fontSize || '14px'
             }}>
               {formSection.subtitle}
             </p>
-          </div>
-        )}
+          )}
+        </div>
 
         <Form
           form={form}
@@ -138,7 +95,7 @@ const FormComponent = ({
 
           {formSection.divider && (
             <div style={formSection.divider.style}>
-              <div className="ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-center">
+              <div className={`ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-${formSection.divider.orientation || 'center'}`}>
                 <span className="ant-divider-inner-text">
                   {formSection.divider.text}
                 </span>
@@ -157,9 +114,13 @@ const FormComponent = ({
           ))}
 
           {formSection.links?.map((link, index) => (
-            <div key={index} style={link.style}>
-              <a href={link.url}>{link.text}</a>
-            </div>
+            <a 
+              key={index} 
+              href={link.url}
+              style={link.style}
+            >
+              {link.text}
+            </a>
           ))}
 
           <Form.Item>
