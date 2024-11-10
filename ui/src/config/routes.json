@@ -15,6 +15,16 @@
       "path": "/employees",
       "componentConfig": "EmployeeManagement",
       "title": "EmployeeManagement"
+    },
+    {
+      "path": "/vehicles",
+      "componentConfig": "vehicle",
+      "title": "vechile management"
+    },
+    {
+      "path": "/trips",
+      "componentConfig": "trip",
+      "title": "trip management"
     }
   ]
 }

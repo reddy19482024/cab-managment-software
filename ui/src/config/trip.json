@@ -1,0 +1,170 @@
+{
+    "title": "Trip Management",
+    "layout": {
+      "header": {
+        "enabled": true,
+        "logo": "/images/company-logo.png",
+        "style": { "background": "#fff", "padding": "0 24px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)", "height": "64px", "lineHeight": "64px" }
+      },
+      "sidebar": {
+        "enabled": true,
+        "collapsed": false,
+        "width": 256,
+        "collapsedWidth": 80,
+        "theme": "dark",
+        "style": {
+          "background": "#001529",
+          "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
+        },
+        "menu": {
+          "items": [
+            { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+            {
+              "type": "group",
+              "label": "Management",
+              "children": [
+                { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+                { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+                { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+              ]
+            },
+            {
+              "type": "group",
+              "label": "Administration",
+              "children": [
+                { "key": "roles", "label": "Roles & Permissions", "icon": "SafetyOutlined", "path": "/roles" },
+                { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" }
+              ]
+            },
+            {
+              "type": "group",
+              "label": "Reports",
+              "children": [
+                { "key": "analytics", "label": "Analytics", "icon": "BarChartOutlined", "path": "/analytics" },
+                { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+                { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
+              ]
+            }
+          ]
+        },
+        "footer": {
+          "enabled": true,
+          "style": {
+            "padding": "16px",
+            "background": "rgba(0, 0, 0, 0.25)",
+            "color": "#fff",
+            "height": "80px"
+          },
+          "content": {
+            "expanded": { "avatar": "/images/user-avatar.png", "name": "John Doe", "role": "Admin" },
+            "collapsed": { "avatar": "/images/user-avatar.png" }
+          }
+        }
+      },
+      "content": { "style": { "minHeight": "calc(100vh - 64px)", "background": "#f0f2f5" } },
+      "footer": {
+        "enabled": true,
+        "text": "© 2024 My Application. All rights reserved.",
+        "style": { "textAlign": "center", "padding": "16px", "background": "#f7f7f7" },
+        "links": [
+          { "text": "Privacy Policy", "url": "/privacy" },
+          { "text": "Terms", "url": "/terms" }
+        ]
+      }
+    },
+
+    "sections": [
+      {
+        "type": "banner",
+        "style": { "background": "#722ed1", "padding": "24px", "marginBottom": "24px" },
+        "content": {
+          "title": "Trip Management",
+          "description": "Manage and track all trips and routes",
+          "style": { "maxWidth": "100%", "padding": "0 24px" }
+        }
+      },
+      {
+        "type": "form",
+        "containerStyle": { "padding": "0 24px" },
+        "wrapperStyle": { "background": "#ffffff", "padding": "24px", "borderRadius": "8px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)" },
+        "title": "Trip List",
+        "subtitle": "View and manage all trips",
+        "layout": { "type": "vertical" },
+        "table": {
+          "enabled": true,
+          "columns": [
+            { "title": "Trip ID", "dataIndex": "tripId", "key": "tripId", "width": "10%" },
+            { "title": "Driver", "dataIndex": "driver", "key": "driver", "width": "15%" },
+            { "title": "Vehicle", "dataIndex": "vehicle", "key": "vehicle", "width": "15%" },
+            { "title": "Start Location", "dataIndex": "startLocation", "key": "startLocation", "width": "15%" },
+            { "title": "End Location", "dataIndex": "endLocation", "key": "endLocation", "width": "15%" },
+            { 
+              "title": "Status", "dataIndex": "status", "key": "status", "width": "10%",
+              "render": {
+                "type": "tag",
+                "colorMap": { "Scheduled": "blue", "In Progress": "orange", "Completed": "green", "Cancelled": "red", "Delayed": "yellow" }
+              }
+            },
+            {
+              "title": "Actions", "key": "actions", "width": "10%",
+              "render": {
+                "type": "actions",
+                "items": [
+                  { "type": "button", "buttonProps": { "type": "link", "icon": "EditOutlined" }, "onClick": { "type": "modal", "modalId": "editTripModal" } },
+                  { "type": "button", "buttonProps": { "type": "link", "danger": true, "icon": "DeleteOutlined" }, "onClick": { "type": "modal", "modalId": "deleteTripModal" } }
+                ]
+              }
+            }
+          ],
+          "api": { "endpoint": "/api/trips", "method": "GET", "headers": { "Content-Type": "application/json" } },
+          "fallbackData": [
+            { "id": "1", "tripId": "TR001", "driver": "John Doe", "vehicle": "Toyota Camry (VH001)", "startLocation": "New York", "endLocation": "Boston", "status": "Scheduled", "startDate": "2024-03-15", "endDate": "2024-03-15" },
+            { "id": "2", "tripId": "TR002", "driver": "Jane Smith", "vehicle": "Honda CR-V (VH002)", "startLocation": "Chicago", "endLocation": "Detroit", "status": "In Progress", "startDate": "2024-03-14", "endDate": "2024-03-14" }
+          ]
+        },
+        "actions": [
+          { "label": "Add Trip", "buttonProps": { "type": "primary", "icon": "PlusOutlined" }, "style": { "marginBottom": "16px" }, "onClick": { "type": "modal", "modalId": "addTripModal" } }
+        ]
+      }
+    ],
+    "modals": {
+      "addTripModal": {
+        "title": "Schedule New Trip",
+        "layout": { "type": "vertical" },
+        "fields": [
+          { "name": "tripId", "type": "text", "label": "Trip ID", "placeholder": "Enter trip ID", "size": "large", "rules": [{ "required": true, "message": "Please enter trip ID" }] },
+          { "name": "driver", "type": "select", "label": "Driver", "placeholder": "Select driver", "size": "large", "options": [{ "label": "John Doe", "value": "John Doe" }, { "label": "Jane Smith", "value": "Jane Smith" }], "rules": [{ "required": true, "message": "Please select driver" }] },
+          { "name": "vehicle", "type": "select", "label": "Vehicle", "placeholder": "Select vehicle", "size": "large", "options": [{ "label": "Toyota Camry (VH001)", "value": "Toyota Camry (VH001)" }, { "label": "Honda CR-V (VH002)", "value": "Honda CR-V (VH002)" }], "rules": [{ "required": true, "message": "Please select vehicle" }] },
+          { "name": "startLocation", "type": "text", "label": "Start Location", "placeholder": "Enter start location", "size": "large", "rules": [{ "required": true, "message": "Please enter start location" }] },
+          { "name": "endLocation", "type": "text", "label": "End Location", "placeholder": "Enter end location", "size": "large", "rules": [{ "required": true, "message": "Please enter end location" }] },
+          { "name": "startDate", "type": "date", "label": "Start Date", "placeholder": "Select start date", "size": "large", "rules": [{ "required": true, "message": "Please select start date" }] },
+          { "name": "endDate", "type": "date", "label": "End Date", "placeholder": "Select end date", "size": "large", "rules": [{ "required": true, "message": "Please select end date" }] },
+          { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large", "options": [{ "label": "Scheduled", "value": "Scheduled" }, { "label": "In Progress", "value": "In Progress" }, { "label": "Completed", "value": "Completed" }, { "label": "Cancelled", "value": "Cancelled" }, { "label": "Delayed", "value": "Delayed" }], "rules": [{ "required": true, "message": "Please select status" }] }
+        ],
+        "actions": [
+          { "label": "Schedule Trip", "buttonProps": { "type": "primary", "htmlType": "submit", "block": true }, "style": { "marginTop": "24px" }, "api": { "endpoint": "/api/trips", "method": "POST", "headers": { "Content-Type": "application/json" } }, "messages": { "success": "Trip scheduled successfully", "failure": "Failed to schedule trip" } }
+        ]
+      },
+      "editTripModal": {
+        "title": "Edit Trip",
+        "layout": { "type": "vertical" },
+        "fields": [
+          { "name": "tripId", "type": "text", "label": "Trip ID", "placeholder": "Enter trip ID", "size": "large", "rules": [{ "required": true, "message": "Please enter trip ID" }] },
+          { "name": "driver", "type": "select", "label": "Driver", "placeholder": "Select driver", "size": "large", "options": [{ "label": "John Doe", "value": "John Doe" }, { "label": "Jane Smith", "value": "Jane Smith" }], "rules": [{ "required": true, "message": "Please select driver" }] },
+          { "name": "vehicle", "type": "select", "label": "Vehicle", "placeholder": "Select vehicle", "size": "large", "options": [{ "label": "Toyota Camry (VH001)", "value": "Toyota Camry (VH001)" }, { "label": "Honda CR-V (VH002)", "value": "Honda CR-V (VH002)" }], "rules": [{ "required": true, "message": "Please select vehicle" }] },
+          { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large", "options": [{ "label": "Scheduled", "value": "Scheduled" }, { "label": "In Progress", "value": "In Progress" }, { "label": "Completed", "value": "Completed" }, { "label": "Cancelled", "value": "Cancelled" }], "rules": [{ "required": true, "message": "Please select status" }] }
+        ],
+        "actions": [
+          { "label": "Update Trip", "buttonProps": { "type": "primary", "htmlType": "submit", "block": true }, "style": { "marginTop": "24px" }, "api": { "endpoint": "/api/trips/{id}", "method": "PUT", "headers": { "Content-Type": "application/json" } }, "messages": { "success": "Trip updated successfully", "failure": "Failed to update trip" } }
+        ]
+      },
+      "deleteTripModal": {
+        "title": "Delete Trip",
+        "type": "confirm",
+        "content": "Are you sure you want to delete this trip? This action cannot be undone.",
+        "actions": [
+          { "label": "Delete", "buttonProps": { "type": "primary", "danger": true }, "api": { "endpoint": "/api/trips/{id}", "method": "DELETE", "headers": { "Content-Type": "application/json" } }, "messages": { "success": "Trip deleted successfully", "failure": "Failed to delete trip" } }
+        ]
+      }
+    }
+  }

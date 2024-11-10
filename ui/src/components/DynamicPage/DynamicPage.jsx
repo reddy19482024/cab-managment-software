@@ -1,4 +1,3 @@
-// components/DynamicPage/index.js
 import React, { useEffect, useState } from 'react';
 import { Layout, Form, message, Spin, Button } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
@@ -33,8 +32,8 @@ const DynamicPage = ({ configName }) => {
   useEffect(() => {
     if (config) {
       const formSection = config.sections?.find(section => section.type === 'form');
-      if (formSection?.table?.enabled) {
-        loadTableData();
+      if (formSection?.table?.enabled && formSection?.table?.api) {
+        loadTableData(formSection.table.api);
       }
     }
   }, [config]);
@@ -54,39 +53,36 @@ const DynamicPage = ({ configName }) => {
   };
 
   // Table Data Loading
-  const loadTableData = async () => {
-    const formSection = config?.sections?.find(section => section.type === 'form');
-    const tableConfig = formSection?.table;
-    if (!tableConfig?.api) return;
+  const loadTableData = async (apiConfig) => {
+    if (!apiConfig) return;
 
     try {
       setLoading(true);
-      const response = await fetch(tableConfig.api.endpoint, {
-        method: tableConfig.api.method,
-        headers: tableConfig.api.headers || {},
+      const response = await fetch(apiConfig.endpoint, {
+        method: apiConfig.method,
+        headers: apiConfig.headers || {},
       });
 
       if (response.ok) {
         const data = await response.json();
-        setTableData(Array.isArray(data) ? data : tableConfig.fallbackData || []);
+        setTableData(Array.isArray(data) ? data : []);
       } else {
-        setTableData(tableConfig.fallbackData || []);
+        throw new Error('Failed to load data');
       }
     } catch (error) {
       console.error("Error loading table data:", error);
-      setTableData(tableConfig.fallbackData || []);
+      // Use fallback data if available
+      const formSection = config.sections?.find(section => section.type === 'form');
+      setTableData(formSection?.table?.fallbackData || []);
     } finally {
       setLoading(false);
     }
   };
 
-  // Form Submission Handler
-  const handleFormSubmit = async (values) => {
-    const formSection = config?.sections?.find(section => section.type === 'form');
-    const action = currentModal ? config?.modals?.[currentModal]?.actions?.[0] : formSection?.actions?.[0];
-
+  // Generic API Handler
+  const handleApiAction = async (action, values, record = null) => {
     if (!action?.api) {
-      message.error('Action configuration is missing');
+      message.error('API configuration is missing');
       return;
     }
 
@@ -94,26 +90,31 @@ const DynamicPage = ({ configName }) => {
       setLoading(true);
       
       let endpoint = action.api.endpoint;
-      if (selectedRecord?.id && currentModal === 'editEmployeeModal') {
-        endpoint = endpoint.replace('{id}', selectedRecord.id);
+      // Replace any dynamic parameters in the endpoint
+      if (record?.id) {
+        endpoint = endpoint.replace(/{(\w+)}/g, (_, param) => record[param] || '');
       }
 
       const response = await fetch(endpoint, {
         method: action.api.method,
         headers: { ...action.api.headers },
-        body: JSON.stringify(values),
+        body: action.api.method !== 'GET' ? JSON.stringify(values) : undefined,
       });
 
       if (response.ok) {
-        message.success(action.messages.success || 'Operation succeeded');
+        message.success(action.messages?.success || 'Operation successful');
+        // Handle post-success actions
         if (currentModal) {
           handleModalClose();
-          loadTableData();
-        } else {
-          form.resetFields();
         }
+        // Reload table data if it exists
+        const formSection = config.sections?.find(section => section.type === 'form');
+        if (formSection?.table?.enabled && formSection?.table?.api) {
+          loadTableData(formSection.table.api);
+        }
+        form.resetFields();
       } else {
-        throw new Error(action.messages.failure || 'Operation failed');
+        throw new Error(action.messages?.failure || 'Operation failed');
       }
     } catch (error) {
       message.error(error.message || 'Operation failed');
@@ -122,12 +123,23 @@ const DynamicPage = ({ configName }) => {
     }
   };
 
+  // Form Submission Handler
+  const handleFormSubmit = async (values) => {
+    const formSection = config.sections?.find(section => section.type === 'form');
+    const modalConfig = currentModal ? config.modals[currentModal] : null;
+    const action = modalConfig?.actions?.[0] || formSection?.actions?.[0];
+
+    await handleApiAction(action, values, selectedRecord);
+  };
+
   // Modal Handlers
   const handleModalOpen = (modalId, record = null) => {
     setCurrentModal(modalId);
     setSelectedRecord(record);
     setModalVisible(true);
-    if (record && modalId === 'editEmployeeModal') {
+    
+    // Set form values if editing
+    if (record) {
       form.setFieldsValue(record);
     }
   };
@@ -138,39 +150,38 @@ const DynamicPage = ({ configName }) => {
     setSelectedRecord(null);
     form.resetFields();
   };
-
-  // Delete Handler
-  const handleDelete = async () => {
-    const modalConfig = config?.modals?.deleteEmployeeModal;
-    const action = modalConfig?.actions?.[0];
-
-    if (!action?.api || !selectedRecord?.id) {
-      message.error('Delete configuration or record is missing');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const endpoint = action.api.endpoint.replace('{id}', selectedRecord.id);
-
-      const response = await fetch(endpoint, {
-        method: action.api.method,
-        headers: action.api.headers || {}
-      });
-
-      if (response.ok) {
-        message.success(action.messages.success || 'Delete succeeded');
-        handleModalClose();
-        loadTableData();
-      } else {
-        throw new Error(action.messages.failure || 'Delete failed');
+    // Delete Handler
+    const handleDelete = async () => {
+      const modalConfig = config?.modals?.deleteEmployeeModal;
+      const action = modalConfig?.actions?.[0];
+  
+      if (!action?.api || !selectedRecord?.id) {
+        message.error('Delete configuration or record is missing');
+        return;
       }
-    } catch (error) {
-      message.error(error.message || 'Delete operation failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+      try {
+        setLoading(true);
+        const endpoint = action.api.endpoint.replace('{id}', selectedRecord.id);
+  
+        const response = await fetch(endpoint, {
+          method: action.api.method,
+          headers: action.api.headers || {}
+        });
+  
+        if (response.ok) {
+          message.success(action.messages.success || 'Delete succeeded');
+          handleModalClose();
+          loadTableData();
+        } else {
+          throw new Error(action.messages.failure || 'Delete failed');
+        }
+      } catch (error) {
+        message.error(error.message || 'Delete operation failed');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // Loading State
   if (pageLoading) {
@@ -203,35 +214,49 @@ const DynamicPage = ({ configName }) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img 
-              src={config.layout.header.logo} 
-              alt="Logo" 
-              style={{ height: '32px', marginRight: '24px' }}
-            />
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{ fontSize: '16px' }}
-            />
+            {config.layout.header.logo && (
+              <img 
+                src={config.layout.header.logo} 
+                alt="Logo" 
+                style={{ height: '32px', marginRight: '24px' }}
+              />
+            )}
+            {config.layout.sidebar?.enabled && (
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: '16px' }}
+              />
+            )}
           </div>
         </Layout.Header>
       )}
       
-      <Layout style={{ marginTop: 64 }}>
-        <SidebarComponent 
-          config={config}
-          collapsed={collapsed}
-          onCollapse={setCollapsed}
-        />
+      <Layout style={{ 
+        marginTop: config.layout.header.enabled ? 64 : 0 
+      }}>
+        {config.layout.sidebar?.enabled && (
+          <SidebarComponent 
+            config={config}
+            collapsed={collapsed}
+            onCollapse={setCollapsed}
+          />
+        )}
         
         <Layout style={{ 
           transition: 'all 0.2s',
-          marginLeft: collapsed ? `${config.layout.sidebar.collapsedWidth}px` : `${config.layout.sidebar.width}px`
+          marginLeft: config.layout.sidebar?.enabled 
+            ? (collapsed 
+              ? `${config.layout.sidebar.collapsedWidth}px` 
+              : `${config.layout.sidebar.width}px`)
+            : 0
         }}>
           <Content style={{
             ...config.layout.content.style,
-            minHeight: 'calc(100vh - 64px)',
+            minHeight: config.layout.header.enabled 
+              ? 'calc(100vh - 64px)' 
+              : '100vh',
             padding: 0,
             display: 'flex',
             flexDirection: 'column'
@@ -273,13 +298,16 @@ const DynamicPage = ({ configName }) => {
         visible={modalVisible}
         onClose={handleModalClose}
         onSubmit={handleFormSubmit}
-        onDelete={handleDelete}
         loading={loading}
         form={form}
-        currentModal={currentModal}
+        record={selectedRecord}
       />
     </Layout>
   );
+};
+
+DynamicPage.propTypes = {
+  configName: PropTypes.string.isRequired
 };
 
 export default DynamicPage;

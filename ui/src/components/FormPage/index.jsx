@@ -62,10 +62,13 @@ const FormPageComponent = ({
   const renderPageContent = () => {
     const formSection = config.sections.find(section => section.type === 'form');
     const bannerSection = config.sections.find(section => section.type === 'banner');
+    
+    // Check if this is a login/auth form by checking containerStyle
+    const isAuthForm = formSection?.containerStyle?.padding?.includes('35%');
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-        {/* Banner Section */}
+        {/* Banner Section - same as before */}
         {bannerSection && (
           <div style={{
             ...bannerSection.style,
@@ -111,15 +114,51 @@ const FormPageComponent = ({
             borderRadius: '8px',
             background: '#ffffff'
           }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'flex-start',
-              marginBottom: '24px'
-            }}>
-              <div>
+            {/* Only show this header for non-auth forms */}
+            {!isAuthForm && (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'flex-start',
+                marginBottom: '24px'
+              }}>
+                <div>
+                  <h2 style={{ 
+                    fontSize: '18px', 
+                    fontWeight: '600', 
+                    margin: 0
+                  }}>
+                    {formSection.title}
+                  </h2>
+                  <p style={{ 
+                    color: '#6B7280', 
+                    margin: '4px 0 0 0',
+                    fontSize: '14px'
+                  }}>
+                    {formSection.subtitle}
+                  </p>
+                </div>
+
+                {formSection.actions?.map(action => (
+                  action.onClick?.type === 'modal' && (
+                    <Button
+                      key={action.label}
+                      {...action.buttonProps}
+                      icon={<PlusOutlined />}
+                      onClick={() => onModalOpen(action.onClick.modalId)}
+                    >
+                      {action.label}
+                    </Button>
+                  )
+                ))}
+              </div>
+            )}
+
+            {/* For auth forms, show title here */}
+            {isAuthForm && (
+              <div style={{ marginBottom: '24px' }}>
                 <h2 style={{ 
-                  fontSize: '18px', 
+                  fontSize: '24px', 
                   fontWeight: '600', 
                   margin: 0
                 }}>
@@ -133,23 +172,10 @@ const FormPageComponent = ({
                   {formSection.subtitle}
                 </p>
               </div>
-
-              {formSection.actions?.map(action => (
-                action.onClick?.type === 'modal' && (
-                  <Button
-                    key={action.label}
-                    {...action.buttonProps}
-                    icon={<PlusOutlined />}
-                    onClick={() => onModalOpen(action.onClick.modalId)}
-                  >
-                    {action.label}
-                  </Button>
-                )
-              ))}
-            </div>
+            )}
 
             {formSection.table?.enabled ? (
-              <Table
+               <Table
                 columns={formSection.table.columns.map(column => ({
                   ...column,
                   render: column.render?.type === 'actions' 
@@ -189,8 +215,8 @@ const FormPageComponent = ({
                 }}
                 size="middle"
                 scroll={{ x: true }}
-                bordered
-              />
+                bordered 
+                />
             ) : (
               <Form
                 form={form}
@@ -209,6 +235,16 @@ const FormPageComponent = ({
                     {renderFormField(field)}
                   </Form.Item>
                 ))}
+
+                {formSection.divider && (
+                  <div style={formSection.divider.style}>
+                    <div className="ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-center">
+                      <span className="ant-divider-inner-text">
+                        {formSection.divider.text}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {formSection.links?.map((link, index) => (
                   <div key={index} style={link.style}>

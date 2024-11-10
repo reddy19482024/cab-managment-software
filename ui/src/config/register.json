@@ -2,7 +2,7 @@
   "title": "Registration",
   "layout": {
     "header": {
-      "enabled": true,
+      "enabled": false,
       "logo": "/assets/logo.png",
       "style": {
         "background": "#ffffff",

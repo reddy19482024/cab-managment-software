@@ -12,115 +12,61 @@
         "lineHeight": "64px"
       }
     },
-    "sidebar": {
-      "enabled": true,
-      "collapsed": false,
-      "width": 100,
-      "collapsedWidth": 100,
-      "theme": "dark",
-      "style": {
-        "background": "#001529",
-        "minHeight": "100vh"
-      },
-      "menu": {
-        "items": [
-          {
-            "key": "dashboard",
-            "label": "Dashboard",
-            "icon": "DashboardOutlined",
-            "path": "/dashboard"
-          },
-          {
-            "type": "group",
-            "label": "Management",
-            "children": [
-              {
-                "key": "employees",
-                "label": "Employees",
-                "icon": "UserOutlined",
-                "path": "/employees"
-              },
-              {
-                "key": "vehicles",
-                "label": "Vehicles",
-                "icon": "CarOutlined",
-                "path": "/vehicles"
-              },
-              {
-                "key": "trips",
-                "label": "Trips",
-                "icon": "CompassOutlined",
-                "path": "/trips"
-              }
-            ]
-          },
-          {
-            "type": "group",
-            "label": "Administration",
-            "children": [
-              {
-                "key": "roles",
-                "label": "Roles & Permissions",
-                "icon": "SafetyOutlined",
-                "path": "/roles"
-              },
-              {
-                "key": "settings",
-                "label": "Settings",
-                "icon": "SettingOutlined",
-                "path": "/settings"
-              }
-            ]
-          },
-          {
-            "type": "group",
-            "label": "Reports",
-            "children": [
-              {
-                "key": "analytics",
-                "label": "Analytics",
-                "icon": "BarChartOutlined",
-                "path": "/analytics"
-              },
-              {
-                "key": "expenses",
-                "label": "Expenses",
-                "icon": "DollarOutlined",
-                "path": "/expenses"
-              },
-              {
-                "key": "maintenance",
-                "label": "Maintenance",
-                "icon": "ToolOutlined",
-                "path": "/maintenance"
-              }
-            ]
-          }
-        ]
-      },
-      "footer": {
+      "sidebar": {
         "enabled": true,
-        "collapsible": true,
-        "content": {
-          "expanded": {
-            "avatar": "/images/user-avatar.png",
-            "name": "John Doe",
-            "role": "Admin"
-          },
-          "collapsed": {
-            "avatar": "/images/user-avatar.png"
-          }
-        },
+        "collapsed": false,
+        "width": 256,
+        "collapsedWidth": 80,
+        "theme": "dark",
         "style": {
-          "padding": "16px",
-          "background": "rgba(0, 0, 0, 0.25)",
-          "color": "#fff",
-          "position": "absolute",
-          "bottom": 0,
-          "width": "100%"
+          "background": "#001529",
+          "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
+        },
+        "menu": {
+          "items": [
+            { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+            {
+              "type": "group",
+              "label": "Management",
+              "children": [
+                { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+                { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+                { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+              ]
+            },
+            {
+              "type": "group",
+              "label": "Administration",
+              "children": [
+                { "key": "roles", "label": "Roles & Permissions", "icon": "SafetyOutlined", "path": "/roles" },
+                { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" }
+              ]
+            },
+            {
+              "type": "group",
+              "label": "Reports",
+              "children": [
+                { "key": "analytics", "label": "Analytics", "icon": "BarChartOutlined", "path": "/analytics" },
+                { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+                { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
+              ]
+            }
+          ]
+        },
+        "footer": {
+          "enabled": true,
+          "style": {
+            "padding": "16px",
+            "background": "rgba(0, 0, 0, 0.25)",
+            "color": "#fff",
+            "height": "80px"
+          },
+          "content": {
+            "expanded": { "avatar": "/images/user-avatar.png", "name": "John Doe", "role": "Admin" },
+            "collapsed": { "avatar": "/images/user-avatar.png" }
+          }
         }
-      }
-    },
+      },
     "content": {
       "style": {
         "minHeight": "calc(100vh - 64px)",

@@ -1,34 +1,14 @@
-// components/Sidebar/index.js
 import React from 'react';
 import { Layout, Menu } from 'antd';
-import { 
-  DashboardOutlined,
-  UserOutlined,
-  CarOutlined,
-  CompassOutlined,
-  SafetyOutlined,
-  SettingOutlined,
-  BarChartOutlined,
-  DollarOutlined,
-  ToolOutlined
-} from '@ant-design/icons';
+import * as AntdIcons from '@ant-design/icons';
 
 const { Sider } = Layout;
 
 const SidebarComponent = ({ config, collapsed, onCollapse }) => {
   const getIcon = (iconName) => {
-    const icons = {
-      DashboardOutlined: <DashboardOutlined />,
-      UserOutlined: <UserOutlined />,
-      CarOutlined: <CarOutlined />,
-      CompassOutlined: <CompassOutlined />,
-      SafetyOutlined: <SafetyOutlined />,
-      SettingOutlined: <SettingOutlined />,
-      BarChartOutlined: <BarChartOutlined />,
-      DollarOutlined: <DollarOutlined />,
-      ToolOutlined: <ToolOutlined />
-    };
-    return icons[iconName];
+    if (!iconName) return null;
+    const Icon = AntdIcons[iconName];
+    return Icon ? <Icon /> : null;
   };
 
   const renderMenuItems = (items) => {
@@ -42,7 +22,7 @@ const SidebarComponent = ({ config, collapsed, onCollapse }) => {
       }
       return (
         <Menu.Item key={item.key} icon={getIcon(item.icon)}>
-          {item.label}
+          <a href={item.path}>{item.label}</a>
         </Menu.Item>
       );
     });
@@ -59,26 +39,37 @@ const SidebarComponent = ({ config, collapsed, onCollapse }) => {
       width={sidebarConfig.width}
       collapsedWidth={sidebarConfig.collapsedWidth}
       theme={sidebarConfig.theme}
-      style={sidebarConfig.style}
+      style={{
+        ...sidebarConfig.style,
+        position: 'fixed',
+        height: '100vh',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        paddingTop: 64 // Header height
+      }}
     >
-      <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <img 
-          src={config.layout.header.logo} 
-          alt="Logo" 
-          style={{ height: '32px', margin: '16px' }}
-        />
-      </div>
-      
       <Menu
         theme={sidebarConfig.theme}
         mode="inline"
         defaultSelectedKeys={['dashboard']}
+        style={{
+          borderRight: 0,
+          height: sidebarConfig.footer?.enabled ? 'calc(100vh - 144px)' : 'calc(100vh - 64px)',
+          overflowY: 'auto'
+        }}
       >
         {renderMenuItems(sidebarConfig.menu.items)}
       </Menu>
 
       {sidebarConfig.footer?.enabled && (
-        <div style={sidebarConfig.footer.style}>
+        <div style={{
+          ...sidebarConfig.footer.style,
+          position: 'fixed',
+          bottom: 0,
+          width: collapsed ? sidebarConfig.collapsedWidth : sidebarConfig.width,
+          transition: 'all 0.2s'
+        }}>
           {collapsed ? (
             <div style={{ textAlign: 'center' }}>
               <img 
