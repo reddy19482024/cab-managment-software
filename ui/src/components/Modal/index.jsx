@@ -1,7 +1,7 @@
 // components/Modal/index.js
 import React from 'react';
 import { Modal, Form, Button, Input, Select } from 'antd';
-import { 
+import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -9,16 +9,27 @@ import {
   LockOutlined
 } from '@ant-design/icons';
 
-const ModalComponent = ({ 
-  modalConfig, 
-  visible, 
-  onClose, 
-  onSubmit, 
-  loading, 
-  form, 
+const ModalComponent = ({
+  modalConfig,
+  visible,
+  onClose,
+  onSubmit,
+  loading,
+  form,
   currentModal,
-  onDelete 
+  onDelete
 }) => {
+  const getIcon = (iconName) => {
+    const icons = {
+      PlusOutlined: <PlusOutlined />,
+      EditOutlined: <EditOutlined />,
+      DeleteOutlined: <DeleteOutlined />,
+      MailOutlined: <MailOutlined />,
+      LockOutlined: <LockOutlined />
+    };
+    return icons[iconName] || null;
+  };
+
   const renderFormField = (field) => {
     switch (field.type) {
       case 'password':
@@ -43,6 +54,8 @@ const ModalComponent = ({
             size={field.size}
             placeholder={field.placeholder}
             options={field.options}
+            showSearch={field.showSearch}
+            allowClear={field.allowClear}
           />
         );
       default:
@@ -50,6 +63,7 @@ const ModalComponent = ({
           <Input
             size={field.size}
             placeholder={field.placeholder}
+            type={field.type}
           />
         );
     }
@@ -90,18 +104,23 @@ const ModalComponent = ({
       open={visible}
       onCancel={onClose}
       footer={null}
+      width={modalConfig.width}
+      destroyOnClose={true}
     >
       <Form
         form={form}
-        layout={modalConfig.layout.type}
+        layout={modalConfig.layout?.type || 'vertical'}
+        labelCol={modalConfig.layout?.labelCol}
+        wrapperCol={modalConfig.layout?.wrapperCol}
         onFinish={onSubmit}
       >
-        {modalConfig.fields.map((field) => (
+        {modalConfig.fields?.map((field) => (
           <Form.Item
             key={field.name}
             name={field.name}
             label={field.label}
             rules={field.rules}
+            tooltip={field.tooltip}
           >
             {renderFormField(field)}
           </Form.Item>
