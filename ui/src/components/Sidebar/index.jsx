@@ -15,14 +15,19 @@ const SidebarComponent = ({ config, collapsed, onCollapse }) => {
     return items.map(item => {
       if (item.type === 'group') {
         return (
-          <Menu.ItemGroup key={item.label} title={item.label}>
+          <Menu.ItemGroup 
+            key={item.label} 
+            title={!collapsed ? item.label : null}
+          >
             {renderMenuItems(item.children)}
           </Menu.ItemGroup>
         );
       }
       return (
         <Menu.Item key={item.key} icon={getIcon(item.icon)}>
-          <a href={item.path}>{item.label}</a>
+          <a href={item.path} className={collapsed ? 'collapsed-item-label' : ''}>
+            {item.label}
+          </a>
         </Menu.Item>
       );
     });
