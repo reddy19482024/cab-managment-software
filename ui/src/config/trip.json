@@ -40,7 +40,7 @@
               "type": "group",
               "label": "Reports",
               "children": [
-                { "key": "analytics", "label": "Analytics", "icon": "BarChartOutlined", "path": "/analytics" },
+                { "key": "reports", "label": "reports", "icon": "BarChartOutlined", "path": "/reports" },
                 { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
                 { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
               ]

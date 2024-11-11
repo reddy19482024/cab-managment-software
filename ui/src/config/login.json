@@ -29,7 +29,7 @@
         "width": "100%",
         "maxWidth": "480px",
         "margin": "0 auto",
-        "padding": "10% 24px"
+        "padding": "20% 24px"
       },
       "wrapperStyle": {
         "width": "100%",
@@ -114,41 +114,69 @@
           "margin": "24px 0"
         }
       },
-      "socialButtons": [
-        {
-          "provider": "google",
-          "label": "Continue with Google",
-          "icon": "google",
-          "buttonProps": {
-            "size": "large",
-            "block": true
-          },
-          "style": {
-            "marginBottom": "16px"
-          }
+      "socialButtonGroup": {
+        "style": {
+          "display": "flex",
+          "justifyContent": "center",
+          "gap": "16px"
         },
-        {
-          "provider": "microsoft",
-          "label": "Continue with Microsoft",
-          "icon": "microsoft",
-          "buttonProps": {
-            "size": "large",
-            "block": true
+        "buttons": [
+          {
+            "provider": "google",
+            "ariaLabel": "Continue with Google",
+            "icon": "google",
+            "buttonProps": {
+              "size": "large",
+              "shape": "circle",
+              "icon": "google"
+            },
+            "style": {
+              "width": "40px",
+              "height": "40px",
+              "padding": "0",
+              "display": "flex",
+              "alignItems": "center",
+              "justifyContent": "center"
+            }
           },
-          "style": {
-            "marginBottom": "16px"
+          {
+            "provider": "microsoft",
+            "ariaLabel": "Continue with Microsoft",
+            "icon": "microsoft",
+            "buttonProps": {
+              "size": "large",
+              "shape": "circle",
+              "icon": "microsoft"
+            },
+            "style": {
+              "width": "40px",
+              "height": "40px",
+              "padding": "0",
+              "display": "flex",
+              "alignItems": "center",
+              "justifyContent": "center"
+            }
+          },
+          {
+            "provider": "apple",
+            "ariaLabel": "Continue with Apple",
+            "icon": "apple",
+            "buttonProps": {
+              "size": "large",
+              "shape": "circle",
+              "icon": "apple"
+            },
+            "style": {
+              "width": "40px",
+              "height": "40px",
+              "padding": "0",
+              "display": "flex",
+              "alignItems": "center",
+              "justifyContent": "center"
+            }
           }
-        },
-        {
-          "provider": "apple",
-          "label": "Continue with Apple",
-          "icon": "apple",
-          "buttonProps": {
-            "size": "large",
-            "block": true
-          }
-        }
-      ],
+        ]
+      },
       "links": [
         {
           "text": "Forgot your password?",

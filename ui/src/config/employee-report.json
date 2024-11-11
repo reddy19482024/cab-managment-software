@@ -1,0 +1,242 @@
+{
+  "title": "Employee Transport Report",
+  "layout": {
+    "header": {
+      "enabled": true,
+      "logo": "/images/transport-logo.png",
+      "style": {
+        "background": "#fff",
+        "height": "64px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
+      }
+    },
+    "sidebar": {
+      "enabled": true,
+      "width": 256,
+      "collapsedWidth": 80,
+      "theme": "dark",
+      "menu": {
+        "items": [
+          { 
+            "key": "dashboard", 
+            "label": "Dashboard", 
+            "icon": "DashboardOutlined", 
+            "path": "/dashboard" 
+          },
+          {
+            "type": "group",
+            "label": "Management",
+            "children": [
+              { 
+                "key": "employees", 
+                "label": "Employees", 
+                "icon": "TeamOutlined", 
+                "path": "/employees" 
+              },
+              { 
+                "key": "trips", 
+                "label": "Trips", 
+                "icon": "CompassOutlined", 
+                "path": "/trips" 
+              }
+            ]
+          },
+          {
+            "type": "group",
+            "label": "Reports",
+            "children": [
+              { 
+                "key": "reports", 
+                "label": "Transport Reports", 
+                "icon": "BarChartOutlined", 
+                "path": "/reports" 
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "content": {
+      "style": {
+        "minHeight": "calc(100vh - 64px)",
+        "background": "#f0f2f5",
+        "padding": "24px"
+      }
+    },
+    "footer": {
+      "enabled": true,
+      "text": "© 2024 Transport Management",
+      "style": {
+        "textAlign": "center",
+        "padding": "16px"
+      }
+    }
+  },
+  "filters": {
+    "defaultValues": {
+      "dateRange": null,
+      "tripStatus": ["all"]
+    },
+    "items": [
+      {
+        "name": "dateRange",
+        "label": "Date Range",
+        "type": "date-range",
+        "span": 12,
+        "required": true
+      },
+      {
+        "name": "tripStatus",
+        "label": "Status",
+        "type": "select",
+        "span": 12,
+        "options": [
+          { "label": "All", "value": "all" },
+          { "label": "Completed", "value": "completed" },
+          { "label": "Cancelled", "value": "cancelled" }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "type": "stats",
+    "span": 24,
+    "items": [
+      {
+        "title": "Total Trips",
+        "data": {
+          "api": "/api/reports/employee/{id}/stats/total-trips",
+          "fallback": 245
+        }
+      },
+      {
+        "title": "On-Time Rate",
+        "data": {
+          "api": "/api/reports/employee/{id}/stats/on-time-rate",
+          "fallback": "95%"
+        }
+      },
+      {
+        "title": "Avg Trips/Month",
+        "data": {
+          "api": "/api/reports/employee/{id}/stats/avg-trips",
+          "fallback": 22
+        }
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "employeeInfo",
+      "type": "info-card",
+      "span": 24,
+      "title": "Employee Information",
+      "fields": [
+        { "label": "Name", "key": "name" },
+        { "label": "ID", "key": "employeeId" },
+        { "label": "Department", "key": "department" },
+        { "label": "Contact", "key": "phone" }
+      ],
+      "data": {
+        "api": "/api/employees/{id}",
+        "fallback": {
+          "name": "John Doe",
+          "employeeId": "EMP001",
+          "department": "Engineering",
+          "phone": "+1234567890"
+        }
+      }
+    },
+    {
+      "id": "tripTimings",
+      "title": "Trip Timings",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "bar",
+        "xAxis": { "dataKey": "time" },
+        "series": [
+          {
+            "dataKey": "trips",
+            "name": "Trips",
+            "color": "#722ed1"
+          }
+        ]
+      },
+      "data": {
+        "api": "/api/reports/employee/{id}/timings",
+        "fallback": [
+          { "time": "6-9 AM", "trips": 15 },
+          { "time": "9-12 PM", "trips": 5 },
+          { "time": "12-3 PM", "trips": 4 },
+          { "time": "3-6 PM", "trips": 12 }
+        ]
+      }
+    },
+    {
+      "id": "routeAnalysis",
+      "title": "Routes",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "pie",
+        "dataKey": "value",
+        "nameKey": "route"
+      },
+      "data": {
+        "api": "/api/reports/employee/{id}/routes",
+        "fallback": [
+          { "route": "Home → Office", "value": 45, "color": "#1890ff" },
+          { "route": "Office → Home", "value": 42, "color": "#52c41a" },
+          { "route": "Other", "value": 13, "color": "#faad14" }
+        ]
+      }
+    },
+    {
+      "id": "recentTrips",
+      "title": "Recent Trips",
+      "span": 24,
+      "type": "table",
+      "columns": [
+        { "title": "Date", "dataIndex": "date" },
+        { "title": "From", "dataIndex": "pickup" },
+        { "title": "To", "dataIndex": "dropoff" },
+        { 
+          "title": "Status", 
+          "dataIndex": "status",
+          "render": {
+            "type": "tag",
+            "colorMap": {
+              "completed": "success",
+              "cancelled": "error",
+              "scheduled": "processing"
+            }
+          }
+        },
+        { "title": "Driver", "dataIndex": "driver" }
+      ],
+      "data": {
+        "api": "/api/reports/employee/{id}/recent-trips",
+        "fallback": [
+          {
+            "date": "2024-03-11",
+            "pickup": "Home",
+            "dropoff": "Office",
+            "status": "completed",
+            "driver": "John D"
+          },
+          {
+            "date": "2024-03-10",
+            "pickup": "Office",
+            "dropoff": "Home",
+            "status": "completed",
+            "driver": "Mike R"
+          }
+        ]
+      },
+      "pagination": {
+        "pageSize": 10
+      }
+    }
+  ]
+}

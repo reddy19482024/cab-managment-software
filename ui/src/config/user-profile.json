@@ -1,0 +1,265 @@
+{
+    "title": "Profile Settings",
+    "layout": {
+      "header": {
+        "enabled": true,
+        "logo": "/images/transport-logo.png",
+        "style": {
+          "background": "#fff",
+          "padding": "0 24px",
+          "boxShadow": "0 2px 8px rgba(0,0,0,0.1)",
+          "height": "64px",
+          "lineHeight": "64px"
+        }
+      },
+      "sidebar": {
+        "enabled": true,
+        "width": 256,
+        "collapsedWidth": 80,
+        "theme": "dark",
+        "style": {
+          "background": "#001529"
+        },
+        "menu": {
+          "items": [
+            { 
+              "key": "dashboard", 
+              "label": "Dashboard", 
+              "icon": "DashboardOutlined", 
+              "path": "/dashboard" 
+            },
+            {
+              "type": "group",
+              "label": "Management",
+              "children": [
+                { 
+                  "key": "trips", 
+                  "label": "Trips", 
+                  "icon": "CarOutlined", 
+                  "path": "/trips" 
+                },
+                { 
+                  "key": "vehicles", 
+                  "label": "Vehicles", 
+                  "icon": "CarOutlined", 
+                  "path": "/vehicles" 
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "label": "Settings",
+              "children": [
+                { 
+                  "key": "profile", 
+                  "label": "Profile", 
+                  "icon": "UserOutlined", 
+                  "path": "/profile" 
+                },
+                { 
+                  "key": "settings", 
+                  "label": "System", 
+                  "icon": "SettingOutlined", 
+                  "path": "/settings" 
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "content": {
+        "style": {
+          "minHeight": "calc(100vh - 64px)",
+          "background": "#f0f2f5",
+          "padding": "24px"
+        }
+      },
+      "footer": {
+        "enabled": true,
+        "text": "© 2024 Transport Management System",
+        "style": {
+          "textAlign": "center",
+          "padding": "16px",
+          "background": "#f7f7f7"
+        },
+        "links": [
+          { "text": "Help", "url": "/help" },
+          { "text": "Privacy", "url": "/privacy" }
+        ]
+      }
+    },
+    "sections": [
+      {
+        "key": "basic",
+        "title": "Personal Information",
+        "icon": "UserOutlined",
+        "description": "Manage your personal information",
+        "fields": [
+          {
+            "name": "avatar",
+            "label": "Profile Picture",
+            "type": "upload",
+            "maxSize": 2
+          },
+          {
+            "name": "name",
+            "label": "Full Name",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter your full name",
+            "rules": [
+              { "required": true, "message": "Please enter your name" }
+            ]
+          },
+          {
+            "name": "email",
+            "label": "Email Address",
+            "type": "email",
+            "disabled": true,
+            "placeholder": "your@email.com",
+            "rules": [
+              { "required": true, "message": "Please enter your email" },
+              { "type": "email", "message": "Please enter a valid email" }
+            ]
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "text",
+            "placeholder": "Enter your phone number",
+            "rules": [
+              { "required": true, "message": "Please enter your phone number" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "preferences",
+        "title": "Travel Preferences",
+        "icon": "SettingOutlined",
+        "description": "Set your travel preferences",
+        "fields": [
+          {
+            "name": "defaultPickup",
+            "label": "Default Pickup",
+            "type": "text",
+            "placeholder": "Enter pickup location"
+          },
+          {
+            "name": "defaultDropoff",
+            "label": "Default Dropoff",
+            "type": "text",
+            "placeholder": "Enter dropoff location"
+          },
+          {
+            "name": "travelPreferences",
+            "label": "Preferences",
+            "type": "select",
+            "mode": "multiple",
+            "placeholder": "Select preferences",
+            "options": [
+              { "label": "AC Vehicle", "value": "ac" },
+              { "label": "Window Seat", "value": "window" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "notifications",
+        "title": "Notifications",
+        "icon": "BellOutlined",
+        "description": "Manage notifications",
+        "fields": [
+          {
+            "name": "emailNotifications",
+            "label": "Email Notifications",
+            "type": "switch",
+            "defaultValue": true
+          },
+          {
+            "name": "smsNotifications",
+            "label": "SMS Notifications",
+            "type": "switch",
+            "defaultValue": true
+          },
+          {
+            "name": "reminderTime",
+            "label": "Reminder Time",
+            "type": "select",
+            "placeholder": "Select reminder time",
+            "options": [
+              { "label": "15 minutes before", "value": "15" },
+              { "label": "30 minutes before", "value": "30" },
+              { "label": "1 hour before", "value": "60" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "security",
+        "title": "Security",
+        "icon": "LockOutlined",
+        "description": "Manage your security",
+        "fields": [
+          {
+            "name": "currentPassword",
+            "label": "Current Password",
+            "type": "password",
+            "placeholder": "Enter current password",
+            "rules": [
+              { "required": true, "message": "Please enter current password" }
+            ]
+          },
+          {
+            "name": "newPassword",
+            "label": "New Password",
+            "type": "password",
+            "placeholder": "Enter new password",
+            "rules": [
+              { "required": true, "message": "Please enter new password" },
+              { "min": 8, "message": "Password must be at least 8 characters" }
+            ]
+          },
+          {
+            "name": "confirmPassword",
+            "label": "Confirm Password",
+            "type": "password",
+            "placeholder": "Confirm new password",
+            "rules": [
+              { "required": true, "message": "Please confirm your password" }
+            ]
+          }
+        ]
+      }
+    ],
+    "api": {
+      "getProfile": {
+        "endpoint": "/api/profile",
+        "method": "GET",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "updateProfile": {
+        "endpoint": "/api/profile",
+        "method": "PUT",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    "mockData": {
+      "profile": {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "+1234567890",
+        "avatar": "/images/avatars/default.png",
+        "defaultPickup": "Home Address",
+        "defaultDropoff": "Office Location",
+        "travelPreferences": ["ac", "window"],
+        "emailNotifications": true,
+        "smsNotifications": true,
+        "reminderTime": "30"
+      }
+    }
+  }

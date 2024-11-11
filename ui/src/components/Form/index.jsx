@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, Input, Button, Select, Checkbox } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined, GoogleOutlined, AppleOutlined, WindowsOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
 
 const FormComponent = ({
@@ -11,6 +11,19 @@ const FormComponent = ({
   onFormSubmit
 }) => {
   const formSection = config.sections.find(section => section.type === 'form');
+
+  const getSocialIcon = (provider) => {
+    switch (provider) {
+      case 'google':
+        return <GoogleOutlined />;
+      case 'microsoft':
+        return <WindowsOutlined />;
+      case 'apple':
+        return <AppleOutlined />;
+      default:
+        return null;
+    }
+  };
 
   const renderFormField = (field) => {
     switch (field.type) {
@@ -93,36 +106,6 @@ const FormComponent = ({
             </Form.Item>
           ))}
 
-          {formSection.divider && (
-            <div style={formSection.divider.style}>
-              <div className={`ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-${formSection.divider.orientation || 'center'}`}>
-                <span className="ant-divider-inner-text">
-                  {formSection.divider.text}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {formSection.socialButtons?.map((button, index) => (
-            <Button
-              key={index}
-              {...button.buttonProps}
-              style={button.style}
-            >
-              {button.label}
-            </Button>
-          ))}
-
-          {formSection.links?.map((link, index) => (
-            <a 
-              key={index} 
-              href={link.url}
-              style={link.style}
-            >
-              {link.text}
-            </a>
-          ))}
-
           <Form.Item>
             {formSection.actions?.map((action, index) => (
               (action.type === 'submit' || !action.onClick) && (
@@ -138,6 +121,40 @@ const FormComponent = ({
               )
             ))}
           </Form.Item>
+
+          {formSection.divider && (
+            <div style={formSection.divider.style}>
+              <div className={`ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-${formSection.divider.orientation || 'center'}`}>
+                <span className="ant-divider-inner-text">
+                  {formSection.divider.text}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {formSection.socialButtonGroup && (
+            <div style={formSection.socialButtonGroup.style}>
+              {formSection.socialButtonGroup.buttons.map((button, index) => (
+                <Button
+                  key={index}
+                  {...button.buttonProps}
+                  style={button.style}
+                  icon={getSocialIcon(button.provider)}
+                  aria-label={button.ariaLabel}
+                />
+              ))}
+            </div>
+          )}
+
+          {formSection.links?.map((link, index) => (
+            <a 
+              key={index} 
+              href={link.url}
+              style={link.style}
+            >
+              {link.text}
+            </a>
+          ))}
         </Form>
       </div>
     </div>

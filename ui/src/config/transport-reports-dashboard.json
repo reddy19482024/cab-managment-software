@@ -1,0 +1,354 @@
+{
+  "title": "Transport reports Dashboard",
+  "layout": {
+    "header": {
+      "enabled": true,
+      "logo": "/images/transport-logo.png",
+      "style": {
+        "background": "#fff",
+        "padding": "0 24px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)",
+        "height": "64px",
+        "lineHeight": "64px"
+      }
+    },
+    "sidebar": {
+      "enabled": true,
+      "collapsed": false,
+      "width": 256,
+      "collapsedWidth": 80,
+      "theme": "dark",
+      "style": {
+        "background": "#001529",
+        "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
+      },
+      "menu": {
+        "items": [
+          { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+          {
+            "type": "group",
+            "label": "Transport",
+            "children": [
+              { "key": "trips", "label": "Trips", "icon": "CarOutlined", "path": "/trips" },
+              { "key": "drivers", "label": "Drivers", "icon": "UserOutlined", "path": "/drivers" },
+              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" }
+            ]
+          },
+          {
+            "type": "group",
+            "label": "reports",
+            "children": [
+              { "key": "performance", "label": "Performance", "icon": "LineChartOutlined", "path": "/performance" },
+              { "key": "utilization", "label": "Utilization", "icon": "PieChartOutlined", "path": "/utilization" },
+              { "key": "reports", "label": "Reports", "icon": "FileTextOutlined", "path": "/reports" }
+            ]
+          }
+        ]
+      }
+    },
+    "content": {
+      "style": {
+        "minHeight": "calc(100vh - 64px)",
+        "background": "#f0f2f5",
+        "padding": "24px"
+      }
+    },
+    "footer": {
+      "enabled": true,
+      "text": "© 2024 Transport reports. All rights reserved.",
+      "style": {
+        "textAlign": "center",
+        "padding": "16px",
+        "background": "#f7f7f7"
+      },
+      "links": [
+        { "text": "Privacy Policy", "url": "/privacy" },
+        { "text": "Terms of Service", "url": "/terms" }
+      ]
+    }
+  },
+  "summary": {
+    "type": "stats",
+    "span": 24,
+    "items": [
+      {
+        "title": "Total Active Trips",
+        "data": {
+          "api": {
+            "endpoint": "/api/reports/stats/active-trips",
+            "method": "GET",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "fallback": 156
+        }
+      },
+      {
+        "title": "Available Drivers",
+        "data": {
+          "api": {
+            "endpoint": "/api/reports/stats/available-drivers",
+            "method": "GET",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "fallback": "24/35"
+        }
+      },
+      {
+        "title": "Fleet Utilization",
+        "data": {
+          "api": {
+            "endpoint": "/api/reports/stats/fleet-utilization",
+            "method": "GET",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "fallback": "78%"
+        }
+      },
+      {
+        "title": "On-Time Rate",
+        "data": {
+          "api": {
+            "endpoint": "/api/reports/stats/on-time-rate",
+            "method": "GET",
+            "headers": {
+              "Content-Type": "application/json"
+            }
+          },
+          "fallback": "94.5%"
+        }
+      }
+    ]
+  },
+  "filters": {
+    "defaultValues": {
+      "dateRange": null,
+      "driver": ["all"],
+      "tripStatus": ["all"]
+    },
+    "items": [
+      {
+        "name": "dateRange",
+        "label": "Date Range",
+        "type": "date-range",
+        "span": 8,
+        "required": true
+      },
+      {
+        "name": "driver",
+        "label": "Driver",
+        "type": "select",
+        "mode": "multiple",
+        "placeholder": "Select drivers",
+        "span": 8,
+        "options": [
+          { "label": "All Drivers", "value": "all" },
+          { "label": "Active Drivers", "value": "active" },
+          { "label": "On Trip", "value": "on-trip" }
+        ]
+      },
+      {
+        "name": "tripStatus",
+        "label": "Trip Status",
+        "type": "select",
+        "mode": "multiple",
+        "placeholder": "Select status",
+        "span": 8,
+        "options": [
+          { "label": "All Status", "value": "all" },
+          { "label": "Scheduled", "value": "scheduled" },
+          { "label": "Completed", "value": "completed" },
+          { "label": "Canceled", "value": "canceled" }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "tripOverview",
+      "title": "Trip Overview",
+      "description": "Daily trip statistics",
+      "span": 24,
+      "type": "chart",
+      "chart": {
+        "type": "line",
+        "xAxis": {
+          "dataKey": "date"
+        },
+        "series": [
+          {
+            "dataKey": "scheduled",
+            "name": "Scheduled Trips",
+            "color": "#1890ff"
+          },
+          {
+            "dataKey": "completed",
+            "name": "Completed Trips",
+            "color": "#52c41a"
+          },
+          {
+            "dataKey": "canceled",
+            "name": "Canceled Trips",
+            "color": "#ff4d4f"
+          }
+        ]
+      },
+      "data": {
+        "api": {
+          "endpoint": "/api/reports/trips/overview",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "fallback": [
+          { "date": "1 Mar", "scheduled": 50, "completed": 45, "canceled": 5 },
+          { "date": "2 Mar", "scheduled": 55, "completed": 48, "canceled": 7 },
+          { "date": "3 Mar", "scheduled": 60, "completed": 54, "canceled": 6 },
+          { "date": "4 Mar", "scheduled": 52, "completed": 48, "canceled": 4 },
+          { "date": "5 Mar", "scheduled": 58, "completed": 52, "canceled": 6 },
+          { "date": "6 Mar", "scheduled": 45, "completed": 40, "canceled": 5 },
+          { "date": "7 Mar", "scheduled": 40, "completed": 36, "canceled": 4 },
+          { "date": "8 Mar", "scheduled": 48, "completed": 44, "canceled": 4 },
+          { "date": "9 Mar", "scheduled": 52, "completed": 47, "canceled": 5 },
+          { "date": "10 Mar", "scheduled": 56, "completed": 50, "canceled": 6 }
+        ]
+      }
+    },
+    {
+      "id": "resourceStatus",
+      "title": "Resource Status",
+      "description": "Current status of vehicles and drivers",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "pie",
+        "dataKey": "value",
+        "nameKey": "status"
+      },
+      "data": {
+        "api": {
+          "endpoint": "/api/reports/resources/status",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "fallback": [
+          { "status": "Available", "value": 12, "color": "#52c41a" },
+          { "status": "On Trip", "value": 8, "color": "#1890ff" },
+          { "status": "Maintenance", "value": 3, "color": "#faad14" },
+          { "status": "Out of Service", "value": 2, "color": "#ff4d4f" }
+        ]
+      }
+    },
+    {
+      "id": "tripDistribution",
+      "title": "Trip Distribution by Time",
+      "description": "Trip distribution across different times",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "bar",
+        "xAxis": {
+          "dataKey": "time"
+        },
+        "series": [
+          {
+            "dataKey": "trips",
+            "name": "Number of Trips",
+            "color": "#722ed1"
+          }
+        ]
+      },
+      "data": {
+        "api": {
+          "endpoint": "/api/reports/trips/distribution",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "fallback": [
+          { "time": "6-9 AM", "trips": 125 },
+          { "time": "9-12 PM", "trips": 85 },
+          { "time": "12-3 PM", "trips": 64 },
+          { "time": "3-6 PM", "trips": 142 },
+          { "time": "6-9 PM", "trips": 98 },
+          { "time": "9-12 AM", "trips": 45 }
+        ]
+      }
+    },
+    {
+      "id": "activeTrips",
+      "title": "Active Trips",
+      "description": "Currently ongoing trips",
+      "span": 24,
+      "type": "table",
+      "columns": [
+        { "title": "Trip ID", "dataIndex": "id", "key": "id" },
+        { "title": "Driver", "dataIndex": "driver", "key": "driver" },
+        { "title": "Vehicle", "dataIndex": "vehicle", "key": "vehicle" },
+        { "title": "From", "dataIndex": "pickup", "key": "pickup" },
+        { "title": "To", "dataIndex": "dropoff", "key": "dropoff" },
+        { 
+          "title": "Status", 
+          "dataIndex": "status", 
+          "key": "status",
+          "render": {
+            "type": "tag",
+            "colorMap": {
+              "in_progress": "processing",
+              "arriving": "warning",
+              "completed": "success"
+            }
+          }
+        }
+      ],
+      "data": {
+        "api": {
+          "endpoint": "/api/reports/trips/active",
+          "method": "GET",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "fallback": [
+          {
+            "id": "T-1001",
+            "driver": "John Doe",
+            "vehicle": "TY-001",
+            "pickup": "Downtown Station",
+            "dropoff": "Airport Terminal 3",
+            "status": "in_progress"
+          },
+          {
+            "id": "T-1002",
+            "driver": "Jane Smith",
+            "vehicle": "TY-002",
+            "pickup": "Shopping Mall",
+            "dropoff": "Central Park",
+            "status": "arriving"
+          },
+          {
+            "id": "T-1003",
+            "driver": "Mike Johnson",
+            "vehicle": "TY-003",
+            "pickup": "Hotel Grand",
+            "dropoff": "Convention Center",
+            "status": "in_progress"
+          }
+        ]
+      },
+      "pagination": {
+        "pageSize": 10,
+        "showSizeChanger": true
+      }
+    }
+  ]
+}

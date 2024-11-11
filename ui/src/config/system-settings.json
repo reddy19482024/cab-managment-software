@@ -1,0 +1,290 @@
+{
+  "title": "System Settings",
+  "layout": {
+    "header": {
+      "enabled": true,
+      "logo": "/images/company-logo.png",
+      "style": {
+        "background": "#fff",
+        "padding": "0 24px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)",
+        "height": "64px",
+        "lineHeight": "64px"
+      }
+    },
+    "sidebar": {
+      "enabled": true,
+      "collapsed": false,
+      "width": 256,
+      "collapsedWidth": 80,
+      "theme": "dark",
+      "style": {
+        "background": "#001529",
+        "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
+      },
+      "menu": {
+        "items": [
+          { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+          {
+            "type": "group",
+            "label": "Settings",
+            "children": [
+              { "key": "general", "label": "General", "icon": "SettingOutlined", "path": "/settings/general" },
+              { "key": "email", "label": "Email", "icon": "MailOutlined", "path": "/settings/email" },
+              { "key": "notifications", "label": "Notifications", "icon": "BellOutlined", "path": "/settings/notifications" },
+              { "key": "security", "label": "Security", "icon": "SafetyOutlined", "path": "/settings/security" }
+            ]
+          }
+        ]
+      }
+    },
+    "content": {
+      "style": {
+        "minHeight": "calc(100vh - 64px)",
+        "background": "#f0f2f5",
+        "padding": "24px"
+      }
+    },
+    "footer": {
+      "enabled": true,
+      "text": "© 2024 My Application. All rights reserved.",
+      "style": {
+        "textAlign": "center",
+        "padding": "16px",
+        "background": "#f7f7f7"
+      },
+      "links": [
+        { "text": "Privacy Policy", "url": "/privacy" },
+        { "text": "Terms", "url": "/terms" }
+      ]
+    }
+  },
+  "sections": [
+    {
+      "key": "general",
+      "title": "General Settings",
+      "icon": "SettingOutlined",
+      "description": "Basic system configuration settings",
+      "fields": [
+        {
+          "name": "companyName",
+          "label": "Company Name",
+          "type": "text",
+          "required": true,
+          "rules": [
+            { "required": true, "message": "Please enter company name" }
+          ]
+        },
+        {
+          "name": "supportEmail",
+          "label": "Support Email",
+          "type": "email",
+          "required": true,
+          "rules": [
+            { "required": true, "message": "Please enter support email" },
+            { "type": "email", "message": "Please enter a valid email" }
+          ]
+        },
+        {
+          "name": "supportPhone",
+          "label": "Support Phone",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "timezone",
+          "label": "Default Timezone",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "UTC", "value": "UTC" },
+            { "label": "IST (UTC+5:30)", "value": "Asia/Kolkata" },
+            { "label": "PST (UTC-8)", "value": "America/Los_Angeles" }
+          ]
+        },
+        {
+          "name": "dateFormat",
+          "label": "Date Format",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "DD/MM/YYYY", "value": "DD/MM/YYYY" },
+            { "label": "MM/DD/YYYY", "value": "MM/DD/YYYY" },
+            { "label": "YYYY-MM-DD", "value": "YYYY-MM-DD" }
+          ]
+        },
+        {
+          "name": "timeFormat",
+          "label": "Time Format",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "12 Hour", "value": "12" },
+            { "label": "24 Hour", "value": "24" }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "email",
+      "title": "Email Settings",
+      "icon": "MailOutlined",
+      "description": "Configure email notification settings",
+      "fields": [
+        {
+          "name": "emailProvider",
+          "label": "Email Provider",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "SMTP", "value": "smtp" },
+            { "label": "AWS SES", "value": "ses" }
+          ]
+        },
+        {
+          "name": "smtpHost",
+          "label": "SMTP Host",
+          "type": "text",
+          "visibleWhen": { "emailProvider": "smtp" }
+        },
+        {
+          "name": "smtpPort",
+          "label": "SMTP Port",
+          "type": "number",
+          "visibleWhen": { "emailProvider": "smtp" }
+        },
+        {
+          "name": "smtpUsername",
+          "label": "SMTP Username",
+          "type": "text",
+          "visibleWhen": { "emailProvider": "smtp" }
+        },
+        {
+          "name": "smtpPassword",
+          "label": "SMTP Password",
+          "type": "password",
+          "visibleWhen": { "emailProvider": "smtp" }
+        },
+        {
+          "name": "senderEmail",
+          "label": "From Email",
+          "type": "email",
+          "required": true
+        },
+        {
+          "name": "senderName",
+          "label": "From Name",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "notifications",
+      "title": "Notification Settings",
+      "icon": "BellOutlined",
+      "description": "Configure system notifications",
+      "fields": [
+        {
+          "name": "tripNotifications",
+          "label": "Trip Notifications",
+          "type": "group",
+          "fields": [
+            {
+              "name": "tripAssignment",
+              "label": "Trip Assignment",
+              "type": "switch",
+              "defaultValue": true,
+              "description": "Notify when a trip is assigned"
+            },
+            {
+              "name": "tripStart",
+              "label": "Trip Start",
+              "type": "switch",
+              "defaultValue": true,
+              "description": "Notify when trip starts"
+            },
+            {
+              "name": "tripCompletion",
+              "label": "Trip Completion",
+              "type": "switch",
+              "defaultValue": true,
+              "description": "Notify when trip completes"
+            },
+            {
+              "name": "tripCancellation",
+              "label": "Trip Cancellation",
+              "type": "switch",
+              "defaultValue": true,
+              "description": "Notify when trip is cancelled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "security",
+      "title": "Security Settings",
+      "icon": "SafetyOutlined",
+      "description": "Configure security settings",
+      "fields": [
+        {
+          "name": "passwordPolicy",
+          "label": "Password Policy",
+          "type": "group",
+          "fields": [
+            {
+              "name": "minLength",
+              "label": "Minimum Length",
+              "type": "number",
+              "defaultValue": 8,
+              "min": 6,
+              "max": 20
+            },
+            {
+              "name": "requireSpecialChar",
+              "label": "Require Special Character",
+              "type": "switch",
+              "defaultValue": true
+            },
+            {
+              "name": "requireNumber",
+              "label": "Require Number",
+              "type": "switch",
+              "defaultValue": true
+            },
+            {
+              "name": "requireUppercase",
+              "label": "Require Uppercase",
+              "type": "switch",
+              "defaultValue": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "api": {
+    "getSettings": {
+      "endpoint": "/api/settings",
+      "method": "GET"
+    },
+    "updateSettings": {
+      "endpoint": "/api/settings",
+      "method": "PUT"
+    }
+  },
+  "actions": [
+    {
+      "key": "save",
+      "label": "Save Changes",
+      "type": "primary",
+      "submit": true
+    },
+    {
+      "key": "reset",
+      "label": "Reset to Defaults",
+      "type": "default"
+    }
+  ]
+}

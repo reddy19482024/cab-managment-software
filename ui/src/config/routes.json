@@ -4,27 +4,63 @@
       "path": "/",
       "componentConfig": "LoginPage",
       "title": "Login",
+      "type": "auth",
       "mainPage": true
     },
     {
       "path": "/register",
       "componentConfig": "RegisterPage",
-      "title": "Register"
+      "title": "Register",
+      "type": "auth"
     },
     {
       "path": "/employees",
       "componentConfig": "EmployeeManagement",
-      "title": "EmployeeManagement"
+      "title": "Employee Management",
+      "type": "management"
     },
     {
       "path": "/vehicles",
       "componentConfig": "vehicle",
-      "title": "vechile management"
+      "title": "Vehicle Management",
+      "type": "management"
     },
     {
       "path": "/trips",
       "componentConfig": "trip",
-      "title": "trip management"
+      "title": "Trip Management",
+      "type": "management"
+    },
+    {
+      "path": "/dashboard",
+      "componentConfig": "transport-reports-dashboard",
+      "title": "reports Dashboard",
+      "type": "dashboard"
+    },
+    {
+      "path": "/reports",
+      "componentConfig": "transport-reports",
+      "title": "Transport Reports",
+      "type": "report"
+    },
+    {
+      "path": "/reports/employee/:id",
+      "componentConfig": "employee-report",
+      "title": "Employee Report",
+      "type": "report"
+    },
+    {
+      "path": "/settings",
+      "componentConfig": "system-settings",
+      "title": "System Settings",
+      "type": "settings",
+      "sections": ["general", "email", "notifications", "security"]
+    },
+    {
+      "path": "/profile",
+      "componentConfig": "user-profile",
+      "title": "Profile Settings",
+      "type": "profile"
     }
   ]
 }

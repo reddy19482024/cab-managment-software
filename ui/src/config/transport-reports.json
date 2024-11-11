@@ -1,0 +1,224 @@
+{
+  "title": "Transport Reports",
+  "layout": {
+    "header": {
+      "enabled": true,
+      "logo": "/images/transport-logo.png",
+      "style": {
+        "background": "#fff",
+        "padding": "0 24px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)",
+        "height": "64px"
+      }
+    },
+    "sidebar": {
+      "enabled": true,
+      "width": 256,
+      "collapsedWidth": 80,
+      "theme": "dark",
+      "menu": {
+        "items": [
+          { "key": "dashboard", "label": "Reports Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+          {
+            "type": "group",
+            "label": "Reports",
+            "children": [
+              { "key": "trips", "label": "Trips", "icon": "CarOutlined", "path": "/reports/trips" },
+              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/reports/vehicles" },
+              { "key": "drivers", "label": "Drivers", "icon": "UserOutlined", "path": "/reports/drivers" }
+            ]
+          }
+        ]
+      }
+    },
+    "content": {
+      "style": {
+        "minHeight": "calc(100vh - 64px)",
+        "background": "#f0f2f5",
+        "padding": "24px"
+      }
+    },
+    "footer": {
+      "enabled": true,
+      "text": "© 2024 Transport Reports",
+      "style": {
+        "textAlign": "center",
+        "padding": "16px"
+      }
+    }
+  },
+  "summary": {
+    "type": "stats",
+    "span": 24,
+    "items": [
+      {
+        "title": "Total Trips",
+        "data": {
+          "api": "/api/reports/stats/total",
+          "fallback": "1,458"
+        }
+      },
+      {
+        "title": "Active Vehicles",
+        "data": {
+          "api": "/api/reports/stats/vehicles",
+          "fallback": "45/50"
+        }
+      },
+      {
+        "title": "Avg Rating",
+        "data": {
+          "api": "/api/reports/stats/rating",
+          "fallback": "4.8/5.0"
+        }
+      }
+    ]
+  },
+  "filters": {
+    "defaultValues": {
+      "dateRange": null,
+      "reportType": "trips"
+    },
+    "items": [
+      {
+        "name": "dateRange",
+        "label": "Date Range",
+        "type": "date-range",
+        "span": 8,
+        "required": true
+      },
+      {
+        "name": "reportType",
+        "label": "Report Type",
+        "type": "select",
+        "span": 8,
+        "options": [
+          { "label": "Trips", "value": "trips" },
+          { "label": "Vehicles", "value": "vehicles" },
+          { "label": "Drivers", "value": "drivers" }
+        ]
+      },
+      {
+        "name": "status",
+        "label": "Status",
+        "type": "select",
+        "span": 8,
+        "options": [
+          { "label": "All", "value": "all" },
+          { "label": "Completed", "value": "completed" },
+          { "label": "Cancelled", "value": "cancelled" }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "tripOverview",
+      "title": "Trip Overview",
+      "description": "Daily statistics",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "line",
+        "xAxis": {
+          "dataKey": "date"
+        },
+        "series": [
+          {
+            "dataKey": "completed",
+            "name": "Completed",
+            "color": "#52c41a"
+          },
+          {
+            "dataKey": "cancelled",
+            "name": "Cancelled",
+            "color": "#ff4d4f"
+          }
+        ]
+      },
+      "data": {
+        "api": "/api/reports/trips/overview",
+        "fallback": [
+          { "date": "Mar 01", "completed": 90, "cancelled": 10 },
+          { "date": "Mar 02", "completed": 95, "cancelled": 15 },
+          { "date": "Mar 03", "completed": 88, "cancelled": 7 },
+          { "date": "Mar 04", "completed": 105, "cancelled": 15 }
+        ]
+      }
+    },
+    {
+      "id": "vehicleStatus",
+      "title": "Vehicle Status",
+      "description": "Current status",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "pie",
+        "dataKey": "value",
+        "nameKey": "status"
+      },
+      "data": {
+        "api": "/api/reports/vehicles/status",
+        "fallback": [
+          { "status": "Available", "value": 12, "color": "#52c41a" },
+          { "status": "On Trip", "value": 8, "color": "#1890ff" },
+          { "status": "Maintenance", "value": 3, "color": "#faad14" }
+        ]
+      }
+    },
+    {
+      "id": "driverPerformance",
+      "title": "Driver Performance",
+      "description": "Top drivers",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "bar",
+        "xAxis": {
+          "dataKey": "driver"
+        },
+        "series": [
+          {
+            "dataKey": "trips",
+            "name": "Trips",
+            "color": "#1890ff"
+          },
+          {
+            "dataKey": "rating",
+            "name": "Rating",
+            "color": "#faad14"
+          }
+        ]
+      },
+      "data": {
+        "api": "/api/reports/drivers/performance",
+        "fallback": [
+          { "driver": "John D", "trips": 120, "rating": 4.8 },
+          { "driver": "Mike R", "trips": 110, "rating": 4.7 },
+          { "driver": "Sarah L", "trips": 115, "rating": 4.9 }
+        ]
+      }
+    },
+    {
+      "id": "costBreakdown",
+      "title": "Cost Breakdown",
+      "description": "Cost analysis",
+      "span": 12,
+      "type": "chart",
+      "chart": {
+        "type": "pie",
+        "dataKey": "value",
+        "nameKey": "category"
+      },
+      "data": {
+        "api": "/api/reports/cost/breakdown",
+        "fallback": [
+          { "category": "Fuel", "value": 35, "color": "#1890ff" },
+          { "category": "Maintenance", "value": 25, "color": "#52c41a" },
+          { "category": "Salary", "value": 30, "color": "#faad14" },
+          { "category": "Other", "value": 10, "color": "#ff4d4f" }
+        ]
+      }
+    }
+  ]
+}
