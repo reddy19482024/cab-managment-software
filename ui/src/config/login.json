@@ -95,7 +95,7 @@
           },
           "api": {
             "method": "POST",
-            "endpoint": "/api/auth/login",
+            "endpoint": "employees/login",
             "headers": {
               "Content-Type": "application/json"
             }

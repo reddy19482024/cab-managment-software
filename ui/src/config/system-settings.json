@@ -27,15 +27,44 @@
           { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
           {
             "type": "group",
-            "label": "Settings",
+            "label": "Management",
             "children": [
-              { "key": "general", "label": "General", "icon": "SettingOutlined", "path": "/settings/general" },
-              { "key": "email", "label": "Email", "icon": "MailOutlined", "path": "/settings/email" },
-              { "key": "notifications", "label": "Notifications", "icon": "BellOutlined", "path": "/settings/notifications" },
-              { "key": "security", "label": "Security", "icon": "SafetyOutlined", "path": "/settings/security" }
+              { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+              { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+            ]
+          },
+          {
+            "type": "group",
+            "label": "Administration",
+            "children": [
+              { "key": "roles", "label": "Roles & Permissions", "icon": "SafetyOutlined", "path": "/roles" },
+              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" }
+            ]
+          },
+          {
+            "type": "group",
+            "label": "Reports",
+            "children": [
+              { "key": "reports", "label": "reports", "icon": "BarChartOutlined", "path": "/reports" },
+              { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+              { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
             ]
           }
         ]
+      },
+      "footer": {
+        "enabled": true,
+        "style": {
+          "padding": "16px",
+          "background": "rgba(0, 0, 0, 0.25)",
+          "color": "#fff",
+          "height": "80px"
+        },
+        "content": {
+          "expanded": { "avatar": "/images/user-avatar.png", "name": "John Doe", "role": "Admin" },
+          "collapsed": { "avatar": "/images/user-avatar.png" }
+        }
       }
     },
     "content": {

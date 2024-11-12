@@ -5,62 +5,72 @@
       "componentConfig": "LoginPage",
       "title": "Login",
       "type": "auth",
-      "mainPage": true
+      "mainPage": true,
+      "public": true
     },
     {
       "path": "/register",
       "componentConfig": "RegisterPage",
       "title": "Register",
-      "type": "auth"
+      "type": "auth",
+      "public": true
     },
     {
       "path": "/employees",
       "componentConfig": "EmployeeManagement",
       "title": "Employee Management",
-      "type": "management"
+      "type": "management",
+      "public": false
     },
     {
       "path": "/vehicles",
       "componentConfig": "vehicle",
       "title": "Vehicle Management",
-      "type": "management"
+      "type": "management",
+      "public": false
     },
     {
       "path": "/trips",
       "componentConfig": "trip",
       "title": "Trip Management",
-      "type": "management"
+      "type": "management",
+      "public": false
     },
     {
       "path": "/dashboard",
       "componentConfig": "transport-reports-dashboard",
       "title": "reports Dashboard",
-      "type": "dashboard"
+      "type": "dashboard",
+      "public": false
     },
     {
       "path": "/reports",
       "componentConfig": "transport-reports",
       "title": "Transport Reports",
-      "type": "report"
+      "type": "report",
+      "public": false
     },
     {
       "path": "/reports/employee/:id",
       "componentConfig": "employee-report",
       "title": "Employee Report",
-      "type": "report"
+      "type": "report",
+      "public": false
     },
     {
       "path": "/settings",
       "componentConfig": "system-settings",
       "title": "System Settings",
       "type": "settings",
-      "sections": ["general", "email", "notifications", "security"]
+      "sections": ["general", "email", "notifications", "security"],
+      "public": false
     },
     {
       "path": "/profile",
       "componentConfig": "user-profile",
       "title": "Profile Settings",
-      "type": "profile"
+      "type": "profile",
+      "public": false
     }
   ]
 }

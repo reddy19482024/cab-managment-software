@@ -17,7 +17,7 @@ const ReportPageBuilder = ({ configName }) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({});
   const [filters, setFilters] = useState({});
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [form] = Form.useForm();
   const params = useParams();
 

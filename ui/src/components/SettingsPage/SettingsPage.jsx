@@ -16,7 +16,7 @@ const SettingsPage = ({ configName }) => {
   const [pageLoading, setPageLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('general');
   const [form] = Form.useForm();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     loadSettingsConfig();

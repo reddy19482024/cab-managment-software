@@ -21,7 +21,7 @@ const DynamicPage = ({ configName }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentModal, setCurrentModal] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     loadPageConfig();

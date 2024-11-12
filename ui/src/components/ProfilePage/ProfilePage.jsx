@@ -22,7 +22,7 @@ const ProfilePage = ({ configName }) => {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [currentSection, setCurrentSection] = useState('basic');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [form] = Form.useForm();
   const [avatar, setAvatar] = useState(null);
 
