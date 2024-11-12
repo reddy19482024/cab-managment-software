@@ -33,12 +33,13 @@ const TableComponent = ({
                 <Space size="middle">
                   {renderConfig.items.map((action, index) => (
                     <Button
-                      key={index}
+                      key={`${record._id || record.id}-${index}`} // Unique key based on record ID and action index
                       {...action.buttonProps}
                       icon={getIcon(action.buttonProps.icon)}
                       onClick={() => {
+                        // Directly call onModalOpen without debounce or stopPropagation for immediate response
                         if (action.onClick?.type === 'modal') {
-                          onModalOpen(action.onClick.modalId, record);
+                          onModalOpen(action.onClick.modalId, record); // Pass record to modal for edit/delete operations
                         }
                       }}
                       style={{ padding: 0, margin: 0 }}
@@ -48,6 +49,8 @@ const TableComponent = ({
                   ))}
                 </Space>
               )
+              
+              
             };
 
           case 'tag':
@@ -71,6 +74,14 @@ const TableComponent = ({
       }
       return column;
     });
+  };
+
+  // Function to handle actions button click
+  const handleActionClick = (action) => {
+    if (action.onClick?.type === 'modal') {
+      // For add action, don't pass a record
+      onModalOpen(action.onClick.modalId);
+    }
   };
 
   return (
@@ -110,7 +121,7 @@ const TableComponent = ({
                   key={index}
                   {...action.buttonProps}
                   icon={getIcon(action.buttonProps.icon)}
-                  onClick={() => onModalOpen(action.onClick.modalId)}
+                  onClick={() => handleActionClick(action)}
                   style={action.style}
                 >
                   {action.label}
@@ -124,14 +135,15 @@ const TableComponent = ({
           columns={processTableColumns(formSection.table.columns)}
           dataSource={tableData}
           loading={loading}
-          rowKey={formSection.table.rowKey || 'id'}
-          pagination={formSection.table.pagination || {
+          rowKey={(record) => record._id || record.id}
+          pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showTotal: (total, range) => 
               `${range[0]}-${range[1]} of ${total} items`,
             showQuickJumper: true,
-            position: ['bottomRight']
+            position: ['bottomRight'],
+            ...(formSection.table.pagination || {})
           }}
           size={formSection.table.size || 'middle'}
           scroll={{ x: true }}
@@ -151,12 +163,19 @@ TableComponent.propTypes = {
       wrapperStyle: PropTypes.object,
       table: PropTypes.shape({
         columns: PropTypes.arrayOf(PropTypes.object).isRequired,
-        rowKey: PropTypes.string,
         pagination: PropTypes.object,
         size: PropTypes.string,
         bordered: PropTypes.bool
       }),
-      actions: PropTypes.arrayOf(PropTypes.object)
+      actions: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string,
+        buttonProps: PropTypes.object,
+        style: PropTypes.object,
+        onClick: PropTypes.shape({
+          type: PropTypes.string,
+          modalId: PropTypes.string
+        })
+      }))
     })).isRequired
   }).isRequired,
   loading: PropTypes.bool.isRequired,

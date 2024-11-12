@@ -285,7 +285,7 @@
             "marginTop": "24px"
           },
           "api": {
-            "endpoint": "employees",
+            "endpoint": "employees/register",
             "method": "POST"
           },
           "messages": {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Form, message, Spin, Button } from 'antd';
+import { Layout, Form, Spin, Button, message } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
@@ -10,19 +10,21 @@ import ModalComponent from '../Modal';
 import FormComponent from '../Form';
 import TableComponent from '../Table';
 import configLoader from '../../utils/configLoader';
+import useApi from '../../hooks/useApi';
 
 const { Content } = Layout;
 
 const DynamicPage = ({ configName }) => {
   const [config, setConfig] = useState(null);
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [tableData, setTableData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [currentModal, setCurrentModal] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
+  
+  const { apiRequest, loading } = useApi();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,42 +40,12 @@ const DynamicPage = ({ configName }) => {
     }
   }, [config]);
 
-  const constructApiUrl = (endpoint) => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    return `${cleanBaseUrl}/${cleanEndpoint}`;
-  };
-
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      navigate('/', { replace: true });
-      return null;
-    }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
-  const handleAuthError = (error) => {
-    if (error.message.toLowerCase().includes('unauthorized') || 
-        error.message.toLowerCase().includes('expire')) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      navigate('/', { replace: true });
-      message.error('Session expired. Please login again.');
-    }
-  };
-
   const loadPageConfig = async () => {
     try {
       setPageLoading(true);
       const loadedConfig = await configLoader(configName);
       setConfig(loadedConfig || null);
     } catch (error) {
-      message.error('Failed to load page configuration');
       console.error("Error loading config:", error);
     } finally {
       setPageLoading(false);
@@ -82,49 +54,19 @@ const DynamicPage = ({ configName }) => {
 
   const loadTableData = async (apiConfig) => {
     if (!apiConfig) return;
-  
-    try {
-      setLoading(true);
-      const apiUrl = constructApiUrl(apiConfig.endpoint);
-      const headers = getAuthHeaders();
-  
-      if (!headers) return;
-  
-      const response = await fetch(apiUrl, {
-        method: apiConfig.method || 'GET',
-        headers: headers
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to load data');
-      }
-  
-      const responseData = await response.json();
-      // Check if response has data property and it's an array
-      const dataArray = responseData.data && Array.isArray(responseData.data) 
-        ? responseData.data 
-        : Array.isArray(responseData) 
-          ? responseData 
-          : [];
-  
-      // Map the data to match the expected format
-      const formattedData = dataArray.map(item => ({
-        id: item._id, // Map _id to id for consistent usage
-        name: item.name,
-        email: item.email,
-        role: item.role,
-        phone: item.phone
-      }));
-  
-      setTableData(formattedData);
-    } catch (error) {
-      console.error("Error loading table data:", error);
-      handleAuthError(error);
-      const formSection = config.sections?.find(section => section.type === 'form');
-      setTableData(formSection?.table?.fallbackData || []);
-    } finally {
-      setLoading(false);
+
+    const data = await apiRequest(apiConfig.endpoint, apiConfig.method || 'GET');
+    if (data) {
+      setTableData(
+        data.data.map(item => ({
+          id: item._id,
+          name: item.name,
+          email: item.email,
+          role: item.role,
+          phone: item.phone,
+          _id: item._id
+        }))
+      );
     }
   };
 
@@ -133,58 +75,30 @@ const DynamicPage = ({ configName }) => {
       message.error('API configuration is missing');
       return;
     }
-  
-    try {
-      setLoading(true);
-      
-      let endpoint = action.api.endpoint;
-      if (record?.id) {
-        // Update endpoint to use _id instead of id
-        endpoint = endpoint.replace(/{(\w+)}/g, (_, param) => {
-          if (param === 'id') {
-            return record._id || record.id; // Support both _id and id
-          }
-          return record[param] || '';
-        });
-      }
-  
-      const apiUrl = constructApiUrl(endpoint);
-      const headers = getAuthHeaders();
-  
-      if (!headers) return;
-  
-      const response = await fetch(apiUrl, {
-        method: action.api.method,
-        headers: headers,
-        body: action.api.method !== 'GET' ? JSON.stringify(values) : undefined,
-      });
-  
-      const responseData = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(responseData.message || action.messages?.failure || 'Operation failed');
-      }
-  
-      message.success(responseData.message || action.messages?.success || 'Operation successful');
-      
-      if (currentModal) {
-        handleModalClose();
-      }
-  
+
+    let endpoint = action.api.endpoint;
+    if (record?._id) {
+      endpoint = endpoint.replace('{id}', record._id);
+    }
+
+    const requestBody = action.api.method !== 'GET'
+      ? { ...values, role: values.role?.toLowerCase() }
+      : null;
+
+    const response = await apiRequest(endpoint, action.api.method, requestBody);
+
+    if (response) {
+      message.success(action.messages?.success || 'Operation successful');
+      if (currentModal) handleModalClose();
       const formSection = config.sections?.find(section => section.type === 'form');
       if (formSection?.table?.enabled && formSection?.table?.api) {
         loadTableData(formSection.table.api);
       }
-  
       form.resetFields();
-    } catch (error) {
-      console.error("API action error:", error);
-      handleAuthError(error);
-      message.error(error.message || 'Operation failed');
-    } finally {
-      setLoading(false);
     }
   };
+
+  // Added handleFormSubmit function
   const handleFormSubmit = async (values) => {
     const formSection = config.sections?.find(section => section.type === 'form');
     const modalConfig = currentModal ? config.modals[currentModal] : null;
@@ -197,9 +111,7 @@ const DynamicPage = ({ configName }) => {
     setCurrentModal(modalId);
     setSelectedRecord(record);
     setModalVisible(true);
-    if (record) {
-      form.setFieldsValue(record);
-    }
+    form.setFieldsValue(record || {});
   };
 
   const handleModalClose = () => {
@@ -213,14 +125,18 @@ const DynamicPage = ({ configName }) => {
     const modalConfig = config?.modals?.[currentModal];
     const action = modalConfig?.actions?.[0];
 
-    if (!action?.api || !selectedRecord?.id) {
+    if (!action?.api || !selectedRecord?._id) {
       message.error('Delete configuration or record is missing');
       return;
     }
 
-    // Add confirmation dialog for delete
-    if (window.confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
-      await handleApiAction(action, null, selectedRecord);
+    const endpoint = action.api.endpoint.replace('{id}', selectedRecord._id);
+    const response = await apiRequest(endpoint, action.api.method);
+
+    if (response) {
+      message.success('Employee deleted successfully');
+      handleModalClose();
+      loadTableData(config.sections?.find(section => section.type === 'form')?.table?.api);
     }
   };
 
@@ -239,7 +155,7 @@ const DynamicPage = ({ configName }) => {
 
   return (
     <Layout>
-      {config.layout.header.enabled && (
+      {config?.layout?.header?.enabled && (
         <Layout.Header 
           style={{
             ...config.layout.header.style,
@@ -271,7 +187,7 @@ const DynamicPage = ({ configName }) => {
         </Layout.Header>
       )}
       
-      <Layout style={{ marginTop: config.layout.header.enabled ? 64 : 0 }}>
+      <Layout style={{ marginTop: config?.layout?.header?.enabled ? 64 : 0 }}>
         {config.layout.sidebar?.enabled && (
           <SidebarComponent 
             config={config}
@@ -316,32 +232,26 @@ const DynamicPage = ({ configName }) => {
 
               {formSection?.table?.enabled ? (
                 <TableComponent
-                    config={config}
-                    loading={loading}
-                    tableData={tableData}
-                    onModalOpen={(modalId, record) => {
-                      // Ensure record has both id and _id for compatibility
-                      const enhancedRecord = {
-                        ...record,
-                        id: record.id || record._id,
-                        _id: record._id || record.id
-                      };
-                      handleModalOpen(modalId, enhancedRecord);
-                    }}
-                  />
+                  config={config}
+                  loading={loading}
+                  tableData={tableData}
+                  onModalOpen={(modalId, record) => {
+                    handleModalOpen(modalId, record ? { ...record, id: record.id || record._id, _id: record._id || record.id } : null);
+                  }}
+                />
               ) : (
                 <FormComponent
                   config={config}
                   form={form}
                   loading={loading}
                   onModalOpen={handleModalOpen}
-                  onFormSubmit={handleFormSubmit}
+                  onFormSubmit={handleFormSubmit} // Added handleFormSubmit here
                 />
               )}
             </div>
           </Content>
 
-          {config.layout.footer?.enabled && (
+          {config?.layout?.footer?.enabled && (
             <Layout.Footer style={{ ...config.layout.footer.style, width: '100%' }}>
               {config.layout.footer.text}
               <div style={{ marginTop: 8 }}>
@@ -364,7 +274,7 @@ const DynamicPage = ({ configName }) => {
         modalConfig={currentModal ? config.modals[currentModal] : null}
         visible={modalVisible}
         onClose={handleModalClose}
-        onSubmit={handleFormSubmit}
+        onSubmit={handleFormSubmit} // Added handleFormSubmit here
         onDelete={handleDelete}
         loading={loading}
         form={form}
