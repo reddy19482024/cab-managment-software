@@ -45,7 +45,7 @@
             "type": "group",
             "label": "Reports",
             "children": [
-              { "key": "reports", "label": "reports", "icon": "BarChartOutlined", "path": "/reports" },
+              { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
               { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
               { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
             ]
@@ -58,11 +58,25 @@
           "padding": "16px",
           "background": "rgba(0, 0, 0, 0.25)",
           "color": "#fff",
-          "height": "80px"
+          "height": "auto",
+          "cursor": "pointer"
         },
         "content": {
-          "expanded": { "avatar": "/images/user-avatar.png", "name": "John Doe", "role": "Admin" },
-          "collapsed": { "avatar": "/images/user-avatar.png" }
+          "expanded": { 
+            "avatar": "/images/user-avatar.png", 
+            "name": "John Doe", 
+            "role": "Admin" 
+          },
+          "collapsed": { 
+            "avatar": "/images/user-avatar.png" 
+          },
+          "menu": {
+            "items": [
+              { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
+              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
+              { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
+            ]
+          }
         }
       }
     },
