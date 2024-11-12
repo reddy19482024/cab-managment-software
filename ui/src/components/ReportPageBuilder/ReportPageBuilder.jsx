@@ -47,11 +47,28 @@ const ReportPageBuilder = ({ configName }) => {
       setLoading(false);
     }
   };
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
+  const constructApiUrl = (endpoint) => {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    // Remove any leading slash from the endpoint
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    // Remove any trailing slash from baseUrl and combine
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    return `${cleanBaseUrl}/${cleanEndpoint}`;
+  };
 
   const loadReportData = async () => {
     try {
       setLoading(true);
       const reportData = {};
+      const authHeaders = getAuthHeaders();
 
       // Load summary data if it exists
       if (config.summary?.items) {
@@ -64,17 +81,20 @@ const ReportPageBuilder = ({ configName }) => {
                   endpoint = endpoint.replace(`{${param}}`, params[param]);
                 });
               }
-              const response = await fetch(endpoint, {
+
+              const response = await fetch(constructApiUrl(endpoint), {
                 method: item.data.api.method || 'GET',
                 headers: {
-                  'Content-Type': 'application/json',
+                  ...authHeaders,
                   ...item.data.api.headers
                 }
               });
+
               if (response.ok) {
                 const result = await response.json();
                 reportData[`summary_${item.title}`] = result;
               } else {
+                console.warn(`Using fallback data for ${item.title}`);
                 reportData[`summary_${item.title}`] = item.data.fallback;
               }
             } catch (error) {
@@ -97,10 +117,10 @@ const ReportPageBuilder = ({ configName }) => {
               });
             }
 
-            const response = await fetch(endpoint, {
+            const response = await fetch(constructApiUrl(endpoint), {
               method: section.data.api.method || 'GET',
               headers: {
-                'Content-Type': 'application/json',
+                ...authHeaders,
                 ...section.data.api.headers
               },
               ...(filters && section.data.api.method !== 'GET' ? {
@@ -112,6 +132,7 @@ const ReportPageBuilder = ({ configName }) => {
               const result = await response.json();
               reportData[section.id] = result;
             } else {
+              console.warn(`Using fallback data for section ${section.id}`);
               reportData[section.id] = section.data.fallback;
             }
           } catch (error) {
@@ -239,13 +260,21 @@ const ReportPageBuilder = ({ configName }) => {
       return column;
     });
 
+    // Configure pagination with proper showTotal function
+    const paginationConfig = {
+      ...section.pagination,
+      showTotal: section.pagination?.showTotal ? 
+        (total, range) => `${range[0]}-${range[1]} of ${total} items` : 
+        undefined
+    };
+
     return (
       <Table
-        columns={columns}
-        dataSource={tableData}
-        pagination={section.pagination}
-        rowKey={(record) => record.id || Math.random().toString()}
-      />
+      columns={columns}
+      dataSource={tableData}
+      pagination={paginationConfig}
+      rowKey={(record) => record.id || Math.random().toString()}
+    />
     );
   };
 

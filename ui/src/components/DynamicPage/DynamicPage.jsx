@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Form, message, Spin, Button } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Header from '../Layout/Header';
 import Footer from '../Layout/Footer';
@@ -22,6 +23,7 @@ const DynamicPage = ({ configName }) => {
   const [currentModal, setCurrentModal] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadPageConfig();
@@ -35,6 +37,35 @@ const DynamicPage = ({ configName }) => {
       }
     }
   }, [config]);
+
+  const constructApiUrl = (endpoint) => {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    return `${cleanBaseUrl}/${cleanEndpoint}`;
+  };
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      navigate('/', { replace: true });
+      return null;
+    }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
+  const handleAuthError = (error) => {
+    if (error.message.toLowerCase().includes('unauthorized') || 
+        error.message.toLowerCase().includes('expire')) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      navigate('/', { replace: true });
+      message.error('Session expired. Please login again.');
+    }
+  };
 
   const loadPageConfig = async () => {
     try {
@@ -51,22 +82,45 @@ const DynamicPage = ({ configName }) => {
 
   const loadTableData = async (apiConfig) => {
     if (!apiConfig) return;
-
+  
     try {
       setLoading(true);
-      const response = await fetch(apiConfig.endpoint, {
-        method: apiConfig.method,
-        headers: apiConfig.headers || {},
+      const apiUrl = constructApiUrl(apiConfig.endpoint);
+      const headers = getAuthHeaders();
+  
+      if (!headers) return;
+  
+      const response = await fetch(apiUrl, {
+        method: apiConfig.method || 'GET',
+        headers: headers
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTableData(Array.isArray(data) ? data : []);
-      } else {
-        throw new Error('Failed to load data');
+  
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to load data');
       }
+  
+      const responseData = await response.json();
+      // Check if response has data property and it's an array
+      const dataArray = responseData.data && Array.isArray(responseData.data) 
+        ? responseData.data 
+        : Array.isArray(responseData) 
+          ? responseData 
+          : [];
+  
+      // Map the data to match the expected format
+      const formattedData = dataArray.map(item => ({
+        id: item._id, // Map _id to id for consistent usage
+        name: item.name,
+        email: item.email,
+        role: item.role,
+        phone: item.phone
+      }));
+  
+      setTableData(formattedData);
     } catch (error) {
       console.error("Error loading table data:", error);
+      handleAuthError(error);
       const formSection = config.sections?.find(section => section.type === 'form');
       setTableData(formSection?.table?.fallbackData || []);
     } finally {
@@ -79,41 +133,58 @@ const DynamicPage = ({ configName }) => {
       message.error('API configuration is missing');
       return;
     }
-
+  
     try {
       setLoading(true);
       
       let endpoint = action.api.endpoint;
       if (record?.id) {
-        endpoint = endpoint.replace(/{(\w+)}/g, (_, param) => record[param] || '');
+        // Update endpoint to use _id instead of id
+        endpoint = endpoint.replace(/{(\w+)}/g, (_, param) => {
+          if (param === 'id') {
+            return record._id || record.id; // Support both _id and id
+          }
+          return record[param] || '';
+        });
       }
-
-      const response = await fetch(endpoint, {
+  
+      const apiUrl = constructApiUrl(endpoint);
+      const headers = getAuthHeaders();
+  
+      if (!headers) return;
+  
+      const response = await fetch(apiUrl, {
         method: action.api.method,
-        headers: { ...action.api.headers },
+        headers: headers,
         body: action.api.method !== 'GET' ? JSON.stringify(values) : undefined,
       });
-
-      if (response.ok) {
-        message.success(action.messages?.success || 'Operation successful');
-        if (currentModal) {
-          handleModalClose();
-        }
-        const formSection = config.sections?.find(section => section.type === 'form');
-        if (formSection?.table?.enabled && formSection?.table?.api) {
-          loadTableData(formSection.table.api);
-        }
-        form.resetFields();
-      } else {
-        throw new Error(action.messages?.failure || 'Operation failed');
+  
+      const responseData = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(responseData.message || action.messages?.failure || 'Operation failed');
       }
+  
+      message.success(responseData.message || action.messages?.success || 'Operation successful');
+      
+      if (currentModal) {
+        handleModalClose();
+      }
+  
+      const formSection = config.sections?.find(section => section.type === 'form');
+      if (formSection?.table?.enabled && formSection?.table?.api) {
+        loadTableData(formSection.table.api);
+      }
+  
+      form.resetFields();
     } catch (error) {
+      console.error("API action error:", error);
+      handleAuthError(error);
       message.error(error.message || 'Operation failed');
     } finally {
       setLoading(false);
     }
   };
-
   const handleFormSubmit = async (values) => {
     const formSection = config.sections?.find(section => section.type === 'form');
     const modalConfig = currentModal ? config.modals[currentModal] : null;
@@ -147,7 +218,10 @@ const DynamicPage = ({ configName }) => {
       return;
     }
 
-    await handleApiAction(action, null, selectedRecord);
+    // Add confirmation dialog for delete
+    if (window.confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
+      await handleApiAction(action, null, selectedRecord);
+    }
   };
 
   if (pageLoading) {
@@ -240,13 +314,21 @@ const DynamicPage = ({ configName }) => {
                 </div>
               )}
 
-              {formSection.table?.enabled ? (
+              {formSection?.table?.enabled ? (
                 <TableComponent
-                  config={config}
-                  loading={loading}
-                  tableData={tableData}
-                  onModalOpen={handleModalOpen}
-                />
+                    config={config}
+                    loading={loading}
+                    tableData={tableData}
+                    onModalOpen={(modalId, record) => {
+                      // Ensure record has both id and _id for compatibility
+                      const enhancedRecord = {
+                        ...record,
+                        id: record.id || record._id,
+                        _id: record._id || record.id
+                      };
+                      handleModalOpen(modalId, enhancedRecord);
+                    }}
+                  />
               ) : (
                 <FormComponent
                   config={config}
@@ -259,7 +341,7 @@ const DynamicPage = ({ configName }) => {
             </div>
           </Content>
 
-          {config.layout.footer.enabled && (
+          {config.layout.footer?.enabled && (
             <Layout.Footer style={{ ...config.layout.footer.style, width: '100%' }}>
               {config.layout.footer.text}
               <div style={{ marginTop: 8 }}>

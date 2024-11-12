@@ -36,14 +36,6 @@
           },
           {
             "type": "group",
-            "label": "Administration",
-            "children": [
-              { "key": "roles", "label": "Roles & Permissions", "icon": "SafetyOutlined", "path": "/roles" },
-              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" }
-            ]
-          },
-          {
-            "type": "group",
             "label": "Reports",
             "children": [
               { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
@@ -196,11 +188,8 @@
           }
         ],
         "api": {
-          "endpoint": "/api/employees",
-          "method": "GET",
-          "headers": {
-            "Content-Type": "application/json"
-          }
+          "endpoint": "employees",
+          "method": "GET"
         },
         "fallbackData": [
           {
@@ -296,11 +285,8 @@
             "marginTop": "24px"
           },
           "api": {
-            "endpoint": "/api/employees",
-            "method": "POST",
-            "headers": {
-              "Content-Type": "application/json"
-            }
+            "endpoint": "employees",
+            "method": "POST"
           },
           "messages": {
             "success": "Employee added successfully",
@@ -367,11 +353,8 @@
             "marginTop": "24px"
           },
           "api": {
-            "endpoint": "/api/employees/{id}",
-            "method": "PUT",
-            "headers": {
-              "Content-Type": "application/json"
-            }
+            "endpoint": "employees/{id}",
+            "method": "PUT"
           },
           "messages": {
             "success": "Employee updated successfully",
@@ -392,11 +375,8 @@
             "danger": true
           },
           "api": {
-            "endpoint": "/api/employees/{id}",
-            "method": "DELETE",
-            "headers": {
-              "Content-Type": "application/json"
-            }
+            "endpoint": "employees/{id}",
+            "method": "DELETE"
           },
           "messages": {
             "success": "Employee deleted successfully",

@@ -1,5 +1,5 @@
 {
-  "title": "Transport reports Dashboard",
+  "title": "Transport Reports Dashboard",
   "layout": {
     "header": {
       "enabled": true,
@@ -12,75 +12,67 @@
         "lineHeight": "64px"
       }
     },
-  "sidebar": {
-        "enabled": true,
-        "collapsed": false,
-        "width": 256,
-        "collapsedWidth": 80,
-        "theme": "dark",
-        "style": {
-          "background": "#001529",
-          "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
-        },
-        "menu": {
-          "items": [
-            { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
-            {
-              "type": "group",
-              "label": "Management",
-              "children": [
-                { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
-                { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
-                { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
-              ]
-            },
-            {
-              "type": "group",
-              "label": "Administration",
-              "children": [
-                { "key": "roles", "label": "Roles & Permissions", "icon": "SafetyOutlined", "path": "/roles" },
-                { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" }
-              ]
-            },
-            {
-              "type": "group",
-              "label": "Reports",
-              "children": [
-                { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
-                { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
-                { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
-              ]
-            }
-          ]
-        },
-        "footer": {
-          "enabled": true,
-          "style": {
-            "padding": "16px",
-            "background": "rgba(0, 0, 0, 0.25)",
-            "color": "#fff",
-            "height": "auto",
-            "cursor": "pointer"
+    "sidebar": {
+      "enabled": true,
+      "collapsed": false,
+      "width": 256,
+      "collapsedWidth": 80,
+      "theme": "dark",
+      "style": {
+        "background": "#001529",
+        "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
+      },
+      "menu": {
+        "items": [
+          { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+          {
+            "type": "group",
+            "label": "Management",
+            "children": [
+              { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+              { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+            ]
           },
-          "content": {
-            "expanded": { 
-              "avatar": "/images/user-avatar.png", 
-              "name": "John Doe", 
-              "role": "Admin" 
-            },
-            "collapsed": { 
-              "avatar": "/images/user-avatar.png" 
-            },
-            "menu": {
-              "items": [
-                { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
-                { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
-                { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
-              ]
-            }
+          {
+            "type": "group",
+            "label": "Reports",
+            "children": [
+              { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
+              { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+              { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "enabled": true,
+        "style": {
+          "padding": "16px",
+          "background": "rgba(0, 0, 0, 0.25)",
+          "color": "#fff",
+          "height": "auto",
+          "cursor": "pointer"
+        },
+        "content": {
+          "expanded": { 
+            "avatar": "/images/user-avatar.png", 
+            "name": "John Doe", 
+            "role": "Admin" 
+          },
+          "collapsed": { 
+            "avatar": "/images/user-avatar.png" 
+          },
+          "menu": {
+            "items": [
+              { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
+              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
+              { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
+            ]
           }
         }
-      },
+      }
+    },
     "content": {
       "style": {
         "minHeight": "calc(100vh - 64px)",
@@ -90,7 +82,7 @@
     },
     "footer": {
       "enabled": true,
-      "text": "© 2024 Transport reports. All rights reserved.",
+      "text": "© 2024 Transport Reports. All rights reserved.",
       "style": {
         "textAlign": "center",
         "padding": "16px",
@@ -108,54 +100,70 @@
     "items": [
       {
         "title": "Total Active Trips",
+        "icon": "CarOutlined",
         "data": {
           "api": {
-            "endpoint": "/api/reports/stats/active-trips",
+            "endpoint": "reports/stats/active-trips",
             "method": "GET",
             "headers": {
               "Content-Type": "application/json"
             }
           },
           "fallback": 156
+        },
+        "style": {
+          "color": "#1890ff"
         }
       },
       {
         "title": "Available Drivers",
+        "icon": "UserOutlined",
         "data": {
           "api": {
-            "endpoint": "/api/reports/stats/available-drivers",
+            "endpoint": "reports/stats/available-drivers",
             "method": "GET",
             "headers": {
               "Content-Type": "application/json"
             }
           },
           "fallback": "24/35"
+        },
+        "style": {
+          "color": "#52c41a"
         }
       },
       {
         "title": "Fleet Utilization",
+        "icon": "PieChartOutlined",
         "data": {
           "api": {
-            "endpoint": "/api/reports/stats/fleet-utilization",
+            "endpoint": "reports/stats/fleet-utilization",
             "method": "GET",
             "headers": {
               "Content-Type": "application/json"
             }
           },
           "fallback": "78%"
+        },
+        "style": {
+          "color": "#722ed1"
         }
       },
       {
         "title": "On-Time Rate",
+        "icon": "ClockCircleOutlined",
         "data": {
           "api": {
-            "endpoint": "/api/reports/stats/on-time-rate",
+            "endpoint": "reports/stats/on-time-rate",
             "method": "GET",
             "headers": {
               "Content-Type": "application/json"
             }
           },
           "fallback": "94.5%"
+        },
+        "style": {
+          "color": "#faad14"
         }
       }
     ]
@@ -235,7 +243,7 @@
       },
       "data": {
         "api": {
-          "endpoint": "/api/reports/trips/overview",
+          "endpoint": "reports/trips/overview",
           "method": "GET",
           "headers": {
             "Content-Type": "application/json"
@@ -264,21 +272,22 @@
       "chart": {
         "type": "pie",
         "dataKey": "value",
-        "nameKey": "status"
+        "nameKey": "status",
+        "colors": ["#52c41a", "#1890ff", "#faad14", "#ff4d4f"]
       },
       "data": {
         "api": {
-          "endpoint": "/api/reports/resources/status",
+          "endpoint": "reports/resources/status",
           "method": "GET",
           "headers": {
             "Content-Type": "application/json"
           }
         },
         "fallback": [
-          { "status": "Available", "value": 12, "color": "#52c41a" },
-          { "status": "On Trip", "value": 8, "color": "#1890ff" },
-          { "status": "Maintenance", "value": 3, "color": "#faad14" },
-          { "status": "Out of Service", "value": 2, "color": "#ff4d4f" }
+          { "status": "Available", "value": 12 },
+          { "status": "On Trip", "value": 8 },
+          { "status": "Maintenance", "value": 3 },
+          { "status": "Out of Service", "value": 2 }
         ]
       }
     },
@@ -303,7 +312,7 @@
       },
       "data": {
         "api": {
-          "endpoint": "/api/reports/trips/distribution",
+          "endpoint": "reports/trips/distribution",
           "method": "GET",
           "headers": {
             "Content-Type": "application/json"
@@ -347,7 +356,7 @@
       ],
       "data": {
         "api": {
-          "endpoint": "/api/reports/trips/active",
+          "endpoint": "reports/trips/active",
           "method": "GET",
           "headers": {
             "Content-Type": "application/json"
@@ -382,7 +391,8 @@
       },
       "pagination": {
         "pageSize": 10,
-        "showSizeChanger": true
+        "showSizeChanger": true,
+        "showTotal": true
       }
     }
   ]
