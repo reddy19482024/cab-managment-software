@@ -18,6 +18,19 @@ const createController = (entityName, entityConfig) => {
   };
 
   return {
+    async create(req, res) {
+      if (isEndpointDefined(entityConfig, 'create')) {
+        try {
+          const newRecord = await Model.create(req.body);
+          res.status(201).json({ message: "Record created successfully", data: newRecord });
+        } catch (error) {
+          res.status(400).json({ error: error.message });
+        }
+      } else {
+        res.status(404).json({ message: "Endpoint not found" });
+      }
+    },
+
     async read(req, res) {
       if (isEndpointDefined(entityConfig, 'read')) {
         try {

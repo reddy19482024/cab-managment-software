@@ -29,7 +29,7 @@
           "vehicle_id": { "type": "UUID", "primary_key": true },
           "registration_number": { "type": "string", "unique": true, "required": true },
           "status": { "type": "string", "enum": ["available", "on-duty", "maintenance"], "required": true },
-          "make": { "type": "string" },
+          "brand": { "type": "string" },
           "model": { "type": "string" },
           "seats": { "type": "integer", "required": true, "description": "Number of seats available in the vehicle" }
         },

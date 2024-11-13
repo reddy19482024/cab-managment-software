@@ -8,7 +8,7 @@
         "description": "Add a new vehicle to the fleet",
         "request_payload": {
           "registration_number": "string",
-          "make": "string",
+          "brand": "string",
           "model": "string",
           "status": "string",
           "seats": "integer"
@@ -16,7 +16,7 @@
         "response": {
           "vehicle_id": "uuid-generated-id",
           "registration_number": "ABC1234",
-          "make": "Toyota",
+          "brand": "Toyota",
           "model": "Camry",
           "status": "available",
           "seats": 4,
@@ -31,7 +31,7 @@
         "response": {
           "vehicle_id": "uuid-vehicle-id",
           "registration_number": "ABC1234",
-          "make": "Toyota",
+          "brand": "Toyota",
           "model": "Camry",
           "status": "available",
           "seats": 4,
@@ -45,7 +45,7 @@
         "description": "Update an existing vehicle",
         "request_payload": {
           "registration_number": "string",
-          "make": "string",
+          "brand": "string",
           "model": "string",
           "status": "string",
           "seats": "integer"
@@ -53,7 +53,7 @@
         "response": {
           "vehicle_id": "uuid-vehicle-id",
           "registration_number": "ABC1234",
-          "make": "Toyota",
+          "brand": "Toyota",
           "model": "Camry",
           "status": "maintenance",
           "seats": 5,
@@ -76,7 +76,7 @@
         "route_type": "private",
         "description": "List all vehicles with filtering options",
         "params": {
-          "search": "registration_number, make, model",
+          "search": "registration_number, brand, model",
           "sort": "status, seats",
           "filter": "status"
         },
@@ -84,7 +84,7 @@
           {
             "vehicle_id": "uuid-1",
             "registration_number": "ABC1234",
-            "make": "Toyota",
+            "brand": "Toyota",
             "model": "Camry",
             "status": "available",
             "seats": 4
@@ -92,7 +92,7 @@
           {
             "vehicle_id": "uuid-2",
             "registration_number": "DEF5678",
-            "make": "Honda",
+            "brand": "Honda",
             "model": "Civic",
             "status": "maintenance",
             "seats": 5

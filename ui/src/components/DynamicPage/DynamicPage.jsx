@@ -54,18 +54,34 @@ const DynamicPage = ({ configName }) => {
 
   const loadTableData = async (apiConfig) => {
     if (!apiConfig) return;
-
+  
     const data = await apiRequest(apiConfig.endpoint, apiConfig.method || 'GET');
     if (data) {
+      // Get table columns from config
+      const formSection = config.sections?.find(section => section.type === 'form');
+      const columns = formSection?.table?.columns || [];
+      
+      // Extract column dataIndex values, excluding 'actions'
+      const columnFields = columns
+        .filter(col => col.dataIndex && col.dataIndex !== 'actions')
+        .map(col => col.dataIndex);
+  
       setTableData(
-        data.data.map(item => ({
-          id: item._id,
-          name: item.name,
-          email: item.email,
-          role: item.role,
-          phone: item.phone,
-          _id: item._id
-        }))
+        data.data.map(item => {
+          const mappedItem = {
+            id: item._id,  // Always include id for internal operations
+            _id: item._id  // Always include _id for internal operations
+          };
+  
+          // Map only the fields defined in table columns
+          columnFields.forEach(field => {
+            if (item[field] !== undefined) {
+              mappedItem[field] = item[field];
+            }
+          });
+  
+          return mappedItem;
+        })
       );
     }
   };
