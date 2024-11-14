@@ -5,7 +5,7 @@ import * as AntdIcons from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import Header from '../Layout/Header';
 import Footer from '../Layout/Footer';
-import SidebarComponent from '../Sidebar';
+import SidebarComponent from '../Sidebar/Sidebar';
 import configLoader from '../../utils/configLoader';
 
 const { Content } = Layout;

@@ -17,5 +17,5 @@ app.use(bodyParser.json());
 // Load dynamic routes
 app.use(createRoutes());
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

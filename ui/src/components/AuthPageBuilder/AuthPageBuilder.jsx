@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Form, message, Spin } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import FormComponent from '../Form';
+import FormComponent from '../Form/Form';
 import configLoader from '../../utils/configLoader';
 
 const { Content } = Layout;
