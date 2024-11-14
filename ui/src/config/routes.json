@@ -30,6 +30,13 @@
       "public": false
     },
     {
+      "path": "/drivers",
+      "componentConfig": "driver",
+      "title": "Driver Management",
+      "type": "management",
+      "public": false
+    },
+    {
       "path": "/trips",
       "componentConfig": "trip",
       "title": "Trip Management",

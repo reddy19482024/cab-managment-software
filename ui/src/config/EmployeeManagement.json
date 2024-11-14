@@ -12,67 +12,68 @@
         "lineHeight": "64px"
       }
     },
-    "sidebar": {
-      "enabled": true,
-      "collapsed": false,
-      "width": 256,
-      "collapsedWidth": 80,
-      "theme": "dark",
-      "style": {
-        "background": "#001529",
-        "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
-      },
-      "menu": {
-        "items": [
-          { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
-          {
-            "type": "group",
-            "label": "Management",
-            "children": [
-              { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
-              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
-              { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
-            ]
-          },
-          {
-            "type": "group",
-            "label": "Reports",
-            "children": [
-              { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
-              { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
-              { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
-            ]
-          }
-        ]
-      },
-      "footer": {
+      "sidebar": {
         "enabled": true,
+        "collapsed": false,
+        "width": 256,
+        "collapsedWidth": 80,
+        "theme": "dark",
         "style": {
-          "padding": "16px",
-          "background": "rgba(0, 0, 0, 0.25)",
-          "color": "#fff",
-          "height": "auto",
-          "cursor": "pointer"
+          "background": "#001529",
+          "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
         },
-        "content": {
-          "expanded": { 
-            "avatar": "/images/user-avatar.png", 
-            "name": "John Doe", 
-            "role": "Admin" 
+        "menu": {
+          "items": [
+            { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+            {
+              "type": "group",
+              "label": "Management",
+              "children": [
+                { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+                { "key": "drivers", "label": "Drivers", "icon": "IdcardOutlined", "path": "/drivers" },
+                { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+                { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+              ]
+            },
+            {
+              "type": "group",
+              "label": "Reports",
+              "children": [
+                { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
+                { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+                { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
+              ]
+            }
+          ]
+        },
+        "footer": {
+          "enabled": true,
+          "style": {
+            "padding": "16px",
+            "background": "rgba(0, 0, 0, 0.25)",
+            "color": "#fff",
+            "height": "auto",
+            "cursor": "pointer"
           },
-          "collapsed": { 
-            "avatar": "/images/user-avatar.png" 
-          },
-          "menu": {
-            "items": [
-              { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
-              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
-              { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
-            ]
+          "content": {
+            "expanded": { 
+              "avatar": "/images/user-avatar.png", 
+              "name": "John Doe", 
+              "role": "Admin" 
+            },
+            "collapsed": { 
+              "avatar": "/images/user-avatar.png" 
+            },
+            "menu": {
+              "items": [
+                { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
+                { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
+                { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
+              ]
+            }
           }
         }
-      }
-    },
+      },
     "content": {
       "style": {
         "minHeight": "calc(100vh - 64px)",

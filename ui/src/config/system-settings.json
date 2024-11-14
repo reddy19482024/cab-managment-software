@@ -30,16 +30,9 @@
             "label": "Management",
             "children": [
               { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+              { "key": "drivers", "label": "Drivers", "icon": "IdcardOutlined", "path": "/drivers" },
               { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
               { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
-            ]
-          },
-          {
-            "type": "group",
-            "label": "Administration",
-            "children": [
-              { "key": "roles", "label": "Roles & Permissions", "icon": "SafetyOutlined", "path": "/roles" },
-              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" }
             ]
           },
           {
