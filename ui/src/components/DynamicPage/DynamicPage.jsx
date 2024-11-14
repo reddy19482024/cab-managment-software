@@ -23,6 +23,8 @@ const DynamicPage = ({ configName }) => {
   const [currentModal, setCurrentModal] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
+  const [searchParams, setSearchParams] = useState({});
+  const [filterParams, setFilterParams] = useState({});
   
   const { apiRequest, loading } = useApi();
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ const DynamicPage = ({ configName }) => {
         loadTableData(formSection.table.api);
       }
     }
-  }, [config]);
+  }, [config, searchParams, filterParams]);
 
   const loadPageConfig = async () => {
     try {
@@ -52,53 +54,128 @@ const DynamicPage = ({ configName }) => {
     }
   };
 
+  const transformDataForFields = (data, fields) => {
+    const transformedData = { ...data };
+    
+    fields?.forEach(field => {
+      // Handle fields with dependencies (usually relationship fields)
+      if (field.dependencies && field.api?.transform) {
+        const fieldValue = data[field.name];
+        
+        // If field has a value and it's an object
+        if (fieldValue && typeof fieldValue === 'object') {
+          const valueKey = field.api.transform.valueKey;
+          transformedData[field.name] = valueKey ? fieldValue[valueKey] : fieldValue;
+        }
+      }
+      
+      // Handle nested fields
+      if (field.dataIndex && Array.isArray(field.dataIndex)) {
+        const value = field.dataIndex.reduce((obj, key) => obj?.[key], data);
+        if (value !== undefined) {
+          transformedData[field.name] = value;
+        }
+      }
+    });
+
+    return transformedData;
+  };
+
   const loadTableData = async (apiConfig) => {
     if (!apiConfig) return;
   
-    const data = await apiRequest(apiConfig.endpoint, apiConfig.method || 'GET');
-    if (data) {
-      // Get table columns from config
+    const queryParams = {
+      ...(apiConfig.params || {}),
+      ...searchParams,
+      ...filterParams
+    };
+
+    const data = await apiRequest(
+      apiConfig.endpoint, 
+      apiConfig.method || 'GET',
+      null,
+      queryParams
+    );
+
+    if (data?.data) {
       const formSection = config.sections?.find(section => section.type === 'form');
       const columns = formSection?.table?.columns || [];
       
-      // Extract column dataIndex values, excluding 'actions'
-      const columnFields = columns
-        .filter(col => col.dataIndex && col.dataIndex !== 'actions')
-        .map(col => col.dataIndex);
-  
-      setTableData(
-        data.data.map(item => {
-          const mappedItem = {
-            id: item._id,  // Always include id for internal operations
-            _id: item._id  // Always include _id for internal operations
-          };
-  
-          // Map only the fields defined in table columns
-          columnFields.forEach(field => {
-            if (item[field] !== undefined) {
-              mappedItem[field] = item[field];
+      const processedData = data.data.map(item => {
+        const processedItem = { ...item };
+
+        // Process any nested fields defined in columns
+        columns.forEach(col => {
+          if (Array.isArray(col.dataIndex)) {
+            const value = col.dataIndex.reduce((obj, key) => obj?.[key], item);
+            if (value !== undefined) {
+              let current = processedItem;
+              for (let i = 0; i < col.dataIndex.length - 1; i++) {
+                const key = col.dataIndex[i];
+                current[key] = current[key] || {};
+                current = current[key];
+              }
+              current[col.dataIndex[col.dataIndex.length - 1]] = value;
             }
-          });
-  
-          return mappedItem;
-        })
-      );
+          }
+        });
+
+        return {
+          id: item._id || item.id,
+          _id: item._id || item.id,
+          ...processedItem
+        };
+      });
+
+      setTableData(processedData);
     }
   };
 
+  const handleSearch = (value, fields) => {
+    setSearchParams(value ? {
+      search: value,
+      searchFields: fields.join(',')
+    } : {});
+  };
+
+  const handleFilter = (filters) => {
+    setFilterParams(Object.fromEntries(
+      Object.entries(filters).filter(([_, value]) => value !== undefined)
+    ));
+  };
+
+  const prepareRequestBody = (values, modalConfig) => {
+    const preparedData = { ...values };
+
+    modalConfig?.fields?.forEach(field => {
+      // Handle field-specific transformations based on field type
+      if (field.type === 'select' && field.mode === 'multiple') {
+        preparedData[field.name] = values[field.name] || [];
+      }
+      
+      // Handle relationship fields
+      if (field.dependencies) {
+        const value = values[field.name];
+        if (value === undefined || value === '') {
+          preparedData[field.name] = null;
+        }
+      }
+    });
+
+    return preparedData;
+  };
+
   const handleApiAction = async (action, values, record = null) => {
-    if (!action?.api) {
-      message.error('API configuration is missing');
-      return;
-    }
+    if (!action?.api) return;
 
     let endpoint = action.api.endpoint;
     if (record?._id) {
       endpoint = endpoint.replace('{id}', record._id);
     }
 
-    const requestBody = action.api.method !== 'GET'
-      ? { ...values, role: values.role?.toLowerCase() }
+    const modalConfig = currentModal ? config?.modals?.[currentModal] : null;
+    const requestBody = action.api.method !== 'GET' 
+      ? prepareRequestBody(values, modalConfig)
       : null;
 
     const response = await apiRequest(endpoint, action.api.method, requestBody);
@@ -106,6 +183,7 @@ const DynamicPage = ({ configName }) => {
     if (response) {
       message.success(action.messages?.success || 'Operation successful');
       if (currentModal) handleModalClose();
+      
       const formSection = config.sections?.find(section => section.type === 'form');
       if (formSection?.table?.enabled && formSection?.table?.api) {
         loadTableData(formSection.table.api);
@@ -114,20 +192,29 @@ const DynamicPage = ({ configName }) => {
     }
   };
 
-  // Added handleFormSubmit function
+    // Added handleFormSubmit function
   const handleFormSubmit = async (values) => {
-    const formSection = config.sections?.find(section => section.type === 'form');
-    const modalConfig = currentModal ? config.modals[currentModal] : null;
+    const modalConfig = currentModal ? config?.modals?.[currentModal] : null;
+    const formSection = config?.sections?.find(section => section.type === 'form');
     const action = modalConfig?.actions?.[0] || formSection?.actions?.[0];
 
-    await handleApiAction(action, values, selectedRecord);
+    if (action) {
+      await handleApiAction(action, values, selectedRecord);
+    }
   };
 
   const handleModalOpen = (modalId, record = null) => {
+    const modalConfig = config?.modals?.[modalId];
     setCurrentModal(modalId);
     setSelectedRecord(record);
     setModalVisible(true);
-    form.setFieldsValue(record || {});
+    
+    if (record) {
+      const formData = transformDataForFields(record, modalConfig?.fields);
+      form.setFieldsValue(formData);
+    } else {
+      form.resetFields();
+    }
   };
 
   const handleModalClose = () => {
@@ -150,9 +237,12 @@ const DynamicPage = ({ configName }) => {
     const response = await apiRequest(endpoint, action.api.method);
 
     if (response) {
-      message.success('Employee deleted successfully');
+      message.success(action.messages?.success || 'Record deleted successfully');
       handleModalClose();
-      loadTableData(config.sections?.find(section => section.type === 'form')?.table?.api);
+      const formSection = config?.sections?.find(section => section.type === 'form');
+      if (formSection?.table?.enabled && formSection?.table?.api) {
+        loadTableData(formSection.table.api);
+      }
     }
   };
 
@@ -168,13 +258,17 @@ const DynamicPage = ({ configName }) => {
 
   const formSection = config.sections?.find(section => section.type === 'form');
   const bannerSection = config.sections?.find(section => section.type === 'banner');
+  const headerConfig = config.layout?.header;
+  const sidebarConfig = config.layout?.sidebar;
+  const contentConfig = config.layout?.content;
+  const footerConfig = config.layout?.footer;
 
   return (
     <Layout>
-      {config?.layout?.header?.enabled && (
+      {headerConfig?.enabled && (
         <Layout.Header 
           style={{
-            ...config.layout.header.style,
+            ...(headerConfig.style || {}),
             position: 'fixed',
             width: '100%',
             zIndex: 1000,
@@ -184,14 +278,14 @@ const DynamicPage = ({ configName }) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {config.layout.header.logo && (
+            {headerConfig.logo && (
               <img 
-                src={config.layout.header.logo} 
+                src={headerConfig.logo} 
                 alt="Logo" 
                 style={{ height: '32px', marginRight: '24px' }}
               />
             )}
-            {config.layout.sidebar?.enabled && (
+            {sidebarConfig?.enabled && (
               <Button
                 type="text"
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -203,8 +297,8 @@ const DynamicPage = ({ configName }) => {
         </Layout.Header>
       )}
       
-      <Layout style={{ marginTop: config?.layout?.header?.enabled ? 64 : 0 }}>
-        {config.layout.sidebar?.enabled && (
+      <Layout style={{ marginTop: headerConfig?.enabled ? 64 : 0 }}>
+        {sidebarConfig?.enabled && (
           <SidebarComponent 
             config={config}
             collapsed={collapsed}
@@ -214,34 +308,38 @@ const DynamicPage = ({ configName }) => {
         
         <Layout style={{ 
           transition: 'all 0.2s',
-          marginLeft: config.layout.sidebar?.enabled 
-            ? (collapsed ? `${config.layout.sidebar.collapsedWidth}px` : `${config.layout.sidebar.width}px`)
+          marginLeft: sidebarConfig?.enabled 
+            ? (collapsed ? `${sidebarConfig.collapsedWidth}px` : `${sidebarConfig.width}px`)
             : 0
         }}>
           <Content style={{
-            ...config.layout.content.style,
-            minHeight: config.layout.header.enabled ? 'calc(100vh - 64px)' : '100vh',
+            ...(contentConfig?.style || {}),
+            minHeight: headerConfig?.enabled ? 'calc(100vh - 64px)' : '100vh',
             padding: 0,
             display: 'flex',
             flexDirection: 'column'
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               {bannerSection && (
-                <div style={{ ...bannerSection.style }}>
-                  <div style={{ ...bannerSection.content.style }}>
-                    {bannerSection.content.image && (
+                <div style={{ ...(bannerSection.style || {}) }}>
+                  <div style={{ ...(bannerSection.content?.style || {}) }}>
+                    {bannerSection.content?.image && (
                       <img 
                         src={bannerSection.content.image} 
                         alt="Banner" 
                         style={{ height: '32px', marginBottom: '12px' }}
                       />
                     )}
-                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
-                      {bannerSection.content.title}
-                    </h1>
-                    <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '4px 0 0 0' }}>
-                      {bannerSection.content.description}
-                    </p>
+                    {bannerSection.content?.title && (
+                      <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
+                        {bannerSection.content.title}
+                      </h1>
+                    )}
+                    {bannerSection.content?.description && (
+                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '4px 0 0 0' }}>
+                        {bannerSection.content.description}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -251,9 +349,9 @@ const DynamicPage = ({ configName }) => {
                   config={config}
                   loading={loading}
                   tableData={tableData}
-                  onModalOpen={(modalId, record) => {
-                    handleModalOpen(modalId, record ? { ...record, id: record.id || record._id, _id: record._id || record.id } : null);
-                  }}
+                  onModalOpen={handleModalOpen}
+                  onSearch={handleSearch}
+                  onFilter={handleFilter}
                 />
               ) : (
                 <FormComponent
@@ -261,36 +359,38 @@ const DynamicPage = ({ configName }) => {
                   form={form}
                   loading={loading}
                   onModalOpen={handleModalOpen}
-                  onFormSubmit={handleFormSubmit} // Added handleFormSubmit here
+                  onFormSubmit={handleFormSubmit}
                 />
               )}
             </div>
           </Content>
 
-          {config?.layout?.footer?.enabled && (
-            <Layout.Footer style={{ ...config.layout.footer.style, width: '100%' }}>
-              {config.layout.footer.text}
-              <div style={{ marginTop: 8 }}>
-                {config.layout.footer.links?.map((link, index) => (
-                  <a 
-                    key={index} 
-                    href={link.url}
-                    style={{ marginLeft: index > 0 ? 16 : 0 }}
-                  >
-                    {link.text}
-                  </a>
-                ))}
-              </div>
+          {footerConfig?.enabled && (
+            <Layout.Footer style={{ ...(footerConfig.style || {}), width: '100%' }}>
+              {footerConfig.text}
+              {footerConfig.links && (
+                <div style={{ marginTop: 8 }}>
+                  {footerConfig.links.map((link, index) => (
+                    <a 
+                      key={index} 
+                      href={link.url}
+                      style={{ marginLeft: index > 0 ? 16 : 0 }}
+                    >
+                      {link.text}
+                    </a>
+                  ))}
+                </div>
+              )}
             </Layout.Footer>
           )}
         </Layout>
       </Layout>
 
       <ModalComponent
-        modalConfig={currentModal ? config.modals[currentModal] : null}
+        modalConfig={currentModal ? config.modals?.[currentModal] : null}
         visible={modalVisible}
         onClose={handleModalClose}
-        onSubmit={handleFormSubmit} // Added handleFormSubmit here
+        onSubmit={handleFormSubmit}
         onDelete={handleDelete}
         loading={loading}
         form={form}

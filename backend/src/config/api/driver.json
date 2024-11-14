@@ -1,144 +1,177 @@
 {
-    "Driver": {
-      "endpoints": {
-        "register": {
-          "path": "/api/drivers/register",
-          "method": "POST",
-          "route_type": "private",
-          "description": "Register a new driver",
-          "request_payload": {
-            "name": "Jane Doe",
-            "mobile": "0987654321",
-            "license_number": "LIC123456",
-            "status": "available"
-          },
-          "response": {
-            "driver_id": "uuid-generated-id",
-            "name": "Jane Doe",
-            "mobile": "0987654321",
-            "license_number": "LIC123456",
-            "status": "available",
-            "created_at": "timestamp"
-          }
-        },
-        "requestOtp": {
-          "path": "/api/drivers/request-otp",
-          "method": "POST",
-          "route_type": "public",
-          "description": "Request OTP for driver login",
-          "request_payload": {
-            "mobile": "0987654321"
-          },
-          "response": {
-            "message": "OTP sent to your mobile number"
-          }
-        },
-        "verifyOtp": {
-          "path": "/api/drivers/verify-otp",
-          "method": "POST",
-          "route_type": "public",
-          "description": "Verify OTP for driver login",
-          "request_payload": {
-            "mobile": "0987654321",
-            "otp": "123456"
-          },
-          "response": {
-            "token": "jwt-token-for-authentication"
-          }
-        },
-        "create": {
-          "path": "/api/drivers",
-          "method": "POST",
-          "route_type": "private",
-          "description": "Create a new driver",
-          "request_payload": {
+  "Driver": {
+    "endpoints": {
+      "register": {
+        "path": "/api/drivers/register",
+        "method": "POST",
+        "route_type": "private",
+        "description": "Register a new driver",
+        "request_payload": {
           "name": "string",
           "mobile": "string",
           "license_number": "string",
-          "status": "string"
+          "status": "string",
+          "assigned_vehicle": "UUID"
         },
-          "response": {
-            "driver_id": "uuid-generated-id",
-            "name": "John Smith",
-            "mobile": "1234567890",
-            "license_number": "LIC654321",
-            "status": "available",
-            "created_at": "timestamp"
-          }
-        },
-        "read": {
-          "path": "/api/drivers/{driver_id}",
-          "method": "GET",
-          "route_type": "private",
-          "description": "Retrieve details of a specific driver by ID",
-          "response": {
-            "driver_id": "uuid-driver-id",
-            "name": "John Smith",
-            "mobile": "1234567890",
-            "license_number": "LIC654321",
-            "status": "available",
-            "assigned_vehicle": "uuid-vehicle-id",
-            "created_at": "timestamp"
-          }
-        },
-        "update": {
-          "path": "/api/drivers/{driver_id}",
-          "method": "PUT",
-          "route_type": "private",
-          "description": "Update an existing driver",
-          "request_payload": {
-            "name": "John Doe",
-            "mobile": "1234567890",
-            "license_number": "LIC123654",
-            "status": "on-duty"
-          },
-          "response": {
-            "driver_id": "uuid-driver-id",
-            "name": "John Doe",
-            "mobile": "1234567890",
-            "license_number": "LIC123654",
-            "status": "on-duty",
-            "updated_at": "timestamp"
-          }
-        },
-        "delete": {
-          "path": "/api/drivers/{driver_id}",
-          "method": "DELETE",
-          "route_type": "private",
-          "description": "Delete a driver by ID",
-          "response": {
-            "message": "Driver deleted successfully",
-            "driver_id": "uuid-driver-id"
-          }
-        },
-        "list": {
-          "path": "/api/drivers",
-          "method": "GET",
-          "route_type": "private",
-          "description": "List all drivers with filtering options",
-          "params": {
-            "search": "name, mobile, license_number",
-            "sort": "name, status",
-            "filter": "status"
-          },
-          "response": [
-            {
-              "driver_id": "uuid-1",
-              "name": "Jane Doe",
-              "mobile": "0987654321",
-              "license_number": "LIC123456",
-              "status": "available"
-            },
-            {
-              "driver_id": "uuid-2",
-              "name": "John Smith",
-              "mobile": "1234567890",
-              "license_number": "LIC654321",
-              "status": "on-duty"
-            }
-          ]
+        "response": {
+          "driver_id": "uuid-generated-id",
+          "name": "Jane Doe",
+          "mobile": "0987654321",
+          "license_number": "LIC123456",
+          "status": "available",
+          "assigned_vehicle": "uuid-vehicle-id",
+          "created_at": "timestamp"
         }
+      },
+      "requestOtp": {
+        "path": "/api/drivers/request-otp",
+        "method": "POST",
+        "route_type": "public",
+        "description": "Request OTP for driver login",
+        "request_payload": {
+          "mobile": "0987654321"
+        },
+        "response": {
+          "message": "OTP sent to your mobile number"
+        }
+      },
+      "verifyOtp": {
+        "path": "/api/drivers/verify-otp",
+        "method": "POST",
+        "route_type": "public",
+        "description": "Verify OTP for driver login",
+        "request_payload": {
+          "mobile": "0987654321",
+          "otp": "123456"
+        },
+        "response": {
+          "token": "jwt-token-for-authentication"
+        }
+      },
+      "create": {
+        "path": "/api/drivers",
+        "method": "POST",
+        "route_type": "private",
+        "description": "Create a new driver",
+        "request_payload": {
+          "name": "string",
+          "mobile": "string",
+          "license_number": "string",
+          "status": {
+            "type": "string",
+            "enum": ["available", "on-duty", "inactive"]
+          },
+          "assigned_vehicle": {
+            "type": "UUID",
+            "foreign_key": "Vehicle.vehicle_id",
+            "description": "ID of the assigned vehicle"
+          }
+        },
+        "response": {
+          "driver_id": "uuid-generated-id",
+          "name": "John Smith",
+          "mobile": "1234567890",
+          "license_number": "LIC654321",
+          "status": "available",
+          "assigned_vehicle": "uuid-vehicle-id",
+          "created_at": "timestamp"
+        }
+      },
+      "read": {
+        "path": "/api/drivers/{driver_id}",
+        "method": "GET",
+        "route_type": "private",
+        "description": "Retrieve details of a specific driver by ID",
+        "response": {
+          "driver_id": "uuid-driver-id",
+          "name": "John Smith",
+          "mobile": "1234567890",
+          "license_number": "LIC654321",
+          "status": "available",
+          "assigned_vehicle": {
+            "vehicle_id": "uuid-vehicle-id",
+            "registration_number": "ABC123",
+            "brand": "Toyota",
+            "model": "Camry",
+            "seats": 4
+          },
+          "created_at": "timestamp"
+        }
+      },
+      "update": {
+        "path": "/api/drivers/{driver_id}",
+        "method": "PUT",
+        "route_type": "private",
+        "description": "Update an existing driver",
+        "request_payload": {
+          "name": "string",
+          "mobile": "string",
+          "license_number": "string",
+          "status": {
+            "type": "string",
+            "enum": ["available", "on-duty", "inactive"]
+          },
+          "assigned_vehicle": {
+            "type": "UUID",
+            "foreign_key": "Vehicle.vehicle_id",
+            "description": "ID of the assigned vehicle"
+          }
+        },
+        "response": {
+          "driver_id": "uuid-driver-id",
+          "name": "John Doe",
+          "mobile": "1234567890",
+          "license_number": "LIC123654",
+          "status": "on-duty",
+          "assigned_vehicle": "uuid-vehicle-id",
+          "updated_at": "timestamp"
+        }
+      },
+      "delete": {
+        "path": "/api/drivers/{driver_id}",
+        "method": "DELETE",
+        "route_type": "private",
+        "description": "Delete a driver by ID",
+        "response": {
+          "message": "Driver deleted successfully",
+          "driver_id": "uuid-driver-id"
+        }
+      },
+      "list": {
+        "path": "/api/drivers",
+        "method": "GET",
+        "route_type": "private",
+        "description": "List all drivers with filtering options",
+        "params": {
+          "search": "name, mobile, license_number",
+          "sort": "name, status",
+          "filter": "status, assigned_vehicle"
+        },
+        "response": [
+          {
+            "driver_id": "uuid-1",
+            "name": "Jane Doe",
+            "mobile": "0987654321",
+            "license_number": "LIC123456",
+            "status": "available",
+            "assigned_vehicle": {
+              "vehicle_id": "uuid-vehicle-id-1",
+              "registration_number": "ABC123"
+            }
+          },
+          {
+            "driver_id": "uuid-2",
+            "name": "John Smith",
+            "mobile": "1234567890",
+            "license_number": "LIC654321",
+            "status": "on-duty",
+            "assigned_vehicle": {
+              "vehicle_id": "uuid-vehicle-id-2",
+              "registration_number": "XYZ789"
+            }
+          }
+        ]
       }
     }
   }
-  
+}
