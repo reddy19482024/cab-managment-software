@@ -44,16 +44,17 @@ const ModalComponent = ({
         );
   
         if (response?.data) {
+          // Use fieldNames to dynamically determine label and value keys
+          const { label: labelKey = 'label', value: valueKey = '_id' } = field.fieldNames || {};
+  
           const options = response.data.map(item => ({
-            // Updated label format for vehicle fields
-            label: field.name === 'assigned_vehicle'
-              ? `${item.brand} - ${item.registration_number}`
-              : item.label || item.name,
-            value: item._id,
+            label: item[labelKey] || '', // Use the key defined in fieldNames for label
+            value: item[valueKey],      // Use the key defined in fieldNames for value
           }));
   
           field.options = options;
   
+          // Check if the current form value needs to be updated with the matching option
           const currentValue = form.getFieldValue(field.name);
           if (currentValue) {
             const valueToMatch = typeof currentValue === 'object' ? currentValue.value : currentValue;
@@ -75,6 +76,7 @@ const ModalComponent = ({
       }
     }
   };
+  
   
 
   const getIcon = (iconName) => {

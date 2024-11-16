@@ -159,8 +159,8 @@
             "params": { "status": "available" }
           },
           "fieldNames": {
-            "label": "vehicle_name",
-            "value": "id"
+            "label": "registration_number",
+            "value": "registration_number"
           },
           "rules": [
 
@@ -256,8 +256,8 @@
             }
           },
           "fieldNames": {
-            "label": "vehicle_name",
-            "value": "id"
+            "label": "registration_number",
+            "value": "registration_number"
           },
           "rules": [
           ],
