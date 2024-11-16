@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { Layout, Menu, Dropdown, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import * as AntdIcons from '@ant-design/icons';
+import PropTypes from 'prop-types';
 
 const { Sider } = Layout;
 
 const SidebarComponent = ({ config, collapsed, onCollapse }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  // Extract sidebar config from the main config
+  const sidebarConfig = config?.layout?.sidebar;
+  
+  // Early return if no sidebar config or sidebar is disabled
+  if (!sidebarConfig?.enabled) return null;
 
   const getIcon = (iconName) => {
     if (!iconName) return null;
@@ -68,9 +75,6 @@ const SidebarComponent = ({ config, collapsed, onCollapse }) => {
       );
     });
   };
-
-  const sidebarConfig = config.layout.sidebar;
-  if (!sidebarConfig?.enabled) return null;
 
   // User profile dropdown menu
   const userMenu = (
@@ -160,6 +164,24 @@ const SidebarComponent = ({ config, collapsed, onCollapse }) => {
       )}
     </Sider>
   );
+};
+
+SidebarComponent.propTypes = {
+  config: PropTypes.shape({
+    layout: PropTypes.shape({
+      sidebar: PropTypes.shape({
+        enabled: PropTypes.bool,
+        width: PropTypes.number,
+        collapsedWidth: PropTypes.number,
+        theme: PropTypes.string,
+        style: PropTypes.object,
+        menu: PropTypes.object,
+        footer: PropTypes.object
+      })
+    })
+  }).isRequired,
+  collapsed: PropTypes.bool.isRequired,
+  onCollapse: PropTypes.func.isRequired
 };
 
 export default SidebarComponent;

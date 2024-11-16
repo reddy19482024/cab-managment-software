@@ -1,4 +1,4 @@
-// FooterComponent.jsx
+// src/components/Footer/FooterComponent.jsx
 import React from 'react';
 import { Layout } from 'antd';
 import PropTypes from 'prop-types';
@@ -6,29 +6,46 @@ import PropTypes from 'prop-types';
 const { Footer } = Layout;
 
 const FooterComponent = ({ config }) => {
-  const footerConfig = config.layout?.footer;
-
-  if (!footerConfig?.enabled) return null;
+  // Directly use the config prop instead of config.layout.footer
+  if (!config?.enabled) return null;
 
   return (
     <Footer 
       style={{
-        ...(footerConfig.style || {}),
-        width: '100%'
+        ...(config.style || {}),
+        position: 'relative',
+        width: '100%',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
-      <div>
-        {footerConfig.text}
-        {footerConfig.links && (
-          <div style={{ marginTop: 8 }}>
-            {footerConfig.links.map((link, index) => (
+      <div style={{ textAlign: 'center' }}>
+        {config.text}
+        {config.links && (
+          <div 
+            style={{ 
+              marginTop: 8,
+              display: 'flex',
+              gap: '16px',
+              justifyContent: 'center'
+            }}
+          >
+            {config.links.map((link, index) => (
               <a 
                 key={index}
                 href={link.url}
                 style={{
-                  marginLeft: index > 0 ? 16 : 0,
-                  color: footerConfig.style?.color || 'inherit'
+                  color: config.style?.linkColor || 'inherit',
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
                 }}
+                target={link.external ? "_blank" : "_self"}
+                rel={link.external ? "noopener noreferrer" : undefined}
               >
                 {link.text}
               </a>
@@ -42,17 +59,14 @@ const FooterComponent = ({ config }) => {
 
 FooterComponent.propTypes = {
   config: PropTypes.shape({
-    layout: PropTypes.shape({
-      footer: PropTypes.shape({
-        enabled: PropTypes.bool,
-        style: PropTypes.object,
-        text: PropTypes.string,
-        links: PropTypes.arrayOf(PropTypes.shape({
-          text: PropTypes.string,
-          url: PropTypes.string
-        }))
-      })
-    })
+    enabled: PropTypes.bool,
+    style: PropTypes.object,
+    text: PropTypes.string,
+    links: PropTypes.arrayOf(PropTypes.shape({
+      text: PropTypes.string,
+      url: PropTypes.string,
+      external: PropTypes.bool
+    }))
   }).isRequired
 };
 
