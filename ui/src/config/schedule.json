@@ -1,0 +1,112 @@
+{
+    "title": "Schedule Management",
+    "layout": {
+      "header": { "enabled": true, "logo": "/images/company-logo.png", "style": { "background": "#fff", "padding": "0 24px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)", "height": "64px", "lineHeight": "64px" } },
+      "content": { "style": { "minHeight": "calc(100vh - 64px)", "background": "#f0f2f5", "padding": "24px" } }
+    },
+    "sections": [
+      { "type": "banner", "style": { "background": "linear-gradient(135deg, #722ed1 0%, #1890ff 100%)", "padding": "24px", "marginBottom": "24px", "borderRadius": "8px" },
+        "content": { "title": "Schedule Management", "description": "Manage shift timings", "style": { "maxWidth": "100%", "padding": "0 24px", "color": "#ffffff" } }
+      },
+      { "type": "form", "containerStyle": { "padding": "0" }, "wrapperStyle": { "background": "#ffffff", "padding": "24px", "borderRadius": "8px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)" },
+        "title": "Schedule List", "subtitle": "View and manage schedules",
+        "table": {
+          "enabled": true, "rowKey": "_id", "size": "middle", "scroll": { "x": true },
+          "pagination": { "pageSize": 10, "showSizeChanger": true, "showQuickJumper": true, "showTotal": true },
+          "columns": [
+            { "title": "Name", "dataIndex": "name", "key": "name", "width": "20%", "sorter": true },
+            { "title": "Start Time", "dataIndex": "start_time", "key": "start_time", "width": "15%" },
+            { "title": "End Time", "dataIndex": "end_time", "key": "end_time", "width": "15%" },
+            { "title": "Status", "dataIndex": "status", "key": "status", "width": "15%",
+              "render": { "type": "tag", 
+                "colorMap": { 
+                  "active": "success",
+                  "inactive": "error"
+                }
+              },
+              "filters": [
+                { "text": "Active", "value": "active" },
+                { "text": "Inactive", "value": "inactive" }
+              ]
+            },
+            { "title": "Actions", "key": "actions", "width": "10%", "fixed": "right",
+              "render": { "type": "actions", "items": [
+                { "type": "button", "buttonProps": { "type": "link", "icon": "EditOutlined" }, "tooltip": "Edit Schedule", "onClick": { "type": "modal", "modalId": "editScheduleModal" } },
+                { "type": "button", "buttonProps": { "type": "link", "danger": true, "icon": "DeleteOutlined" }, "tooltip": "Delete Schedule", "onClick": { "type": "modal", "modalId": "deleteScheduleModal" } }
+              ]}
+            }
+          ],
+          "api": { "endpoint": "/api/schedules", "method": "GET", "params": { "sort": "-created_at" } },
+          "searchConfig": { "placeholder": "Search schedules...", "fields": ["name"] }
+        },
+        "actions": [{ "label": "Add Schedule", "buttonProps": { "type": "primary", "icon": "PlusOutlined" }, "onClick": { "type": "modal", "modalId": "addScheduleModal" } }]
+      }
+    ],
+    "modals": {
+      "addScheduleModal": {
+        "title": "Add New Schedule", "width": 600, "layout": { "type": "vertical" },
+        "fields": [
+          { "name": "name", "type": "text", "label": "Schedule Name", "placeholder": "Enter schedule name", "size": "large",
+            "rules": [{ "required": true, "message": "Please enter schedule name" }]
+          },
+          { "name": "start_time", "type": "time", "label": "Start Time", "placeholder": "Select start time", "size": "large",
+            "rules": [{ "required": true, "message": "Please select start time" }]
+          },
+          { "name": "end_time", "type": "time", "label": "End Time", "placeholder": "Select end time", "size": "large",
+            "rules": [{ "required": true, "message": "Please select end time" }]
+          },
+          { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large",
+            "options": [
+              { "label": "Active", "value": "active" },
+              { "label": "Inactive", "value": "inactive" }
+            ],
+            "rules": [{ "required": true, "message": "Please select status" }]
+          }
+        ],
+        "actions": [
+          { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
+          { "label": "Add Schedule", "buttonProps": { "type": "primary", "htmlType": "submit" },
+            "api": { "endpoint": "/api/schedules", "method": "POST" },
+            "messages": { "success": "Schedule added successfully", "error": "Failed to add schedule" }
+          }
+        ]
+      },
+      "editScheduleModal": {
+        "title": "Edit Schedule", "width": 600, "layout": { "type": "vertical" },
+        "api": { "fetch": { "endpoint": "/api/schedules/{id}", "method": "GET" } },
+        "fields": [
+          { "name": "name", "type": "text", "label": "Schedule Name", "placeholder": "Enter schedule name", "size": "large",
+            "rules": [{ "required": true, "message": "Please enter schedule name" }]
+          },
+          { "name": "start_time", "type": "time", "label": "Start Time", "placeholder": "Select start time", "size": "large",
+            "rules": [{ "required": true, "message": "Please select start time" }]
+          },
+          { "name": "end_time", "type": "time", "label": "End Time", "placeholder": "Select end time", "size": "large",
+            "rules": [{ "required": true, "message": "Please select end time" }]
+          },
+          { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large",
+            "options": [
+              { "label": "Active", "value": "active" },
+              { "label": "Inactive", "value": "inactive" }
+            ],
+            "rules": [{ "required": true, "message": "Please select status" }]
+          }
+        ],
+        "actions": [
+          { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
+          { "label": "Update Schedule", "buttonProps": { "type": "primary", "htmlType": "submit" },
+            "api": { "endpoint": "/api/schedules/{id}", "method": "PUT" },
+            "messages": { "success": "Schedule updated successfully", "error": "Failed to update schedule" }
+          }
+        ]
+      },
+      "deleteScheduleModal": {
+        "title": "Delete Schedule", "type": "confirm",
+        "content": "Are you sure you want to delete this schedule? This action cannot be undone.",
+        "actions": [{ "label": "Delete", "buttonProps": { "type": "primary", "danger": true },
+          "api": { "endpoint": "/api/schedules/{id}", "method": "DELETE" },
+          "messages": { "success": "Schedule deleted successfully", "error": "Failed to delete schedule" }
+        }]
+      }
+    }
+  }

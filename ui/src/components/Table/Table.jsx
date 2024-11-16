@@ -1,49 +1,85 @@
-// src/components/Table/TableComponent.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Input, Tag, Tooltip, Modal } from 'antd';
-import { 
-  SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  ExclamationCircleOutlined
-} from '@ant-design/icons';
 import * as AntdIcons from '@ant-design/icons';
 import PropTypes from 'prop-types';
+import useApi from '../../hooks/useApi';
 
 const { confirm } = Modal;
 
-const TableComponent = ({
-  section,
-  loading,
-  data,
-  onModalOpen,
-  onSearch,
-  onFilter,
-  onDelete,
-  onTableChange,
-  pagination
-}) => {
+const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilter, onDelete, onTableChange, pagination }) => {
+  const { apiRequest } = useApi();
+  const [relatedData, setRelatedData] = useState({});
   const [currentFilters, setCurrentFilters] = useState({});
   const [currentSorter, setCurrentSorter] = useState(null);
 
-  // Helper function to get icon component
-  const getIcon = (iconName) => {
-    if (!iconName) return null;
-    if (iconName === 'EditOutlined') return <EditOutlined />;
-    if (iconName === 'DeleteOutlined') return <DeleteOutlined />;
-    if (iconName === 'PlusOutlined') return <PlusOutlined />;
-    if (iconName === 'SearchOutlined') return <SearchOutlined />;
-    
-    const Icon = AntdIcons[iconName];
-    return Icon ? <Icon /> : null;
+  useEffect(() => {
+    if (data?.length > 0) {
+      loadRelatedData();
+    }
+  }, [data]);
+
+  const loadRelatedData = async () => {
+    try {
+      const columnsNeedingData = section.table.columns.filter(col => 
+        col.render?.api && col.render?.type === 'text'
+      );
+
+      for (const column of columnsNeedingData) {
+        const { api } = column.render;
+        
+        // Get unique IDs from the data for this column
+        const columnKey = Array.isArray(column.dataIndex) ? column.dataIndex[0] : column.dataIndex;
+        const ids = [...new Set(data
+          .map(item => item[columnKey])
+          .filter(Boolean))];
+
+        if (ids.length === 0) continue;
+
+        let endpoint = api.endpoint;
+        const queryParams = new URLSearchParams();
+        
+        // Handle params for GET request
+        if (!api.method || api.method === 'GET') {
+          Object.entries(api.params || {}).forEach(([key, value]) => {
+            if (typeof value === 'string' && value.includes('{')) {
+              value = value.replace(/\{(\w+)\}/g, (match, key) => {
+                if (key === 'vehicleIds') return ids.join(',');
+                return match;
+              });
+            }
+            queryParams.append(key, value);
+          });
+          if (queryParams.toString()) {
+            endpoint = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryParams.toString()}`;
+          }
+          
+          const response = await apiRequest(endpoint);
+          if (response?.data) {
+            const mappedData = response.data.reduce((acc, item) => {
+              acc[item._id] = item;
+              return acc;
+            }, {});
+            setRelatedData(prev => ({
+              ...prev,
+              [column.key]: mappedData
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading related data:', error);
+    }
   };
 
-  // Handle delete confirmation
+  const getIcon = (iconName) => {
+    const Icon = AntdIcons[iconName];
+    return Icon ? React.createElement(Icon) : null;
+  };
+
   const handleDelete = (record, modalId) => {
     confirm({
       title: 'Are you sure you want to delete this item?',
-      icon: <ExclamationCircleOutlined />,
+      icon: React.createElement(AntdIcons.ExclamationCircleOutlined),
       content: 'This action cannot be undone.',
       okText: 'Yes',
       okType: 'danger',
@@ -54,7 +90,6 @@ const TableComponent = ({
     });
   };
 
-  // Handle column rendering based on configuration
   const renderColumnContent = (column, text, record) => {
     if (!column.render) return text;
 
@@ -66,21 +101,23 @@ const TableComponent = ({
           </Tag>
         );
 
-      case 'text':
-        if (!text && column.render.fallback) {
+      case 'text': {
+        const relatedItem = text && column.render.api ? 
+          relatedData[column.key]?.[text] : text;
+
+        if (!relatedItem && column.render.fallback) {
           return column.render.fallback;
         }
-        if (column.render.template && Array.isArray(column.dataIndex)) {
-          const nestedValue = column.dataIndex.reduce((obj, key) => obj?.[key], record);
-          if (nestedValue) {
-            return column.render.template.replace(
-              /\${(\w+)}/g,
-              (_, key) => nestedValue[key] || column.render.fallback || ''
-            );
-          }
-          return column.render.fallback || '-';
+
+        if (column.render.template && relatedItem) {
+          return column.render.template.replace(
+            /\${(\w+)}/g,
+            (_, key) => relatedItem[key] || ''
+          ).trim() || column.render.fallback;
         }
+
         return text;
+      }
 
       case 'actions':
         return (
@@ -99,9 +136,7 @@ const TableComponent = ({
                       }
                     }
                   }}
-                >
-                  {action.buttonProps.label}
-                </Button>
+                />
               </Tooltip>
             ))}
           </Space>
@@ -115,14 +150,12 @@ const TableComponent = ({
     }
   };
 
-  // Process columns configuration
   const getColumns = () => {
     return section.table.columns.map(column => ({
       ...column,
       render: (text, record) => renderColumnContent(column, text, record),
       filteredValue: currentFilters[column.dataIndex],
       sortOrder: currentSorter?.columnKey === column.key ? currentSorter.order : null,
-      // Handle nested object sorting
       sorter: column.sorter && ((a, b) => {
         const aValue = Array.isArray(column.dataIndex) 
           ? column.dataIndex.reduce((obj, key) => obj?.[key], a)
@@ -131,13 +164,11 @@ const TableComponent = ({
           ? column.dataIndex.reduce((obj, key) => obj?.[key], b)
           : b[column.dataIndex];
         
-        // Handle different types of values
         if (typeof aValue === 'number' && typeof bValue === 'number') {
           return aValue - bValue;
         }
         return String(aValue || '').localeCompare(String(bValue || ''));
       }),
-      // Add filters if specified in column config
       filters: column.filters,
       filterMode: column.filterMode || 'menu',
       filterSearch: column.filterSearch,
@@ -150,24 +181,60 @@ const TableComponent = ({
     }));
   };
 
-  // Handle table change (sorting, filtering, pagination)
-  const handleTableChange = (paginationParams, filters, sorter) => {
+  const handleTableChange = async (paginationParams, filters, sorter) => {
     setCurrentFilters(filters);
     setCurrentSorter(sorter);
 
     if (onTableChange) {
-      onTableChange(paginationParams, filters, sorter);
+      const { endpoint, method = 'GET', params = {} } = section.table.api;
+      const queryParams = new URLSearchParams();
+
+      // Add pagination
+      if (paginationParams) {
+        queryParams.append('page', paginationParams.current);
+        queryParams.append('limit', paginationParams.pageSize);
+      }
+
+      // Add sorting
+      if (sorter?.order) {
+        const sortOrder = sorter.order === 'ascend' ? '' : '-';
+        queryParams.append('sort', `${sortOrder}${sorter.field}`);
+      }
+
+      // Add filters
+      Object.entries(filters).forEach(([key, values]) => {
+        if (values?.length) {
+          queryParams.append(key, values.join(','));
+        }
+      });
+
+      // Add configured params
+      Object.entries(params).forEach(([key, value]) => {
+        queryParams.append(key, value);
+      });
+
+      const url = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryParams.toString()}`;
+      onTableChange(url, paginationParams, filters, sorter);
     }
   };
 
-  // Handle search
   const handleSearch = (value) => {
-    if (onSearch) {
-      onSearch(value);
+    if (onSearch && section.table.searchConfig) {
+      const { endpoint } = section.table.api;
+      const searchFields = section.table.searchConfig.fields;
+      const queryParams = new URLSearchParams();
+
+      if (value) {
+        searchFields.forEach(field => {
+          queryParams.append(field, value);
+        });
+      }
+
+      const url = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryParams.toString()}`;
+      onSearch(url, value);
     }
   };
 
-  // Render the toolbar section
   const renderToolbar = () => (
     <div style={{
       marginBottom: '16px',
@@ -189,11 +256,11 @@ const TableComponent = ({
       <Space wrap>
         {section.table.searchConfig && (
           <Input.Search
-            placeholder={section.table.searchConfig.placeholder || 'Search...'}
+            placeholder={section.table.searchConfig.placeholder}
             onSearch={handleSearch}
             style={{ width: 300 }}
             allowClear
-            prefix={<SearchOutlined />}
+            prefix={getIcon('SearchOutlined')}
           />
         )}
 
@@ -226,11 +293,11 @@ const TableComponent = ({
       {renderToolbar()}
       
       <Table
+        {...section.table}
         columns={getColumns()}
         dataSource={data}
         loading={loading}
         onChange={handleTableChange}
-        rowKey={section.table.rowKey || '_id'}
         pagination={
           section.table.pagination === false
             ? false
@@ -239,108 +306,64 @@ const TableComponent = ({
                 current: pagination?.current,
                 pageSize: pagination?.pageSize,
                 total: pagination?.total,
-                showSizeChanger: section.table.pagination?.showSizeChanger ?? true,
-                showQuickJumper: section.table.pagination?.showQuickJumper ?? true,
                 showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
               }
         }
-        scroll={section.table.scroll}
-        size={section.table.size || 'middle'}
-        bordered={section.table.bordered}
-        rowSelection={section.table.rowSelection}
-        expandable={section.table.expandable}
-        showHeader={section.table.showHeader ?? true}
-        footer={section.table.footer}
-        summary={section.table.summary}
       />
     </div>
   );
 };
 
+// PropTypes remain the same but updated to match new configuration
 TableComponent.propTypes = {
   section: PropTypes.shape({
     title: PropTypes.string,
     subtitle: PropTypes.string,
     containerStyle: PropTypes.object,
     table: PropTypes.shape({
+      enabled: PropTypes.bool,
+      rowKey: PropTypes.string,
+      size: PropTypes.oneOf(['small', 'middle', 'large']),
+      scroll: PropTypes.object,
       columns: PropTypes.arrayOf(PropTypes.shape({
         title: PropTypes.string.isRequired,
-        dataIndex: PropTypes.oneOfType([
-          PropTypes.string,
-          PropTypes.arrayOf(PropTypes.string)
-        ]).isRequired,
+        dataIndex: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired,
         key: PropTypes.string.isRequired,
-        width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+        width: PropTypes.string,
         fixed: PropTypes.oneOf(['left', 'right']),
         sorter: PropTypes.bool,
-        filters: PropTypes.arrayOf(PropTypes.shape({
-          text: PropTypes.string,
-          value: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-        })),
-        filterMode: PropTypes.string,
-        filterSearch: PropTypes.bool,
         render: PropTypes.shape({
           type: PropTypes.oneOf(['tag', 'text', 'actions']),
+          api: PropTypes.shape({
+            endpoint: PropTypes.string,
+            method: PropTypes.string,
+            params: PropTypes.object
+          }),
           colorMap: PropTypes.object,
           template: PropTypes.string,
           fallback: PropTypes.string,
-          items: PropTypes.arrayOf(PropTypes.shape({
-            tooltip: PropTypes.string,
-            buttonProps: PropTypes.shape({
-              type: PropTypes.string,
-              icon: PropTypes.string,
-              danger: PropTypes.bool,
-              disabled: PropTypes.bool,
-              label: PropTypes.string
-            }),
-            onClick: PropTypes.shape({
-              type: PropTypes.string,
-              modalId: PropTypes.string
-            })
-          }))
+          items: PropTypes.array
         })
       })).isRequired,
-      rowKey: PropTypes.string,
-      bordered: PropTypes.bool,
-      size: PropTypes.oneOf(['small', 'middle', 'large']),
+      api: PropTypes.shape({
+        endpoint: PropTypes.string.isRequired,
+        method: PropTypes.string,
+        params: PropTypes.object
+      }),
+      searchConfig: PropTypes.shape({
+        placeholder: PropTypes.string,
+        fields: PropTypes.arrayOf(PropTypes.string)
+      }),
       pagination: PropTypes.oneOfType([
         PropTypes.bool,
         PropTypes.shape({
           pageSize: PropTypes.number,
           showSizeChanger: PropTypes.bool,
           showQuickJumper: PropTypes.bool,
-          position: PropTypes.arrayOf(PropTypes.oneOf([
-            'topLeft', 'topCenter', 'topRight',
-            'bottomLeft', 'bottomCenter', 'bottomRight'
-          ]))
+          showTotal: PropTypes.bool
         })
-      ]),
-      scroll: PropTypes.shape({
-        x: PropTypes.oneOfType([PropTypes.number, PropTypes.string, PropTypes.bool]),
-        y: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
-      }),
-      showHeader: PropTypes.bool,
-      footer: PropTypes.func,
-      summary: PropTypes.func,
-      rowSelection: PropTypes.object,
-      expandable: PropTypes.object,
-      searchConfig: PropTypes.shape({
-        placeholder: PropTypes.string,
-        fields: PropTypes.arrayOf(PropTypes.string)
-      })
-    }).isRequired,
-    actions: PropTypes.arrayOf(PropTypes.shape({
-      label: PropTypes.string,
-      buttonProps: PropTypes.shape({
-        type: PropTypes.string,
-        icon: PropTypes.string,
-        disabled: PropTypes.bool
-      }),
-      onClick: PropTypes.shape({
-        type: PropTypes.string,
-        modalId: PropTypes.string
-      })
-    }))
+      ])
+    }).isRequired
   }).isRequired,
   loading: PropTypes.bool,
   data: PropTypes.array.isRequired,
@@ -352,9 +375,7 @@ TableComponent.propTypes = {
   pagination: PropTypes.shape({
     current: PropTypes.number,
     pageSize: PropTypes.number,
-    total: PropTypes.number,
-    showSizeChanger: PropTypes.bool,
-    showQuickJumper: PropTypes.bool
+    total: PropTypes.number
   })
 };
 
@@ -364,9 +385,7 @@ TableComponent.defaultProps = {
   pagination: {
     current: 1,
     pageSize: 10,
-    total: 0,
-    showSizeChanger: true,
-    showQuickJumper: true
+    total: 0
   }
 };
 

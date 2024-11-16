@@ -1,78 +1,99 @@
 {
-    "models": {
-      "Employee": {
-        "fields": {
-          "employee_id": { "type": "UUID", "primary_key": true },
-          "name": { "type": "string", "required": true },
-          "email": { "type": "string", "unique": true, "required": true },
-          "password": { "type": "string", "required": true },
-          "role": { "type": "string", "enum": ["admin", "employee"], "required": true },
-          "phone": { "type": "string" }
-        },
-        "relationships": {}
+  "models": {
+    "Employee": {
+      "fields": {
+        "employee_id": { "type": "UUID", "primary_key": true },
+        "name": { "type": "string", "required": true },
+        "email": { "type": "string", "unique": true, "required": true },
+        "password": { "type": "string", "required": true },
+        "role": { "type": "string", "enum": ["admin", "employee"], "required": true },
+        "phone": { "type": "string" }
       },
-      "Driver": {
-        "fields": {
-          "driver_id": { "type": "UUID", "primary_key": true },
-          "name": { "type": "string", "required": true },
-          "mobile": { "type": "string", "unique": true, "required": true },
-          "license_number": { "type": "string", "required": true },
-          "status": { "type": "string", "enum": ["available", "on-duty", "inactive"], "required": true },
-          "assigned_vehicle": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id" },
-          "otp": { "type": "string" },
-          "otp_expiration": { "type": "datetime" }
-        },
-        "relationships": {}
+      "relationships": {}
+    },
+    "Driver": {
+      "fields": {
+        "driver_id": { "type": "UUID", "primary_key": true },
+        "name": { "type": "string", "required": true },
+        "mobile": { "type": "string", "unique": true, "required": true },
+        "license_number": { "type": "string", "required": true },
+        "status": { "type": "string", "enum": ["available", "on-duty", "inactive"], "required": true },
+        "assigned_vehicle": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id" },
+        "otp": { "type": "string" },
+        "otp_expiration": { "type": "datetime" }
       },
-      "Vehicle": {
-        "fields": {
-          "vehicle_id": { "type": "UUID", "primary_key": true },
-          "registration_number": { "type": "string", "unique": true, "required": true },
-          "status": { "type": "string", "enum": ["available", "on-duty", "maintenance"], "required": true },
-          "brand": { "type": "string" },
-          "model": { "type": "string" },
-          "seats": { "type": "integer", "required": true, "description": "Number of seats available in the vehicle" }
-        },
-        "relationships": {
-          "Driver": { "relation": "has_one", "foreign_key": "assigned_vehicle" }
-        }
+      "relationships": {}
+    },
+    "Vehicle": {
+      "fields": {
+        "vehicle_id": { "type": "UUID", "primary_key": true },
+        "registration_number": { "type": "string", "unique": true, "required": true },
+        "status": { "type": "string", "enum": ["available", "on-duty", "maintenance"], "required": true },
+        "brand": { "type": "string" },
+        "model": { "type": "string" },
+        "seats": { "type": "integer", "required": true, "description": "Number of seats available in the vehicle" }
       },
-      "Trip": {
-        "fields": {
-          "trip_id": { "type": "UUID", "primary_key": true },
-          "pickup_location": { "type": "string", "required": true },
-          "dropoff_location": { "type": "string", "required": true },
-          "status": { "type": "string", "enum": ["scheduled", "completed", "canceled"], "required": true },
-          "driver_id": { "type": "UUID", "foreign_key": "Driver.driver_id" },
-          "vehicle_id": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id" },
-          "start_time": { "type": "datetime", "required": true },
-          "end_time": { "type": "datetime" },
-          "assigned_employees": { "type": "array", "items": { "type": "UUID", "foreign_key": "Employee.employee_id" }, "description": "List of employees assigned to this trip" }
-        },
-        "relationships": {
-          "Driver": { "relation": "belongs_to", "foreign_key": "driver_id" },
-          "Vehicle": { "relation": "belongs_to", "foreign_key": "vehicle_id" },
-          "Employee": { "relation": "has_many", "foreign_key": "employee_id", "relation_field": "assigned_employees" }
-        },
-        "constraints": {
-          "assigned_employees_limit": {
-            "description": "The number of assigned employees cannot exceed the vehicle's seating capacity",
-            "rule": "assigned_employees.length <= Vehicle.seats"
-          }
-        }
-      },
-      "Schedule": {
-        "fields": {
-          "schedule_id": { "type": "UUID", "primary_key": true },
-          "employee_id": { "type": "UUID", "foreign_key": "Employee.employee_id" },
-          "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id" },
-          "date": { "type": "datetime", "required": true }
-        },
-        "relationships": {
-          "Employee": { "relation": "belongs_to", "foreign_key": "employee_id" },
-          "Trip": { "relation": "belongs_to", "foreign_key": "trip_id" }
-        }
+      "relationships": {
+        "Driver": { "relation": "has_one", "foreign_key": "assigned_vehicle" }
       }
+    },
+    "Trip": {
+      "fields": {
+        "trip_id": { "type": "UUID", "primary_key": true },
+        "pickup_location": { "type": "string", "required": true },
+        "dropoff_location": { "type": "string", "required": true },
+        "status": { "type": "string", "enum": ["scheduled", "completed", "canceled"], "required": true },
+        "vehicle_id": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id", "required": true },
+        "start_time": { "type": "datetime", "required": true },
+        "end_time": { "type": "datetime" },
+        "assigned_employees": { 
+          "type": "array", 
+          "items": { 
+            "type": "UUID", 
+            "foreign_key": "Employee.employee_id" 
+          }, 
+          "description": "List of employees assigned to this trip",
+          "required": true
+        },
+        "created_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Vehicle": { 
+          "relation": "belongs_to", 
+          "foreign_key": "vehicle_id",
+          "description": "Vehicle assigned to this trip (includes driver information through vehicle)"
+        },
+        "Employee": { 
+          "relation": "has_many", 
+          "foreign_key": "employee_id", 
+          "relation_field": "assigned_employees" 
+        }
+      },
+      "constraints": {
+        "assigned_employees_limit": {
+          "description": "The number of assigned employees cannot exceed the vehicle's seating capacity",
+          "rule": "assigned_employees.length <= Vehicle.seats"
+        }
+      },
+      "indexes": [
+        { "fields": ["vehicle_id"], "type": "btree" },
+        { "fields": ["status"], "type": "btree" },
+        { "fields": ["start_time"], "type": "btree" },
+        { "fields": ["created_at"], "type": "btree" }
+      ]
+    },
+    "Schedule": {
+      "fields": {
+        "schedule_id": { "type": "UUID", "primary_key": true },
+        "name": { "type": "string", "required": true, "description": "Name of the schedule/shift" },
+        "start_time": { "type": "time", "required": true, "description": "Daily shift start time" },
+        "end_time": { "type": "time", "required": true, "description": "Daily shift end time" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "required": true, "default": "active" },
+        "created_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {}
     }
   }
-  
+}

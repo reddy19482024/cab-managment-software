@@ -1,91 +1,129 @@
 {
-    "Schedule": {
-      "endpoints": {
-        "create": {
-          "path": "/api/schedules",
-          "method": "POST",
-          "route_type": "private",
-          "description": "Create a new schedule entry for an employee",
-          "request_payload": {
-            "employee_id": "uuid-employee-id",
-            "trip_id": "uuid-trip-id",
-            "date": "2023-10-12T09:00:00Z"
-          },
-          "response": {
-            "schedule_id": "uuid-generated-id",
-            "employee_id": "uuid-employee-id",
-            "trip_id": "uuid-trip-id",
-            "date": "2023-10-12T09:00:00Z",
-            "created_at": "timestamp"
-          }
+  "Schedule": {
+    "endpoints": {
+      "create": {
+        "path": "/api/schedules",
+        "method": "POST",
+        "route_type": "private",
+        "description": "Create a new schedule/shift timing",
+        "request_payload": {
+          "name": "Morning Shift",
+          "start_time": "09:00:00",
+          "end_time": "17:00:00",
+          "status": "active"
         },
-        "read": {
-          "path": "/api/schedules/{schedule_id}",
-          "method": "GET",
-          "route_type": "private",
-          "description": "Retrieve details of a specific schedule entry by ID",
-          "response": {
-            "schedule_id": "uuid-schedule-id",
-            "employee_id": "uuid-employee-id",
-            "trip_id": "uuid-trip-id",
-            "date": "2023-10-12T09:00:00Z",
-            "created_at": "timestamp"
-          }
+        "response": {
+          "schedule_id": "uuid-generated-id",
+          "name": "Morning Shift",
+          "start_time": "09:00:00",
+          "end_time": "17:00:00",
+          "status": "active",
+          "created_at": "2024-11-17T09:00:00Z",
+          "updated_at": "2024-11-17T09:00:00Z"
+        }
+      },
+      "read": {
+        "path": "/api/schedules/{schedule_id}",
+        "method": "GET",
+        "route_type": "private",
+        "description": "Retrieve details of a specific schedule by ID",
+        "response": {
+          "schedule_id": "uuid-schedule-id",
+          "name": "Morning Shift",
+          "start_time": "09:00:00",
+          "end_time": "17:00:00",
+          "status": "active",
+          "created_at": "2024-11-17T09:00:00Z",
+          "updated_at": "2024-11-17T09:00:00Z"
+        }
+      },
+      "update": {
+        "path": "/api/schedules/{schedule_id}",
+        "method": "PUT",
+        "route_type": "private",
+        "description": "Update an existing schedule",
+        "request_payload": {
+          "name": "Updated Morning Shift",
+          "start_time": "08:00:00",
+          "end_time": "16:00:00",
+          "status": "inactive"
         },
-        "update": {
-          "path": "/api/schedules/{schedule_id}",
-          "method": "PUT",
-          "route_type": "private",
-          "description": "Update an existing schedule entry",
-          "request_payload": {
-            "employee_id": "uuid-employee-id",
-            "trip_id": "uuid-trip-id",
-            "date": "2023-10-13T09:00:00Z"
-          },
-          "response": {
-            "schedule_id": "uuid-schedule-id",
-            "employee_id": "uuid-employee-id",
-            "trip_id": "uuid-trip-id",
-            "date": "2023-10-13T09:00:00Z",
-            "updated_at": "timestamp"
-          }
+        "response": {
+          "schedule_id": "uuid-schedule-id",
+          "name": "Updated Morning Shift",
+          "start_time": "08:00:00",
+          "end_time": "16:00:00",
+          "status": "inactive",
+          "created_at": "2024-11-17T09:00:00Z",
+          "updated_at": "2024-11-17T10:00:00Z"
+        }
+      },
+      "delete": {
+        "path": "/api/schedules/{schedule_id}",
+        "method": "DELETE",
+        "route_type": "private",
+        "description": "Delete a schedule by ID",
+        "response": {
+          "message": "Schedule deleted successfully",
+          "schedule_id": "uuid-schedule-id"
+        }
+      },
+      "list": {
+        "path": "/api/schedules",
+        "method": "GET",
+        "route_type": "private",
+        "description": "List all schedules with filtering options",
+        "params": {
+          "search": "name",
+          "sort": "created_at,start_time",
+          "filter": "status",
+          "page": "1",
+          "limit": "10"
         },
-        "delete": {
-          "path": "/api/schedules/{schedule_id}",
-          "method": "DELETE",
-          "route_type": "private",
-          "description": "Delete a schedule entry by ID",
-          "response": {
-            "message": "Schedule deleted successfully",
-            "schedule_id": "uuid-schedule-id"
-          }
-        },
-        "list": {
-          "path": "/api/schedules",
-          "method": "GET",
-          "route_type": "private",
-          "description": "List all schedules with filtering options",
-          "params": {
-            "search": "employee_id, trip_id",
-            "sort": "date",
-            "filter": "employee_id, trip_id, date"
-          },
-          "response": [
+        "response": {
+          "data": [
             {
               "schedule_id": "uuid-1",
-              "employee_id": "uuid-employee-id-1",
-              "trip_id": "uuid-trip-id-1",
-              "date": "2023-10-12T09:00:00Z"
+              "name": "Morning Shift",
+              "start_time": "09:00:00",
+              "end_time": "17:00:00",
+              "status": "active",
+              "created_at": "2024-11-17T09:00:00Z",
+              "updated_at": "2024-11-17T09:00:00Z"
             },
             {
               "schedule_id": "uuid-2",
-              "employee_id": "uuid-employee-id-2",
-              "trip_id": "uuid-trip-id-2",
-              "date": "2023-10-13T15:00:00Z"
+              "name": "Evening Shift",
+              "start_time": "14:00:00",
+              "end_time": "22:00:00",
+              "status": "active",
+              "created_at": "2024-11-17T09:00:00Z",
+              "updated_at": "2024-11-17T09:00:00Z"
             }
-          ]
+          ],
+          "pagination": {
+            "current_page": 1,
+            "total_pages": 1,
+            "total_items": 2,
+            "per_page": 10
+          }
+        }
+      },
+      "bulk_status_update": {
+        "path": "/api/schedules/bulk-status",
+        "method": "PATCH",
+        "route_type": "private",
+        "description": "Update status of multiple schedules at once",
+        "request_payload": {
+          "schedule_ids": ["uuid-1", "uuid-2"],
+          "status": "inactive"
+        },
+        "response": {
+          "message": "Schedules status updated successfully",
+          "updated_count": 2,
+          "schedule_ids": ["uuid-1", "uuid-2"]
         }
       }
     }
   }
-  
+}

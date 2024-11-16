@@ -2,65 +2,36 @@
   "title": "Driver Management",
   "layout": {
     "header": { "enabled": true, "logo": "/images/company-logo.png", "style": { "background": "#fff", "padding": "0 24px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)", "height": "64px", "lineHeight": "64px" } },
-    "sidebar": {
-      "enabled": true,
-      "collapsed": false,
-      "width": 256,
-      "collapsedWidth": 80,
-      "theme": "dark",
-      "style": {
-        "background": "#001529",
-        "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
-      },
+    "sidebar": { 
+      "enabled": true, "collapsed": false, "width": 256, "collapsedWidth": 80, "theme": "dark", 
+      "style": { "background": "#001529", "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)" },
       "menu": {
         "items": [
           { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
-          {
-            "type": "group",
-            "label": "Management",
-            "children": [
-              { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
-              { "key": "drivers", "label": "Drivers", "icon": "IdcardOutlined", "path": "/drivers" },
-              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
-              { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
-            ]
-          },
-          {
-            "type": "group",
-            "label": "Reports",
-            "children": [
-              { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
-              { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
-              { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
-            ]
-          }
+          { "type": "group", "label": "Management", "children": [
+            { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+            { "key": "drivers", "label": "Drivers", "icon": "IdcardOutlined", "path": "/drivers" },
+            { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+            { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+          ]},
+          { "type": "group", "label": "Reports", "children": [
+            { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
+            { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+            { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
+          ]}
         ]
       },
-      "footer": {
-        "enabled": true,
-        "style": {
-          "padding": "16px",
-          "background": "rgba(0, 0, 0, 0.25)",
-          "color": "#fff",
-          "height": "auto",
-          "cursor": "pointer"
-        },
+      "footer": { 
+        "enabled": true, 
+        "style": { "padding": "16px", "background": "rgba(0, 0, 0, 0.25)", "color": "#fff", "height": "auto", "cursor": "pointer" },
         "content": {
-          "expanded": { 
-            "avatar": "/images/user-avatar.png", 
-            "name": "John Doe", 
-            "role": "Admin" 
-          },
-          "collapsed": { 
-            "avatar": "/images/user-avatar.png" 
-          },
-          "menu": {
-            "items": [
-              { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
-              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
-              { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
-            ]
-          }
+          "expanded": { "avatar": "/images/user-avatar.png", "name": "John Doe", "role": "Admin" },
+          "collapsed": { "avatar": "/images/user-avatar.png" },
+          "menu": { "items": [
+            { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
+            { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
+            { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
+          ]}
         }
       }
     },
@@ -74,7 +45,7 @@
     { "type": "form", "containerStyle": { "padding": "0" }, "wrapperStyle": { "background": "#ffffff", "padding": "24px", "borderRadius": "8px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)" },
       "title": "Driver List", "subtitle": "View and manage drivers",
       "table": {
-        "enabled": true, "rowKey": "driver_id", "size": "middle", "scroll": { "x": true },
+        "enabled": true, "rowKey": "_id", "size": "middle", "scroll": { "x": true },
         "pagination": { "pageSize": 10, "showSizeChanger": true, "showQuickJumper": true, "showTotal": true },
         "columns": [
           { "title": "Name", "dataIndex": "name", "key": "name", "width": "20%", "sorter": true, "fixed": "left" },
@@ -84,8 +55,9 @@
             "render": { "type": "tag", "colorMap": { "available": "success", "on-duty": "processing", "inactive": "default" } },
             "filters": [{ "text": "Available", "value": "available" }, { "text": "On Duty", "value": "on-duty" }, { "text": "Inactive", "value": "inactive" }]
           },
-          { "title": "Assigned Vehicle", "dataIndex": ["assigned_vehicle"], "key": "assigned_vehicle", "width": "20%",
-            "render": { "type": "text", "template": "${registration_number} - ${brand} ${model}", "fallback": "Not Assigned" }
+          { "title": "Assigned Vehicle", "dataIndex": "assigned_vehicle", "key": "assigned_vehicle", "width": "20%",
+            "render": { "type": "text", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "ids": "{vehicleIds}" } },
+              "template": "${registration_number} - ${brand} ${model}", "fallback": "Not Assigned" }
           },
           { "title": "Actions", "key": "actions", "width": "15%", "fixed": "right",
             "render": { "type": "actions", "items": [
@@ -94,7 +66,7 @@
             ]}
           }
         ],
-        "api": { "endpoint": "/api/drivers", "method": "GET", "params": { "include": "assigned_vehicle", "sort": "-created_at" } },
+        "api": { "endpoint": "/api/drivers", "method": "GET", "params": { "sort": "-createdAt" } },
         "searchConfig": { "placeholder": "Search drivers...", "fields": ["name", "mobile", "license_number"] }
       },
       "actions": [{ "label": "Add Driver", "buttonProps": { "type": "primary", "icon": "PlusOutlined" }, "onClick": { "type": "modal", "modalId": "addDriverModal" } }]
@@ -102,210 +74,72 @@
   ],
   "modals": {
     "addDriverModal": {
-      "title": "Add New Driver",
-      "width": 600,
-      "layout": { "type": "vertical" },
+      "title": "Add New Driver", "width": 600, "layout": { "type": "vertical" },
       "fields": [
-        {
-          "name": "name",
-          "type": "text",
-          "label": "Name",
-          "placeholder": "Enter driver's name",
-          "size": "large",
+        { "name": "name", "type": "text", "label": "Name", "placeholder": "Enter driver's name", "size": "large", 
           "rules": [{ "required": true, "message": "Please enter driver's name" }]
         },
-        {
-          "name": "mobile",
-          "type": "text",
-          "label": "Mobile Number",
-          "placeholder": "Enter mobile number",
-          "size": "large",
-          "rules": [
-            { "required": true, "message": "Please enter mobile number" },
-            { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }
-          ]
+        { "name": "mobile", "type": "text", "label": "Mobile Number", "placeholder": "Enter mobile number", "size": "large",
+          "rules": [{ "required": true, "message": "Please enter mobile number" }, { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }]
         },
-        {
-          "name": "license_number",
-          "type": "text",
-          "label": "License Number",
-          "placeholder": "Enter license number",
-          "size": "large",
+        { "name": "license_number", "type": "text", "label": "License Number", "placeholder": "Enter license number", "size": "large",
           "rules": [{ "required": true, "message": "Please enter license number" }]
         },
-        {
-          "name": "status",
-          "type": "select",
-          "label": "Status",
-          "placeholder": "Select status",
-          "size": "large",
-          "options": [
-            { "label": "Available", "value": "available" },
-            { "label": "On Duty", "value": "on-duty" },
-            { "label": "Inactive", "value": "inactive" }
-          ],
+        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large",
+          "options": [{ "label": "Available", "value": "available" }, { "label": "On Duty", "value": "on-duty" }, { "label": "Inactive", "value": "inactive" }],
           "rules": [{ "required": true, "message": "Please select status" }]
         },
-        {
-          "name": "assigned_vehicle",
-          "type": "select",
-          "label": "Assigned Vehicle",
-          "placeholder": "Select vehicle",
-          "size": "large",
-          "dependencies": ["status"],
-          "api": {
-            "endpoint": "/api/vehicles",
-            "method": "GET",
-            "params": { "status": "available" }
-          },
-          "fieldNames": {
-            "label": "registration_number",
-            "value": "registration_number"
-          },
-          "rules": [
-
-          ],
-          "dropdownProps": {
-            "showSearch": true,
-            "allowClear": true,
-            "placeholder": "Select a vehicle"
-          }
+        { "name": "assigned_vehicle", "type": "select", "label": "Assigned Vehicle", "placeholder": "Select vehicle", "size": "large",
+          "dependencies": ["status"], "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available" } },
+          "fieldNames": { "label": "registration_number", "value": "_id" }, "rules": [],
+          "dropdownProps": { "showSearch": true, "allowClear": true, "placeholder": "Select a vehicle" }
         }
       ],
       "actions": [
-        {
-          "label": "Cancel",
-          "buttonProps": { "type": "default" },
-          "onClick": { "type": "close" }
-        },
-        {
-          "label": "Add Driver",
-          "buttonProps": { "type": "primary", "htmlType": "submit" },
+        { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
+        { "label": "Add Driver", "buttonProps": { "type": "primary", "htmlType": "submit" },
           "api": { "endpoint": "/api/drivers", "method": "POST" },
-          "messages": {
-            "success": "Driver added successfully",
-            "error": "Failed to add driver"
-          }
+          "messages": { "success": "Driver added successfully", "error": "Failed to add driver" }
         }
       ]
     },
     "editDriverModal": {
-      "title": "Edit Driver",
-      "width": 600,
-      "layout": { "type": "vertical" },
-      "api": {
-        "fetch": {
-          "endpoint": "/api/drivers/{id}",
-          "method": "GET"
-        }
-      },
+      "title": "Edit Driver", "width": 600, "layout": { "type": "vertical" },
+      "api": { "fetch": { "endpoint": "/api/drivers/{id}", "method": "GET" } },
       "fields": [
-        {
-          "name": "name",
-          "type": "text",
-          "label": "Name",
-          "placeholder": "Enter driver's name",
-          "size": "large",
+        { "name": "name", "type": "text", "label": "Name", "placeholder": "Enter driver's name", "size": "large",
           "rules": [{ "required": true, "message": "Please enter driver's name" }]
         },
-        {
-          "name": "mobile",
-          "type": "text",
-          "label": "Mobile Number",
-          "placeholder": "Enter mobile number",
-          "size": "large",
-          "rules": [
-            { "required": true, "message": "Please enter mobile number" },
-            { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }
-          ]
+        { "name": "mobile", "type": "text", "label": "Mobile Number", "placeholder": "Enter mobile number", "size": "large",
+          "rules": [{ "required": true, "message": "Please enter mobile number" }, { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }]
         },
-        {
-          "name": "license_number",
-          "type": "text",
-          "label": "License Number",
-          "placeholder": "Enter license number",
-          "size": "large",
+        { "name": "license_number", "type": "text", "label": "License Number", "placeholder": "Enter license number", "size": "large",
           "rules": [{ "required": true, "message": "Please enter license number" }]
         },
-        {
-          "name": "status",
-          "type": "select",
-          "label": "Status",
-          "placeholder": "Select status",
-          "size": "large",
-          "options": [
-            { "label": "Available", "value": "available" },
-            { "label": "On Duty", "value": "on-duty" },
-            { "label": "Inactive", "value": "inactive" }
-          ],
+        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large",
+          "options": [{ "label": "Available", "value": "available" }, { "label": "On Duty", "value": "on-duty" }, { "label": "Inactive", "value": "inactive" }],
           "rules": [{ "required": true, "message": "Please select status" }]
         },
-        {
-          "name": "assigned_vehicle",
-          "type": "select",
-          "label": "Assigned Vehicle",
-          "placeholder": "Select vehicle",
-          "size": "large",
-          "dependencies": ["status"],
-          "api": {
-            "endpoint": "/api/vehicles",
-            "method": "GET",
-            "params": {
-              "status": "available",
-              "include_assigned": "{id}"
-            }
-          },
-          "fieldNames": {
-            "label": "registration_number",
-            "value": "registration_number"
-          },
-          "rules": [
-          ],
-                    "dropdownProps": {
-            "showSearch": true,
-            "allowClear": true,
-            "placeholder": "Select a vehicle"
-          }
+        { "name": "assigned_vehicle", "type": "select", "label": "Assigned Vehicle", "placeholder": "Select vehicle", "size": "large",
+          "dependencies": ["status"], "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available", "include_assigned": "{id}" } },
+          "fieldNames": { "label": "registration_number", "value": "_id" }, "rules": [],
+          "dropdownProps": { "showSearch": true, "allowClear": true, "placeholder": "Select a vehicle" }
         }
       ],
       "actions": [
-        {
-          "label": "Cancel",
-          "buttonProps": { "type": "default" },
-          "onClick": { "type": "close" }
-        },
-        {
-          "label": "Update Driver",
-          "buttonProps": { "type": "primary", "htmlType": "submit" },
-          "api": {
-            "endpoint": "/api/drivers/{id}",
-            "method": "PUT"
-          },
-          "messages": {
-            "success": "Driver updated successfully",
-            "error": "Failed to update driver"
-          }
+        { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
+        { "label": "Update Driver", "buttonProps": { "type": "primary", "htmlType": "submit" },
+          "api": { "endpoint": "/api/drivers/{id}", "method": "PUT" },
+          "messages": { "success": "Driver updated successfully", "error": "Failed to update driver" }
         }
       ]
     },
     "deleteDriverModal": {
-      "title": "Delete Driver",
-      "type": "confirm",
-      "content": "Are you sure you want to delete this driver? This action cannot be undone.",
-      "actions": [
-        {
-          "label": "Delete",
-          "buttonProps": { "type": "primary", "danger": true },
-          "api": {
-            "endpoint": "/api/drivers/{id}",
-            "method": "DELETE"
-          },
-          "messages": {
-            "success": "Driver deleted successfully",
-            "error": "Failed to delete driver"
-          }
-        }
-      ]
+      "title": "Delete Driver", "type": "confirm", "content": "Are you sure you want to delete this driver? This action cannot be undone.",
+      "actions": [{ "label": "Delete", "buttonProps": { "type": "primary", "danger": true },
+        "api": { "endpoint": "/api/drivers/{id}", "method": "DELETE" },
+        "messages": { "success": "Driver deleted successfully", "error": "Failed to delete driver" }
+      }]
     }
   }
 }
