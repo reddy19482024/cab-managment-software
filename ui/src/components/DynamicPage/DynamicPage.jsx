@@ -1,4 +1,3 @@
-// src/components/dynamic/DynamicPage.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import { Layout, Form, Spin, message, theme } from 'antd';
 import PropTypes from 'prop-types';
@@ -16,7 +15,7 @@ const DynamicPage = ({ configName }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // State Management
+  // Core state
   const [config, setConfig] = useState(null);
   const [form] = Form.useForm();
   const [pageLoading, setPageLoading] = useState(true);
@@ -27,8 +26,6 @@ const DynamicPage = ({ configName }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [searchParams, setSearchParams] = useState({});
   const [filterParams, setFilterParams] = useState({});
-  const [dependentFieldsData, setDependentFieldsData] = useState({});
-  const [fieldLoading, setFieldLoading] = useState({});
   const [totalRecords, setTotalRecords] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -37,12 +34,11 @@ const DynamicPage = ({ configName }) => {
   const { apiRequest, loading } = useApi();
   const currentPath = useMemo(() => location.pathname, [location]);
 
-  // Load configuration
+  // Load configuration and table data effects remain unchanged
   useEffect(() => {
     loadPageConfig();
   }, [configName]);
 
-  // Load table data when params change
   useEffect(() => {
     if (config) {
       const formSection = config.sections?.find(section => section.type === 'form');
@@ -52,6 +48,7 @@ const DynamicPage = ({ configName }) => {
     }
   }, [config, searchParams, filterParams, currentPage, pageSize, currentSorter]);
 
+  // Existing loadPageConfig and loadTableData functions remain unchanged...
   const loadPageConfig = async () => {
     try {
       setPageLoading(true);
@@ -191,118 +188,92 @@ const DynamicPage = ({ configName }) => {
     setCurrentModal(modalId);
     setSelectedRecord(record);
     setModalVisible(true);
-    
     form.resetFields();
-    setDependentFieldsData({});
-    setFieldLoading({});
-    
-    if (modalConfig.fields) {
-      // Load independent fields first
-      const independentFields = modalConfig.fields.filter(field => 
-        field.api && !field.dependencies
-      );
-      
-      for (const field of independentFields) {
-        await loadDependentFieldData(field);
-      }
 
-      // For edit mode
-      if (record) {
-        const formData = {};
-        modalConfig.fields.forEach(field => {
-          let value;
-          if (Array.isArray(field.dataIndex)) {
-            value = field.dataIndex.reduce((obj, key) => obj?.[key], record);
-          } else {
-            value = record[field.name || field.dataIndex];
-          }
+    if (record && modalConfig.fields) {
+      // Transform record data for form fields dynamically
+      const formData = modalConfig.fields.reduce((acc, field) => {
+        let value = record[field.name];
+
+        // Handle select fields with labelInValue
+        if (field.type === 'select' && value !== undefined) {
+          // Get label from either a specified label field or use value as fallback
+          const label = record[`${field.name}_label`] || 
+                       field.labelField && record[field.labelField] || 
+                       value;
           
-          // Transform value for select fields if needed
-          if (field.type === 'select' && value !== undefined) {
-            formData[field.name] = {
-              label: record[`${field.name}_label`] || value,
-              value: value
-            };
-          } else {
-            formData[field.name] = value;
-          }
-        });
-
-        form.setFieldsValue(formData);
-
-        // Load dependent fields with current values
-        const dependentFields = modalConfig.fields.filter(field => 
-          field.api && (field.dependencies || field.watchConfig)
-        );
-
-        for (const field of dependentFields) {
-          const currentValue = formData[field.name];
-          if (currentValue) {
-            await loadDependentFieldData(field, {}, 
-              currentValue.value !== undefined ? currentValue.value : currentValue
-            );
-          }
+          acc[field.name] = {
+            label: label,
+            value: value
+          };
+        } else {
+          acc[field.name] = value;
         }
-      }
+        return acc;
+      }, {});
+
+      form.setFieldsValue(formData);
     }
   };
 
   const handleFormSubmit = async (values) => {
     const modalConfig = config.modals[currentModal];
-    const action = modalConfig.actions.find(act => 
+    const submitAction = modalConfig.actions?.find(act => 
       act.buttonProps?.htmlType === 'submit'
     );
 
-    if (!action?.api) return;
+    if (!submitAction?.api) return;
 
     try {
-      let endpoint = action.api.endpoint;
-      const method = action.api.method;
+      let endpoint = submitAction.api.endpoint;
+      const method = submitAction.api.method;
 
-      // Replace URL parameters for edit mode
-      if (selectedRecord?._id) {
-        endpoint = endpoint.replace('{id}', selectedRecord._id);
+      // Handle dynamic ID replacement in URL
+      if (selectedRecord) {
+        const idField = Object.keys(selectedRecord).find(key => 
+          key === 'id' || key === '_id'
+        );
+        if (idField) {
+          endpoint = endpoint.replace('{id}', selectedRecord[idField]);
+        }
       }
 
-      // Transform values for API
+      // Transform form values for API
       const transformedValues = Object.entries(values).reduce((acc, [key, value]) => {
-        // Handle select fields
-        if (value?.value !== undefined) {
-          acc[key] = value.value;
+        // Handle different value types
+        if (value === null || value === undefined) {
+          return acc;
         }
-        // Handle date fields
-        else if (value?._isAMomentObject) {
-          acc[key] = value.toISOString();
-        }
-        // Handle array fields
-        else if (Array.isArray(value)) {
-          acc[key] = value.map(v => v?.value !== undefined ? v.value : v);
-        }
-        // Handle other fields
-        else {
+
+        if (typeof value === 'object') {
+          if (value.value !== undefined) {
+            // Handle select values
+            acc[key] = value.value;
+          } else if (Array.isArray(value)) {
+            // Handle array values
+            acc[key] = value.map(v => v?.value !== undefined ? v.value : v);
+          } else if (value._isAMomentObject) {
+            // Handle date values
+            acc[key] = value.toISOString();
+          } else {
+            // Handle other object values
+            acc[key] = value;
+          }
+        } else {
+          // Handle primitive values
           acc[key] = value;
         }
         return acc;
       }, {});
 
-      // Add ID fields for update operations
-      if (selectedRecord && method.toUpperCase() === 'PUT') {
-        transformedValues._id = selectedRecord._id;
-        transformedValues.id = selectedRecord.id;
-      }
-
-      const response = await apiRequest(
-        endpoint,
-        method,
-        transformedValues
-      );
+      const response = await apiRequest(endpoint, method, transformedValues);
 
       if (response) {
-        message.success(action.messages?.success || 'Operation completed successfully');
+        message.success(submitAction.messages?.success || 'Operation completed successfully');
         handleModalClose();
         
-        // Reload table data
-        const formSection = config.sections.find(s => s.type === 'form');
+        // Reload table data if exists
+        const formSection = config.sections?.find(s => s.type === 'form');
         if (formSection?.table?.enabled && formSection?.table?.api) {
           await loadTableData(formSection.table.api);
         }
@@ -312,7 +283,8 @@ const DynamicPage = ({ configName }) => {
     }
   };
 
-  const handleDelete = async (modalId, record) => {
+  // Other handlers remain unchanged...
+const handleDelete = async (modalId, record) => {
     try {
       const modalConfig = config.modals[modalId];
       const deleteAction = modalConfig.actions.find(action => 
@@ -388,43 +360,10 @@ const DynamicPage = ({ configName }) => {
     setCurrentModal(null);
     setSelectedRecord(null);
     form.resetFields();
-    setDependentFieldsData({});
-    setFieldLoading({});
   };
-
-  const handleFieldWatch = (changedValues, allValues) => {
-    if (!currentModal) return;
-
-    const modalConfig = config.modals[currentModal];
-    modalConfig.fields?.forEach(field => {
-      if (field.watchConfig) {
-        Object.entries(field.watchConfig).forEach(([key, config]) => {
-          const watchValue = allValues[config.field];
-          
-          if (watchValue && config.conditions?.[watchValue]) {
-            const condition = config.conditions[watchValue];
-            
-            switch (condition.action) {
-              case 'RELOAD_OPTIONS':
-                loadDependentFieldData(field, condition.params);
-                break;
-              case 'CLEAR_VALUE':
-                form.setFieldValue(field.name, undefined);
-                break;
-              case 'VALIDATE':
-                form.validateFields([field.name]);
-                break;
-            }
-          }
-        });
-      }
-    });
-  };
-
   const handleSidebarCollapse = (value) => {
     setCollapsed(value);
   };
-
   if (pageLoading) {
     return (
       <div style={{ 
@@ -440,10 +379,11 @@ const DynamicPage = ({ configName }) => {
   }
 
   if (!config) return null;
+  // Render logic remains unchanged...
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {config.layout.header.enabled && (
+    {config.layout.header.enabled && (
         <HeaderComponent 
           config={config.layout.header}
           collapsed={collapsed}
@@ -503,9 +443,6 @@ const DynamicPage = ({ configName }) => {
         loading={loading}
         form={form}
         record={selectedRecord}
-        dependentFieldsData={dependentFieldsData}
-        fieldLoading={fieldLoading}
-        onFieldWatch={handleFieldWatch}
       />
     </Layout>
   );

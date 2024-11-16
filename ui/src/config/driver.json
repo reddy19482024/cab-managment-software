@@ -102,94 +102,210 @@
   ],
   "modals": {
     "addDriverModal": {
-      "title": "Add New Driver", "width": 600, "layout": { "type": "vertical" },
+      "title": "Add New Driver",
+      "width": 600,
+      "layout": { "type": "vertical" },
       "fields": [
-        { "name": "name", "type": "text", "label": "Name", "placeholder": "Enter driver's name", "size": "large", "rules": [{ "required": true, "message": "Please enter driver's name" }] },
-        { "name": "mobile", "type": "text", "label": "Mobile Number", "placeholder": "Enter mobile number", "size": "large",
-          "rules": [{ "required": true, "message": "Please enter mobile number" }, { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }]
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "placeholder": "Enter driver's name",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter driver's name" }]
         },
-        { "name": "license_number", "type": "text", "label": "License Number", "placeholder": "Enter license number", "size": "large", "rules": [{ "required": true, "message": "Please enter license number" }] },
-        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large",
-          "options": [{ "label": "Available", "value": "available" }, { "label": "On Duty", "value": "on-duty" }, { "label": "Inactive", "value": "inactive" }],
+        {
+          "name": "mobile",
+          "type": "text",
+          "label": "Mobile Number",
+          "placeholder": "Enter mobile number",
+          "size": "large",
+          "rules": [
+            { "required": true, "message": "Please enter mobile number" },
+            { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }
+          ]
+        },
+        {
+          "name": "license_number",
+          "type": "text",
+          "label": "License Number",
+          "placeholder": "Enter license number",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter license number" }]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "label": "Status",
+          "placeholder": "Select status",
+          "size": "large",
+          "options": [
+            { "label": "Available", "value": "available" },
+            { "label": "On Duty", "value": "on-duty" },
+            { "label": "Inactive", "value": "inactive" }
+          ],
           "rules": [{ "required": true, "message": "Please select status" }]
         },
-        { "name": "assigned_vehicle", "type": "select", "label": "Assigned Vehicle", "placeholder": "Select vehicle", "size": "large", "dependencies": ["status"],
+        {
+          "name": "assigned_vehicle",
+          "type": "select",
+          "label": "Assigned Vehicle",
+          "placeholder": "Select vehicle",
+          "size": "large",
+          "dependencies": ["status"],
           "api": {
-            "endpoint": "/api/vehicles", "method": "GET",
-            "params": { "filter": { "status": ["available"] }, "sort": "registration_number" },
-            "transform": { "path": "data", "labelTemplate": "${registration_number} - ${brand} ${model} (${seats} seats)", "valueKey": "vehicle_id", "labelKeys": ["registration_number", "brand", "model", "seats"], "filterBy": { "status": ["available"] } }
+            "endpoint": "/api/vehicles",
+            "method": "GET",
+            "params": { "status": "available" }
           },
-          "watchConfig": {
-            "statusChange": {
-              "field": "status", "action": "RELOAD_OPTIONS",
-              "conditions": {
-                "available": { "params": { "filter": { "status": ["available"] } } },
-                "on-duty": { "params": { "filter": { "status": ["available"] } } },
-                "inactive": { "action": "CLEAR_VALUE" }
-              }
-            }
+          "fieldNames": {
+            "label": "vehicle_name",
+            "value": "id"
           },
-          "validators": [
-            { "type": "custom", "validator": "STATUS_VEHICLE_MATCH", "message": "Please assign a vehicle when status is On Duty", "params": { "requiredStatus": "on-duty", "requireVehicle": true } },
-            { "type": "custom", "validator": "STATUS_VEHICLE_MATCH", "message": "Inactive drivers cannot have assigned vehicles", "params": { "status": "inactive", "requireNoVehicle": true } }
+          "rules": [
+
           ],
-          "dropdownProps": { "showSearch": true, "loading": false, "allowClear": true, "placeholder": "Select a vehicle", "filterOption": true, "optionFilterProp": "label" }
+          "dropdownProps": {
+            "showSearch": true,
+            "allowClear": true,
+            "placeholder": "Select a vehicle"
+          }
         }
       ],
       "actions": [
-        { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
-        { "label": "Add Driver", "buttonProps": { "type": "primary", "htmlType": "submit" }, "api": { "endpoint": "/api/drivers", "method": "POST" }, 
-          "messages": { "success": "Driver added successfully", "error": "Failed to add driver" }
+        {
+          "label": "Cancel",
+          "buttonProps": { "type": "default" },
+          "onClick": { "type": "close" }
+        },
+        {
+          "label": "Add Driver",
+          "buttonProps": { "type": "primary", "htmlType": "submit" },
+          "api": { "endpoint": "/api/drivers", "method": "POST" },
+          "messages": {
+            "success": "Driver added successfully",
+            "error": "Failed to add driver"
+          }
         }
       ]
     },
     "editDriverModal": {
-      "title": "Edit Driver", "width": 600, "layout": { "type": "vertical" },
+      "title": "Edit Driver",
+      "width": 600,
+      "layout": { "type": "vertical" },
+      "api": {
+        "fetch": {
+          "endpoint": "/api/drivers/{id}",
+          "method": "GET"
+        }
+      },
       "fields": [
-        { "name": "name", "type": "text", "label": "Name", "placeholder": "Enter driver's name", "size": "large", "rules": [{ "required": true, "message": "Please enter driver's name" }] },
-        { "name": "mobile", "type": "text", "label": "Mobile Number", "placeholder": "Enter mobile number", "size": "large",
-          "rules": [{ "required": true, "message": "Please enter mobile number" }, { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }]
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "placeholder": "Enter driver's name",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter driver's name" }]
         },
-        { "name": "license_number", "type": "text", "label": "License Number", "placeholder": "Enter license number", "size": "large", "rules": [{ "required": true, "message": "Please enter license number" }] },
-        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large",
-          "options": [{ "label": "Available", "value": "available" }, { "label": "On Duty", "value": "on-duty" }, { "label": "Inactive", "value": "inactive" }],
+        {
+          "name": "mobile",
+          "type": "text",
+          "label": "Mobile Number",
+          "placeholder": "Enter mobile number",
+          "size": "large",
+          "rules": [
+            { "required": true, "message": "Please enter mobile number" },
+            { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit mobile number" }
+          ]
+        },
+        {
+          "name": "license_number",
+          "type": "text",
+          "label": "License Number",
+          "placeholder": "Enter license number",
+          "size": "large",
+          "rules": [{ "required": true, "message": "Please enter license number" }]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "label": "Status",
+          "placeholder": "Select status",
+          "size": "large",
+          "options": [
+            { "label": "Available", "value": "available" },
+            { "label": "On Duty", "value": "on-duty" },
+            { "label": "Inactive", "value": "inactive" }
+          ],
           "rules": [{ "required": true, "message": "Please select status" }]
         },
-        { "name": "assigned_vehicle", "type": "select", "label": "Assigned Vehicle", "placeholder": "Select vehicle", "size": "large", "dependencies": ["status"],
+        {
+          "name": "assigned_vehicle",
+          "type": "select",
+          "label": "Assigned Vehicle",
+          "placeholder": "Select vehicle",
+          "size": "large",
+          "dependencies": ["status"],
           "api": {
-            "endpoint": "/api/vehicles", "method": "GET",
-            "params": { "filter": { "status": ["available"] }, "sort": "registration_number" },
-            "transform": { "path": "data", "labelTemplate": "${registration_number} - ${brand} ${model} (${seats} seats)", "valueKey": "vehicle_id", "labelKeys": ["registration_number", "brand", "model", "seats"], "filterBy": { "status": ["available"] }, "includeCurrentValue": true }
-          },
-          "watchConfig": {
-            "statusChange": {
-              "field": "status", "action": "RELOAD_OPTIONS",
-              "conditions": {
-                "available": { "params": { "filter": { "status": ["available"] } } },
-                "on-duty": { "params": { "filter": { "status": ["available"] } } },
-                "inactive": { "action": "CLEAR_VALUE" }
-              }
+            "endpoint": "/api/vehicles",
+            "method": "GET",
+            "params": {
+              "status": "available",
+              "include_assigned": "{id}"
             }
           },
-          "validators": [
-            { "type": "custom", "validator": "STATUS_VEHICLE_MATCH", "message": "Please assign a vehicle when status is On Duty", "params": { "requiredStatus": "on-duty", "requireVehicle": true } },
-            { "type": "custom", "validator": "STATUS_VEHICLE_MATCH", "message": "Inactive drivers cannot have assigned vehicles", "params": { "status": "inactive", "requireNoVehicle": true } }
+          "fieldNames": {
+            "label": "vehicle_name",
+            "value": "id"
+          },
+          "rules": [
           ],
-          "dropdownProps": { "showSearch": true, "loading": false, "allowClear": true, "placeholder": "Select a vehicle", "filterOption": true, "optionFilterProp": "label" }
+                    "dropdownProps": {
+            "showSearch": true,
+            "allowClear": true,
+            "placeholder": "Select a vehicle"
+          }
         }
       ],
       "actions": [
-        { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
-        { "label": "Update Driver", "buttonProps": { "type": "primary", "htmlType": "submit" }, "api": { "endpoint": "/api/drivers/{id}", "method": "PUT" },
-          "messages": { "success": "Driver updated successfully", "error": "Failed to update driver" }
+        {
+          "label": "Cancel",
+          "buttonProps": { "type": "default" },
+          "onClick": { "type": "close" }
+        },
+        {
+          "label": "Update Driver",
+          "buttonProps": { "type": "primary", "htmlType": "submit" },
+          "api": {
+            "endpoint": "/api/drivers/{id}",
+            "method": "PUT"
+          },
+          "messages": {
+            "success": "Driver updated successfully",
+            "error": "Failed to update driver"
+          }
         }
       ]
     },
     "deleteDriverModal": {
-      "title": "Delete Driver", "type": "confirm", "content": "Are you sure you want to delete this driver? This action cannot be undone.",
-      "actions": [{ "label": "Delete", "buttonProps": { "type": "primary", "danger": true }, "api": { "endpoint": "/api/drivers/{id}", "method": "DELETE" },
-        "messages": { "success": "Driver deleted successfully", "failure": "Failed to delete driver" }
-      }]
+      "title": "Delete Driver",
+      "type": "confirm",
+      "content": "Are you sure you want to delete this driver? This action cannot be undone.",
+      "actions": [
+        {
+          "label": "Delete",
+          "buttonProps": { "type": "primary", "danger": true },
+          "api": {
+            "endpoint": "/api/drivers/{id}",
+            "method": "DELETE"
+          },
+          "messages": {
+            "success": "Driver deleted successfully",
+            "error": "Failed to delete driver"
+          }
+        }
+      ]
     }
   }
 }
