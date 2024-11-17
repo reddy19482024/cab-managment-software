@@ -86,29 +86,11 @@
     }
   },
   "sections": [
-    {
-      "type": "banner",
-      "style": {
-        "background": "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
-        "padding": "24px",
-        "marginBottom": "24px",
-        "borderRadius": "8px"
-      },
-      "content": {
-        "title": "Trip Management",
-        "description": "Manage and track all trips efficiently",
-        "style": { "maxWidth": "100%", "padding": "0 24px", "color": "#ffffff" }
-      }
-    },
+    { "type": "banner", "style": { "background": "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)", "padding": "24px", "marginBottom": "24px", "borderRadius": "8px" }, "content": { "title": "Trip Management", "description": "Manage and track all trips efficiently", "style": { "maxWidth": "100%", "padding": "0 24px", "color": "#ffffff" } } },
     {
       "type": "form",
       "containerStyle": { "padding": "0" },
-      "wrapperStyle": {
-        "background": "#ffffff",
-        "padding": "24px",
-        "borderRadius": "8px",
-        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
-      },
+      "wrapperStyle": { "background": "#ffffff", "padding": "24px", "borderRadius": "8px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)" },
       "title": "Trip List",
       "subtitle": "View and manage trips",
       "table": {
@@ -116,98 +98,19 @@
         "rowKey": "_id",
         "size": "middle",
         "scroll": { "x": true },
-        "pagination": {
-          "pageSize": 10,
-          "showSizeChanger": true,
-          "showQuickJumper": true,
-          "showTotal": true
-        },
+        "pagination": { "pageSize": 10, "showSizeChanger": true, "showQuickJumper": true, "showTotal": true },
         "columns": [
-          {
-            "title": "Pickup Location",
-            "dataIndex": "pickup_location",
-            "key": "pickup_location",
-            "width": "20%",
-            "sorter": true
-          },
-          {
-            "title": "Dropoff Location",
-            "dataIndex": "dropoff_location",
-            "key": "dropoff_location",
-            "width": "20%"
-          },
-          {
-            "title": "Vehicle",
-            "dataIndex": ["vehicle_details", "registration_number"],
-            "key": "vehicle",
-            "width": "20%",
-            "render": {
-              "type": "text",
-              "template": "${registration_number}",
-              "fallback": "Not Assigned"
-            }
-          },
-          {
-            "title": "Status",
-            "dataIndex": "status",
-            "key": "status",
-            "width": "15%",
-            "render": {
-              "type": "tag",
-              "colorMap": {
-                "scheduled": "blue",
-                "in_progress": "processing",
-                "completed": "success",
-                "cancelled": "error"
-              }
-            },
-            "filters": [
-              { "text": "Scheduled", "value": "scheduled" },
-              { "text": "In Progress", "value": "in_progress" },
-              { "text": "Completed", "value": "completed" },
-              { "text": "Cancelled", "value": "cancelled" }
-            ]
-          },
-          {
-            "title": "Actions",
-            "key": "actions",
-            "width": "15%",
-            "render": {
-              "type": "actions",
-              "items": [
-                {
-                  "type": "button",
-                  "buttonProps": { "type": "link", "icon": "EditOutlined" },
-                  "tooltip": "Edit Trip",
-                  "onClick": { "type": "modal", "modalId": "editTripModal" }
-                },
-                {
-                  "type": "button",
-                  "buttonProps": { "type": "link", "danger": true, "icon": "DeleteOutlined" },
-                  "tooltip": "Delete Trip",
-                  "onClick": { "type": "modal", "modalId": "deleteTripModal" }
-                }
-              ]
-            }
-          }
+          { "title": "Pickup Location", "dataIndex": "pickup_location", "key": "pickup_location", "width": "20%", "sorter": true },
+          { "title": "Dropoff Location", "dataIndex": "dropoff_location", "key": "dropoff_location", "width": "20%" },
+          { "title": "Assigned Vehicle", "dataIndex": "vehicle_id", "key": "vehicle_id", "width": "20%", "render": { "type": "text", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "ids": "{vehicle_id}" } }, "template": "${registration_number} - ${brand} ${model}", "fallback": "Not Assigned" } },
+          { "title": "Assigned Employee", "dataIndex": "employee_id", "key": "employee_id", "width": "20%", "render": { "type": "text", "api": { "endpoint": "/api/employees", "method": "GET", "params": { "ids": "{employee_id}" } }, "template": "${name} - ${role}", "fallback": "Not Assigned" } },
+          { "title": "Status", "dataIndex": "status", "key": "status", "width": "15%", "render": { "type": "tag", "colorMap": { "scheduled": "blue", "in_progress": "processing", "completed": "success", "cancelled": "error" } }, "filters": [ { "text": "Scheduled", "value": "scheduled" }, { "text": "In Progress", "value": "in_progress" }, { "text": "Completed", "value": "completed" }, { "text": "Cancelled", "value": "cancelled" } ] },
+          { "title": "Actions", "key": "actions", "width": "15%", "render": { "type": "actions", "items": [ { "type": "button", "buttonProps": { "type": "link", "icon": "EditOutlined" }, "tooltip": "Edit Trip", "onClick": { "type": "modal", "modalId": "editTripModal" } }, { "type": "button", "buttonProps": { "type": "link", "danger": true, "icon": "DeleteOutlined" }, "tooltip": "Delete Trip", "onClick": { "type": "modal", "modalId": "deleteTripModal" } } ] } }
         ],
-        "api": {
-          "endpoint": "/api/trips",
-          "method": "GET",
-          "params": { "sort": "-created_at" }
-        },
-        "searchConfig": {
-          "placeholder": "Search trips...",
-          "fields": ["pickup_location", "dropoff_location"]
-        }
+        "api": { "endpoint": "/api/trips", "method": "GET", "params": { "sort": "-created_at" } },
+        "searchConfig": { "placeholder": "Search trips...", "fields": ["pickup_location", "dropoff_location"] }
       },
-      "actions": [
-        {
-          "label": "Add Trip",
-          "buttonProps": { "type": "primary", "icon": "PlusOutlined" },
-          "onClick": { "type": "modal", "modalId": "addTripModal" }
-        }
-      ]
+      "actions": [ { "label": "Add Trip", "buttonProps": { "type": "primary", "icon": "PlusOutlined" }, "onClick": { "type": "modal", "modalId": "addTripModal" } } ]
     }
   ],
   "modals": {
@@ -216,12 +119,16 @@
       "width": 600,
       "layout": { "type": "vertical" },
       "fields": [
-        { "name": "pickup_location", "type": "text", "label": "Pickup Location", "placeholder": "Enter pickup location", "size": "large", "rules": [{ "required": true, "message": "Please enter pickup location" }] },
-        { "name": "dropoff_location", "type": "text", "label": "Dropoff Location", "placeholder": "Enter dropoff location", "size": "large", "rules": [{ "required": true, "message": "Please enter dropoff location" }] },
-        { "name": "vehicle_id", "type": "select", "label": "Vehicle", "placeholder": "Select vehicle", "size": "large", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available" } }, "fieldNames": { "label": "registration_number", "value": "_id" }, "rules": [{ "required": true, "message": "Please select vehicle" }], "dropdownProps": { "showSearch": true } },
-        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large", "options": [{ "label": "Scheduled", "value": "scheduled" }, { "label": "In Progress", "value": "in_progress" }, { "label": "Completed", "value": "completed" }, { "label": "Cancelled", "value": "cancelled" }], "rules": [{ "required": true, "message": "Please select status" }] }
+        { "name": "pickup_location", "type": "text", "label": "Pickup Location", "placeholder": "Enter pickup location", "rules": [ { "required": true, "message": "Please enter pickup location" } ] },
+        { "name": "dropoff_location", "type": "text", "label": "Dropoff Location", "placeholder": "Enter dropoff location", "rules": [ { "required": true, "message": "Please enter dropoff location" } ] },
+        { "name": "vehicle_id", "type": "select", "label": "Vehicle", "placeholder": "Select vehicle", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available" } }, "fieldNames": { "label": "registration_number", "value": "_id" }, "rules": [ { "required": true, "message": "Please select vehicle" } ] },
+        { "name": "employee_id", "type": "select", "label": "Employee", "placeholder": "Select employee", "api": { "endpoint": "/api/employees", "method": "GET" }, "fieldNames": { "label": "name", "value": "_id" }, "rules": [ { "required": true, "message": "Please select an employee" } ] },
+        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "options": [ { "label": "Scheduled", "value": "scheduled" }, { "label": "In Progress", "value": "in_progress" }, { "label": "Completed", "value": "completed" }, { "label": "Cancelled", "value": "cancelled" } ], "rules": [ { "required": true, "message": "Please select status" } ] }
       ],
-      "actions": [{ "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } }, { "label": "Add Trip", "buttonProps": { "type": "primary", "htmlType": "submit" }, "api": { "endpoint": "/api/trips", "method": "POST" }, "messages": { "success": "Trip added successfully", "error": "Failed to add trip" } }]
+      "actions": [
+        { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
+        { "label": "Add Trip", "buttonProps": { "type": "primary", "htmlType": "submit" }, "api": { "endpoint": "/api/trips", "method": "POST" }, "messages": { "success": "Trip added successfully", "error": "Failed to add trip" } }
+      ]
     },
     "editTripModal": {
       "title": "Edit Trip",
@@ -229,18 +136,24 @@
       "layout": { "type": "vertical" },
       "api": { "fetch": { "endpoint": "/api/trips/{id}", "method": "GET" } },
       "fields": [
-        { "name": "pickup_location", "type": "text", "label": "Pickup Location", "placeholder": "Enter pickup location", "size": "large", "rules": [{ "required": true, "message": "Please enter pickup location" }] },
-        { "name": "dropoff_location", "type": "text", "label": "Dropoff Location", "placeholder": "Enter dropoff location", "size": "large", "rules": [{ "required": true, "message": "Please enter dropoff location" }] },
-        { "name": "vehicle_id", "type": "select", "label": "Vehicle", "placeholder": "Select vehicle", "size": "large", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available", "include_assigned": "{id}" } }, "fieldNames": { "label": "registration_number", "value": "_id" }, "dropdownProps": { "showSearch": true }, "rules": [{ "required": true, "message": "Please select vehicle" }] },
-        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "size": "large", "options": [{ "label": "Scheduled", "value": "scheduled" }, { "label": "In Progress", "value": "in_progress" }, { "label": "Completed", "value": "completed" }, { "label": "Cancelled", "value": "cancelled" }], "rules": [{ "required": true, "message": "Please select status" }] }
+        { "name": "pickup_location", "type": "text", "label": "Pickup Location", "placeholder": "Enter pickup location", "rules": [ { "required": true, "message": "Please enter pickup location" } ] },
+        { "name": "dropoff_location", "type": "text", "label": "Dropoff Location", "placeholder": "Enter dropoff location", "rules": [ { "required": true, "message": "Please enter dropoff location" } ] },
+        { "name": "vehicle_id", "type": "select", "label": "Vehicle", "placeholder": "Select vehicle", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available" } }, "fieldNames": { "label": "registration_number", "value": "_id" }, "rules": [ { "required": true, "message": "Please select vehicle" } ] },
+        { "name": "employee_id", "type": "select", "label": "Employee", "placeholder": "Select employee", "api": { "endpoint": "/api/employees", "method": "GET" }, "fieldNames": { "label": "name", "value": "_id" }, "rules": [ { "required": true, "message": "Please select an employee" } ] },
+        { "name": "status", "type": "select", "label": "Status", "placeholder": "Select status", "options": [ { "label": "Scheduled", "value": "scheduled" }, { "label": "In Progress", "value": "in_progress" }, { "label": "Completed", "value": "completed" }, { "label": "Cancelled", "value": "cancelled" } ], "rules": [ { "required": true, "message": "Please select status" } ] }
       ],
-      "actions": [{ "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } }, { "label": "Update Trip", "buttonProps": { "type": "primary", "htmlType": "submit" }, "api": { "endpoint": "/api/trips/{id}", "method": "PUT" }, "messages": { "success": "Trip updated successfully", "error": "Failed to update trip" } }]
+      "actions": [
+        { "label": "Cancel", "buttonProps": { "type": "default" }, "onClick": { "type": "close" } },
+        { "label": "Update Trip", "buttonProps": { "type": "primary", "htmlType": "submit" }, "api": { "endpoint": "/api/trips/{id}", "method": "PUT" }, "messages": { "success": "Trip updated successfully", "error": "Failed to update trip" } }
+      ]
     },
     "deleteTripModal": {
       "title": "Delete Trip",
       "type": "confirm",
       "content": "Are you sure you want to delete this trip? This action cannot be undone.",
-      "actions": [{ "label": "Delete", "buttonProps": { "type": "primary", "danger": true }, "api": { "endpoint": "/api/trips/{id}", "method": "DELETE" }, "messages": { "success": "Trip deleted successfully", "error": "Failed to delete trip" } }]
+      "actions": [
+        { "label": "Delete", "buttonProps": { "type": "primary", "danger": true }, "api": { "endpoint": "/api/trips/{id}", "method": "DELETE" }, "messages": { "success": "Trip deleted successfully", "error": "Failed to delete trip" } }
+      ]
     }
   }
 }

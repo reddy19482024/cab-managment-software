@@ -36,43 +36,39 @@ const FormComponent = ({
 
   const formatInitialValues = async (values) => {
     if (!values || !formSection?.fields) return {};
-
+  
     const formattedValues = {};
-
+  
     for (const [key, value] of Object.entries(values)) {
       if (value === undefined || value === null) continue;
-
+  
       const field = formSection.fields.find(f => f.name === key);
       if (!field) continue;
-
+  
       if (field.type === 'select') {
         if (field.mode === 'multiple' && Array.isArray(value)) {
-          // For multiple select, we need to ensure options are loaded for these values
           const options = await ensureOptionsLoaded(field, value);
-          formattedValues[key] = options.map(opt => ({
-            label: opt.label,
-            value: opt.value
-          }));
-        } else if (!field.mode) {
-          // For single select, ensure option is loaded
+          formattedValues[key] = value; // Prefill with array of values for multiple mode
+        } else {
           const options = await ensureOptionsLoaded(field, [value]);
           const option = options.find(opt => opt.value === value);
           if (option) {
-            formattedValues[key] = {
-              label: option.label,
-              value: option.value
-            };
+            formattedValues[key] = value; // Prefill with single value
+          } else {
+            formattedValues[key] = value; // Fallback to raw value if no matching option
           }
         }
       } else if (['date', 'datetime'].includes(field.type)) {
         formattedValues[key] = value ? moment(value) : null;
       } else {
+        // Handle text and other non-select fields
         formattedValues[key] = value;
       }
     }
-
+  
     return formattedValues;
   };
+  
 
   const ensureOptionsLoaded = async (field, values) => {
     if (!field.api?.endpoint || !values?.length) return [];
