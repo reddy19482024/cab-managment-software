@@ -81,7 +81,7 @@
           { "title": "Dropoff Location", "dataIndex": "dropoff_location", "key": "dropoff_location", "width": "15%", "sorter": true },
           { "title": "Vehicle", "dataIndex": ["vehicle_details"], "key": "vehicle", "width": "15%",
             "render": { "type": "text", 
-              "template": "${registration_number} (${driver.name})", 
+              "template": "${registration_number}", 
               "fallback": "Not Assigned" 
             }
           },
@@ -124,11 +124,11 @@
           "rules": [{ "required": true, "message": "Please enter dropoff location" }]
         },
         { "name": "vehicle_id", "type": "select", "label": "Vehicle & Driver", "placeholder": "Select vehicle", "size": "large",
-          "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": "available", "include_driver": true } },
+          "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { } },
           "fieldNames": { 
             "label": "registration_number",
             "value": "_id",
-            "customLabel": "${registration_number} - ${brand} ${model} (Driver: ${driver.name})"
+            "customLabel": "${registration_number}"
           },
           "dropdownProps": { "showSearch": true },
           "rules": [{ "required": true, "message": "Please select vehicle" }]
@@ -175,11 +175,11 @@
           "rules": [{ "required": true, "message": "Please enter dropoff location" }]
         },
         { "name": "vehicle_id", "type": "select", "label": "Vehicle & Driver", "placeholder": "Select vehicle", "size": "large",
-          "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "status": ["available", "in-use"], "include_driver": true } },
+          "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { } },
           "fieldNames": { 
             "label": "registration_number",
             "value": "_id",
-            "customLabel": "${registration_number} - ${brand} ${model} (Driver: ${driver.name})"
+            "customLabel": "${registration_number}"
           },
           "dropdownProps": { "showSearch": true },
           "rules": [{ "required": true, "message": "Please select vehicle" }]
