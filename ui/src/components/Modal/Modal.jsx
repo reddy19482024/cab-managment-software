@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { Modal, Form, Input, Select, Button, Space, Spin } from 'antd';
+import React from 'react';
+import { Modal, Spin, Button, Space } from 'antd';
 import PropTypes from 'prop-types';
 import * as AntdIcons from '@ant-design/icons';
-import useApi from '../../hooks/useApi';
+import FormComponent from '../Form/Form';
 
 const ModalComponent = ({
   config,
@@ -14,70 +14,6 @@ const ModalComponent = ({
   record
 }) => {
   if (!config) return null;
-  const { apiRequest } = useApi();
-
-  useEffect(() => {
-    if (visible && config.fields) {
-      form.resetFields();
-      if (record) {
-        form.setFieldsValue(record);
-      }
-      loadSelectFieldOptions();
-    }
-  }, [visible, config, record]);
-
-  const loadSelectFieldOptions = async () => {
-    const selectFields = config.fields.filter(field => field.type === 'select' && field.api);
-  
-    for (const field of selectFields) {
-      try {
-        let endpoint = field.api.endpoint;
-        if (field.api.method === 'GET' && field.api.params) {
-          const queryString = new URLSearchParams(field.api.params).toString();
-          endpoint = `${endpoint}${queryString ? '?' + queryString : ''}`;
-        }
-  
-        const response = await apiRequest(
-          endpoint,
-          field.api.method || 'GET',
-          field.api.method === 'GET' ? null : field.api.params
-        );
-  
-        if (response?.data) {
-          // Use fieldNames to dynamically determine label and value keys
-          const { label: labelKey = 'label', value: valueKey = '_id' } = field.fieldNames || {};
-  
-          const options = response.data.map(item => ({
-            label: item[labelKey] || '', // Use the key defined in fieldNames for label
-            value: item[valueKey],      // Use the key defined in fieldNames for value
-          }));
-  
-          field.options = options;
-  
-          // Check if the current form value needs to be updated with the matching option
-          const currentValue = form.getFieldValue(field.name);
-          if (currentValue) {
-            const valueToMatch = typeof currentValue === 'object' ? currentValue.value : currentValue;
-  
-            const matchingOption = options.find(opt => opt.value === valueToMatch);
-            if (matchingOption) {
-              form.setFieldsValue({
-                [field.name]: {
-                  label: matchingOption.label,
-                  value: matchingOption.value,
-                },
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error loading options for ${field.name}:`, error);
-        field.options = [];
-      }
-    }
-  };
-  
-  
 
   const getIcon = (iconName) => {
     if (!iconName) return null;
@@ -85,70 +21,11 @@ const ModalComponent = ({
     return Icon ? <Icon /> : null;
   };
 
-  const renderField = (field) => {
-    switch (field.type) {
-      case 'select':
-        return (
-          <Select
-            {...field.dropdownProps}
-            options={field.options}
-            size={field.size}
-            placeholder={field.placeholder}
-            labelInValue
-            showSearch={field.dropdownProps?.showSearch}
-            filterOption={(input, option) =>
-              option?.label?.toLowerCase().includes(input.toLowerCase())
-            }
-          />
-        );
-
-      case 'number':
-        return (
-          <Input
-            type="number"
-            placeholder={field.placeholder}
-            size={field.size}
-            {...field.inputProps}
-          />
-        );
-
-      default:
-        return (
-          <Input
-            placeholder={field.placeholder}
-            size={field.size}
-            allowClear
-            {...field.inputProps}
-          />
-        );
-    }
-  };
-
-  const renderFormFields = () => (
-    config.fields?.map((field, index) => (
-      <Form.Item
-        key={`${field.name}-${index}`}
-        name={field.name}
-        label={field.label}
-        rules={field.rules}
-      >
-        {renderField(field)}
-      </Form.Item>
-    ))
-  );
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (values) => {
     try {
-      const values = await form.validateFields();
-
-      const transformedValues = Object.entries(values).reduce((acc, [key, value]) => {
-        acc[key] = value?.value !== undefined ? value.value : value;
-        return acc;
-      }, {});
-
-      onSubmit(transformedValues);
+      onSubmit(values);
     } catch (error) {
-      console.error('Form validation failed:', error);
+      console.error('Form submission failed:', error);
     }
   };
 
@@ -188,6 +65,16 @@ const ModalComponent = ({
     );
   }
 
+  // Create form config for FormComponent
+  const formConfig = {
+    sections: [{
+      type: 'form',
+      layout: config.layout,
+      fields: config.fields,
+      actions: [] // We handle actions in modal footer
+    }]
+  };
+
   return (
     <Modal
       title={config.title}
@@ -206,7 +93,7 @@ const ModalComponent = ({
                 if (action.onClick?.type === 'close') {
                   onClose();
                 } else if (action.buttonProps?.htmlType === 'submit') {
-                  handleSubmit();
+                  form.submit();
                 }
               }}
               loading={action.buttonProps?.htmlType === 'submit' && loading}
@@ -219,12 +106,13 @@ const ModalComponent = ({
       }
     >
       <Spin spinning={loading}>
-        <Form
+        <FormComponent
+          config={formConfig}
           form={form}
-          layout={config.layout?.type || 'vertical'}
-        >
-          {renderFormFields()}
-        </Form>
+          loading={loading}
+          onFormSubmit={handleSubmit}
+          initialValues={record}
+        />
       </Spin>
     </Modal>
   );
@@ -238,27 +126,7 @@ ModalComponent.propTypes = {
     layout: PropTypes.shape({
       type: PropTypes.oneOf(['vertical', 'horizontal', 'inline'])
     }),
-    fields: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      type: PropTypes.oneOf(['text', 'select', 'number']).isRequired,
-      label: PropTypes.string,
-      placeholder: PropTypes.string,
-      size: PropTypes.string,
-      rules: PropTypes.array,
-      dependencies: PropTypes.arrayOf(PropTypes.string),
-      options: PropTypes.array,
-      api: PropTypes.shape({
-        endpoint: PropTypes.string,
-        method: PropTypes.string,
-        params: PropTypes.object
-      }),
-      fieldNames: PropTypes.shape({
-        label: PropTypes.string,
-        value: PropTypes.string
-      }),
-      dropdownProps: PropTypes.object,
-      inputProps: PropTypes.object
-    })),
+    fields: PropTypes.array,
     actions: PropTypes.arrayOf(PropTypes.shape({
       label: PropTypes.string.isRequired,
       buttonProps: PropTypes.object,
