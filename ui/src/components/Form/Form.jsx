@@ -21,66 +21,126 @@ const FormComponent = ({
     const initializeForm = async () => {
       form.resetFields();
       
-      // Load initial values and their associated data
+      // First load all select field options
+      await loadSelectFieldOptions();
+      
+      // Then set initial values, but only after options are loaded
       if (initialValues && Object.keys(initialValues).length > 0) {
-        await loadSelectFieldData();
         const formattedValues = await formatInitialValues(initialValues);
         form.setFieldsValue(formattedValues);
       }
-      
-      // Load all select field options
-      await loadSelectFieldOptions();
     };
 
     initializeForm();
   }, [config, initialValues]);
 
-  const loadSelectFieldData = async () => {
-    if (!formSection?.fields || !initialValues) return;
+  const formatInitialValues = async (values) => {
+    if (!values || !formSection?.fields) return {};
 
-    const selectFields = formSection.fields.filter(field => 
-      field.type === 'select' && field.api
-    );
+    const formattedValues = {};
 
-    for (const field of selectFields) {
-      try {
-        const value = initialValues[field.name];
-        if (!value) continue;
+    for (const [key, value] of Object.entries(values)) {
+      if (value === undefined || value === null) continue;
 
-        let endpoint = field.api.endpoint;
-        let params = { ...(field.api.params || {}) };
+      const field = formSection.fields.find(f => f.name === key);
+      if (!field) continue;
 
+      if (field.type === 'select') {
         if (field.mode === 'multiple' && Array.isArray(value)) {
-          params = { ...params, ids: value.join(',') };
-          endpoint = `${endpoint}${Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : ''}`;
-        } else if (!field.mode && value) {
-          endpoint = `${endpoint}/${value}`;
-        } else {
-          continue;
-        }
-
-        const response = await apiRequest(endpoint, 'GET');
-        if (response?.data) {
-          const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
-          
-          if (Array.isArray(response.data)) {
-            field.initialOptions = response.data.map(item => ({
-              label: getOptionLabel(item, customLabel, labelKey),
-              value: item[valueKey],
-              record: item
-            }));
-          } else {
-            field.initialOptions = [{
-              label: getOptionLabel(response.data, customLabel, labelKey),
-              value: response.data[valueKey],
-              record: response.data
-            }];
+          // For multiple select, we need to ensure options are loaded for these values
+          const options = await ensureOptionsLoaded(field, value);
+          formattedValues[key] = options.map(opt => ({
+            label: opt.label,
+            value: opt.value
+          }));
+        } else if (!field.mode) {
+          // For single select, ensure option is loaded
+          const options = await ensureOptionsLoaded(field, [value]);
+          const option = options.find(opt => opt.value === value);
+          if (option) {
+            formattedValues[key] = {
+              label: option.label,
+              value: option.value
+            };
           }
         }
-      } catch (error) {
-        console.error(`Error loading initial data for ${field.name}:`, error);
+      } else if (['date', 'datetime'].includes(field.type)) {
+        formattedValues[key] = value ? moment(value) : null;
+      } else {
+        formattedValues[key] = value;
       }
     }
+
+    return formattedValues;
+  };
+
+  const ensureOptionsLoaded = async (field, values) => {
+    if (!field.api?.endpoint || !values?.length) return [];
+
+    // If options already exist and contain all values, use existing options
+    if (field.options?.length) {
+      const hasAllValues = values.every(value => 
+        field.options.some(opt => opt.value === value)
+      );
+      if (hasAllValues) return field.options;
+    }
+
+    // Otherwise, fetch the options specifically for these values
+    try {
+      const queryParams = new URLSearchParams();
+      if (field.api.params) {
+        Object.entries(field.api.params).forEach(([key, value]) => {
+          if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+            const formValue = form.getFieldValue(value.slice(1, -1));
+            if (formValue) {
+              queryParams.append(key, formValue?.value || formValue);
+            }
+          } else {
+            queryParams.append(key, value);
+          }
+        });
+      }
+      // Add the values to fetch
+      queryParams.append('ids', values.join(','));
+
+      const endpoint = `${field.api.endpoint}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const response = await apiRequest(endpoint, field.api.method || 'GET');
+
+      if (response?.data) {
+        const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
+
+        const newOptions = response.data.map(item => {
+          let label;
+          if (customLabel) {
+            label = customLabel.replace(/\${([^}]+)}/g, (_, path) => {
+              return path.split('.').reduce((obj, key) => obj?.[key], item) || '';
+            });
+          } else {
+            label = item[labelKey];
+          }
+
+          return {
+            label,
+            value: item[valueKey],
+            record: item
+          };
+        });
+
+        // Merge new options with existing options, avoiding duplicates
+        field.options = field.options || [];
+        newOptions.forEach(newOpt => {
+          if (!field.options.some(opt => opt.value === newOpt.value)) {
+            field.options.push(newOpt);
+          }
+        });
+
+        return field.options;
+      }
+    } catch (error) {
+      console.error(`Error loading options for ${field.name}:`, error);
+    }
+
+    return field.options || [];
   };
 
   const loadSelectFieldOptions = async () => {
@@ -99,64 +159,57 @@ const FormComponent = ({
 
         if (!field.api?.endpoint) continue;
 
-        // First, fetch the current value if it exists
-        const currentValue = initialValues[field.name];
-        let currentOption = null;
-
-        if (currentValue && !field.mode) {
-          try {
-            const currentResponse = await apiRequest(`${field.api.endpoint}/${currentValue}`, 'GET');
-            if (currentResponse?.data) {
-              const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
-              currentOption = {
-                label: getOptionLabel(currentResponse.data, customLabel, labelKey),
-                value: currentResponse.data[valueKey],
-                record: currentResponse.data
-              };
+        let endpoint = field.api.endpoint;
+        
+        if (field.api.params) {
+          const processedParams = {};
+          Object.entries(field.api.params).forEach(([key, value]) => {
+            if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+              const formValue = form.getFieldValue(value.slice(1, -1));
+              if (formValue) {
+                processedParams[key] = formValue?.value || formValue;
+              }
+            } else {
+              processedParams[key] = value;
             }
-          } catch (error) {
-            console.error(`Error loading current value for ${field.name}:`, error);
+          });
+
+          if (field.api.method === 'GET' && Object.keys(processedParams).length > 0) {
+            const queryString = new URLSearchParams(processedParams).toString();
+            endpoint = `${endpoint}${queryString ? '?' + queryString : ''}`;
           }
         }
 
-        // Then fetch all available options
-        let endpoint = field.api.endpoint;
-        let params = { ...(field.api.params || {}) };
-        
-        // For multiple select, add current values to params
-        if (field.mode === 'multiple' && Array.isArray(currentValue) && currentValue.length > 0) {
-          params = { ...params, ids: currentValue.join(',') };
-        }
-        
-        if (Object.keys(params).length) {
-          endpoint = `${endpoint}?${new URLSearchParams(params).toString()}`;
-        }
-
-        const response = await apiRequest(endpoint, field.api.method || 'GET');
+        const response = await apiRequest(
+          endpoint,
+          field.api.method || 'GET',
+          field.api.method === 'GET' ? undefined : field.api.params
+        );
 
         if (response?.data) {
           const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
 
-          let options = Array.isArray(response.data) ? response.data : [response.data];
-          options = options.map(item => ({
-            label: getOptionLabel(item, customLabel, labelKey),
-            value: item[valueKey],
-            record: item
-          }));
+          field.options = response.data.map(item => {
+            let label;
+            if (customLabel) {
+              // Handle custom label template with complex object paths
+              label = customLabel.replace(/\${([^}]+)}/g, (_, path) => {
+                return path.split('.').reduce((obj, key) => obj?.[key], item) || '';
+              });
+            } else {
+              label = item[labelKey];
+            }
 
-          // Add current option if it's not in the list
-          if (currentOption && !options.some(opt => opt.value === currentOption.value)) {
-            options.unshift(currentOption);
-          }
-
-          // Remove duplicates
-          field.options = options.filter((opt, index, self) =>
-            index === self.findIndex((t) => t.value === opt.value)
-          );
+            return {
+              label,
+              value: item[valueKey],
+              record: item
+            };
+          });
         }
       } catch (error) {
         console.error(`Error loading options for ${field.name}:`, error);
-        field.options = field.initialOptions || [];
+        field.options = [];
       }
     }
   };
@@ -169,47 +222,6 @@ const FormComponent = ({
     }
     return item[labelKey];
   };
-
-  // ... rest of the component remains the same ...
-  
-  // Only the formatInitialValues function needs to be updated to use the new options:
-  const formatInitialValues = async (values) => {
-    if (!values || !formSection?.fields) return {};
-
-    const formattedValues = {};
-
-    for (const [key, value] of Object.entries(values)) {
-      if (value === undefined || value === null) continue;
-
-      const field = formSection.fields.find(f => f.name === key);
-      if (!field) continue;
-
-      if (field.type === 'select') {
-        if (field.mode === 'multiple' && Array.isArray(value)) {
-          formattedValues[key] = field.options
-            ?.filter(opt => value.includes(opt.value))
-            .map(opt => ({
-              label: opt.label,
-              value: opt.value
-            })) || value;
-        } else {
-          const option = field.options?.find(opt => opt.value === value);
-          formattedValues[key] = option 
-            ? { label: option.label, value: option.value }
-            : value;
-        }
-      } else if (['date', 'datetime'].includes(field.type)) {
-        formattedValues[key] = value ? moment(value) : null;
-      } else {
-        formattedValues[key] = value;
-      }
-    }
-
-    return formattedValues;
-  };
-
-  // Rest of the component (getIcon, renderFormField, handleFinish) remains the same...
-  // Only changes are to the initialization and data loading logic above
 
   const getIcon = (iconName) => {
     if (!iconName) return null;
@@ -315,8 +327,10 @@ const FormComponent = ({
       if (field) {
         if (field.type === 'select') {
           if (field.mode === 'multiple') {
+            // Handle multiple select - extract just the values from the array of objects
             acc[key] = value.map(v => v.value);
           } else {
+            // Handle single select - extract just the value
             acc[key] = value.value;
           }
         } else if (['date', 'datetime'].includes(field.type)) {
