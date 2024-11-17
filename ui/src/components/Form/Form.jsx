@@ -117,6 +117,17 @@ const FormComponent = ({
 
   const renderFormField = (field) => {
     switch (field.type) {
+      case 'password':
+        return (
+          <Input.Password
+            {...field.inputProps}
+            size={field.size}
+            placeholder={field.placeholder}
+            prefix={field.prefix && getIcon(field.prefix)}
+            allowClear={field.allowClear}
+          />
+        );
+
       case 'select':
         return (
           <Select
@@ -133,10 +144,33 @@ const FormComponent = ({
       case 'datetime':
         return (
           <DatePicker
-            showTime
+            showTime={{
+              format: 'HH:mm:ss',
+              defaultValue: moment('00:00:00', 'HH:mm:ss')
+            }}
             size={field.size}
             placeholder={field.placeholder}
             format="YYYY-MM-DD HH:mm:ss"
+            style={{ width: '100%' }}
+          />
+        );
+
+      case 'date':
+        return (
+          <DatePicker
+            size={field.size}
+            placeholder={field.placeholder}
+            format="YYYY-MM-DD"
+            style={{ width: '100%' }}
+          />
+        );
+
+      case 'time':
+        return (
+          <TimePicker
+            size={field.size}
+            placeholder={field.placeholder}
+            format="HH:mm:ss"
             style={{ width: '100%' }}
           />
         );
@@ -191,9 +225,23 @@ const FormComponent = ({
       <div style={formSection.wrapperStyle}>
         {formSection.title && (
           <div style={{ marginBottom: '24px' }}>
-            <h2 style={formSection.title.style}>{formSection.title.text}</h2>
+            <h2 style={{ 
+              fontSize: '24px',
+              fontWeight: '600',
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              {formSection.title}
+            </h2>
             {formSection.subtitle && (
-              <p style={formSection.subtitle.style}>{formSection.subtitle.text}</p>
+              <p style={{ 
+                color: '#6B7280',
+                margin: '4px 0 0 0',
+                fontSize: '14px',
+                textAlign: 'center'
+              }}>
+                {formSection.subtitle}
+              </p>
             )}
           </div>
         )}
@@ -219,7 +267,7 @@ const FormComponent = ({
           ))}
 
           {formSection.actions?.map((action, index) => (
-            <Form.Item key={index}>
+            <Form.Item key={index} style={action.style}>
               <Button
                 {...action.buttonProps}
                 loading={loading && action.buttonProps?.htmlType === 'submit'}
@@ -241,6 +289,20 @@ const FormComponent = ({
             <Divider {...formSection.divider}>
               {formSection.divider.text}
             </Divider>
+          )}
+
+          {formSection.socialButtonGroup && (
+            <div style={formSection.socialButtonGroup.style}>
+              {formSection.socialButtonGroup.buttons.map((button, index) => (
+                <Button
+                  key={index}
+                  {...button.buttonProps}
+                  style={button.style}
+                  icon={button.buttonProps?.icon && getIcon(button.buttonProps.icon)}
+                  aria-label={button.ariaLabel}
+                />
+              ))}
+            </div>
           )}
 
           {formSection.links?.map((link, index) => (
@@ -274,6 +336,7 @@ FormComponent.propTypes = {
         actions: PropTypes.array,
         divider: PropTypes.object,
         links: PropTypes.array,
+        socialButtonGroup: PropTypes.object,
       })
     ).isRequired,
   }).isRequired,

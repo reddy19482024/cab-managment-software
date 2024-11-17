@@ -22,78 +22,88 @@
       "enabled": false
     }
   },
-  "sections": [
-    {
-      "type": "form",
-      "containerStyle": {
-        "width": "100%",
-        "maxWidth": "480px",
-        "margin": "0 auto",
-        "padding": "20% 24px"
-      },
-      "wrapperStyle": {
-        "width": "100%",
-        "background": "#ffffff",
-        "padding": "32px",
-        "borderRadius": "8px",
-        "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
-      },
-      "title": "Sign In",
-      "subtitle": "Enter your credentials to access your account",
-      "layout": {
-        "type": "vertical",
-        "labelCol": {
-          "span": 24
+    "sections": [
+      {
+        "type": "form",
+        "containerStyle": {
+          "width": "100%",
+          "maxWidth": "480px",
+          "margin": "0 auto",
+          "padding": "20% 24px"
         },
-        "wrapperCol": {
-          "span": 24
-        }
-      },
-      "fields": [
-        {
-          "name": "email",
-          "type": "email",
-          "label": "Email Address",
-          "placeholder": "Email address or phone number",
-          "size": "large",
-          "rules": [
-            {
-              "required": true,
-              "message": "Please enter your email or phone number"
-            },
-            {
-              "type": "email",
-              "message": "Please enter a valid email"
-            }
-          ]
+        "wrapperStyle": {
+          "width": "100%",
+          "background": "#ffffff",
+          "padding": "32px",
+          "borderRadius": "8px",
+          "boxShadow": "0 1px 3px rgba(0,0,0,0.1)"
         },
-        {
-          "name": "password",
-          "type": "password",
-          "label": "Password",
-          "placeholder": "Enter your password",
-          "size": "large",
-          "rules": [
-            {
-              "required": true,
-              "message": "Please enter your password"
-            }
-          ]
-        }
-      ],
-      "actions": [
-        {
-          "type": "submit",
-          "label": "Sign In",
-          "buttonProps": {
-            "type": "primary",
+        "title": "Sign In",
+        "subtitle": "Enter your credentials to access your account",
+        "layout": {
+          "type": "vertical",
+          "labelCol": {
+            "span": 24
+          },
+          "wrapperCol": {
+            "span": 24
+          }
+        },
+        "fields": [
+          {
+            "name": "email",
+            "type": "text",
+            "label": "Email Address",
+            "placeholder": "Email address or phone number",
             "size": "large",
-            "block": true
+            "prefix": "UserOutlined",
+            "inputProps": {
+              "type": "email",
+              "autoComplete": "email"
+            },
+            "rules": [
+              {
+                "required": true,
+                "message": "Please enter your email or phone number"
+              },
+              {
+                "type": "email",
+                "message": "Please enter a valid email"
+              }
+            ]
           },
-          "style": {
-            "marginTop": "24px"
-          },
-          "api": {
+          {
+            "name": "password",
+            "type": "password",
+            "label": "Password",
+            "placeholder": "Enter your password",
+            "size": "large",
+            "prefix": "LockOutlined",
+            "inputProps": {
+              "autoComplete": "current-password"
+            },
+            "rules": [
+              {
+                "required": true,
+                "message": "Please enter your password"
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "type": "submit",
+            "label": "Sign In",
+            "buttonProps": {
+              "type": "primary",
+              "size": "large",
+              "block": true,
+              "htmlType": "submit"
+            },
+            "style": {
+              "marginTop": "24px"
+
+            },"api": {
             "method": "POST",
             "endpoint": "/api/employees/login",
             "headers": {
@@ -104,107 +114,104 @@
             "success": "Login successful!",
             "failure": "Invalid credentials. Please try again."
           }
-        }
-      ],
-      "divider": {
-        "type": "divider",
-        "text": "OR",
-        "orientation": "center",
-        "style": {
-          "margin": "24px 0"
-        }
-      },
-      "socialButtonGroup": {
-        "style": {
-          "display": "flex",
-          "justifyContent": "center",
-          "gap": "16px"
+          }
+        ],
+        "divider": {
+          "text": "OR",
+          "orientation": "center",
+          "style": {
+            "margin": "24px 0"
+          }
         },
-        "buttons": [
-          {
-            "provider": "google",
-            "ariaLabel": "Continue with Google",
-            "icon": "google",
-            "buttonProps": {
-              "size": "large",
-              "shape": "circle",
-              "icon": "google"
+        "socialButtonGroup": {
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "gap": "16px"
+          },
+          "buttons": [
+            {
+              "provider": "google",
+              "ariaLabel": "Continue with Google",
+              "buttonProps": {
+                "size": "large",
+                "shape": "circle",
+                "icon": "GoogleOutlined"
+              },
+              "style": {
+                "width": "40px",
+                "height": "40px",
+                "padding": "0",
+                "display": "flex",
+                "alignItems": "center",
+                "justifyContent": "center"
+              }
             },
+            {
+              "provider": "microsoft",
+              "ariaLabel": "Continue with Microsoft",
+              "buttonProps": {
+                "size": "large",
+                "shape": "circle",
+                "icon": "WindowsOutlined"
+              },
+              "style": {
+                "width": "40px",
+                "height": "40px",
+                "padding": "0",
+                "display": "flex",
+                "alignItems": "center",
+                "justifyContent": "center"
+              }
+            },
+            {
+              "provider": "apple",
+              "ariaLabel": "Continue with Apple",
+              "buttonProps": {
+                "size": "large",
+                "shape": "circle",
+                "icon": "AppleOutlined"
+              },
+              "style": {
+                "width": "40px",
+                "height": "40px",
+                "padding": "0",
+                "display": "flex",
+                "alignItems": "center",
+                "justifyContent": "center"
+              }
+            }
+          ]
+        },
+        "links": [
+          {
+            "text": "Forgot your password?",
+            "url": "/forgot-password",
             "style": {
-              "width": "40px",
-              "height": "40px",
-              "padding": "0",
-              "display": "flex",
-              "alignItems": "center",
-              "justifyContent": "center"
+              "textAlign": "right",
+              "marginTop": "8px",
+              "marginBottom": "24px",
+              "display": "block"
             }
           },
           {
-            "provider": "microsoft",
-            "ariaLabel": "Continue with Microsoft",
-            "icon": "microsoft",
-            "buttonProps": {
-              "size": "large",
-              "shape": "circle",
-              "icon": "microsoft"
-            },
+            "text": "Don't have an account? Sign up",
+            "url": "/register",
             "style": {
-              "width": "40px",
-              "height": "40px",
-              "padding": "0",
-              "display": "flex",
-              "alignItems": "center",
-              "justifyContent": "center"
-            }
-          },
-          {
-            "provider": "apple",
-            "ariaLabel": "Continue with Apple",
-            "icon": "apple",
-            "buttonProps": {
-              "size": "large",
-              "shape": "circle",
-              "icon": "apple"
-            },
-            "style": {
-              "width": "40px",
-              "height": "40px",
-              "padding": "0",
-              "display": "flex",
-              "alignItems": "center",
-              "justifyContent": "center"
+              "textAlign": "center",
+              "marginTop": "24px",
+              "display": "block"
             }
           }
         ]
-      },
-      "links": [
-        {
-          "text": "Forgot your password?",
-          "url": "/forgot-password",
-          "style": {
-            "textAlign": "right",
-            "marginTop": "8px",
-            "marginBottom": "24px",
-            "display": "block"
-          }
-        },
-        {
-          "text": "Don't have an account? Sign up",
-          "url": "/register",
-          "style": {
-            "textAlign": "center",
-            "marginTop": "24px",
-            "display": "block"
-          }
-        }
-      ]
-    }
-  ],
-  "theme": {
-    "token": {
-      "colorPrimary": "#10B981",
-      "borderRadius": 8,
-      "fontSize": 16
-    }
+      }
+    ],
+    "theme": {
+      "token": {
+        "colorPrimary": "#10B981",
+        "borderRadius": 8,
+        "fontSize": 16
+      }
+    
   }
 }
