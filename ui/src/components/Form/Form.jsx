@@ -36,9 +36,14 @@ const FormComponent = ({
 
       const field = formSection.fields.find(f => f.name === key);
       if (field) {
-        if (['date', 'datetime'].includes(field.type)) {
-          const momentDate = moment(value);
-          acc[key] = momentDate.isValid() ? momentDate : null;
+        if (field.type === 'select') {
+          // Handle select fields with labelInValue
+          acc[key] = {
+            value: value,
+            label: value // This will be updated once options are loaded
+          };
+        } else if (['date', 'datetime'].includes(field.type)) {
+          acc[key] = value ? moment(value) : null;
         } else {
           acc[key] = value;
         }
@@ -66,7 +71,7 @@ const FormComponent = ({
             if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
               const formValue = form.getFieldValue(value.slice(1, -1));
               if (formValue) {
-                processedParams[key] = formValue;
+                processedParams[key] = formValue?.value || formValue;
               }
             } else {
               processedParams[key] = value;
@@ -88,7 +93,7 @@ const FormComponent = ({
         if (response?.data) {
           const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
 
-          field.options = response.data.map(item => ({
+          const options = response.data.map(item => ({
             label: customLabel 
               ? customLabel.replace(/\${(\w+)}/g, (_, key) => {
                   const keys = key.split('.');
@@ -101,6 +106,23 @@ const FormComponent = ({
               : item[labelKey],
             value: item[valueKey],
           }));
+
+          field.options = options;
+
+          // Update the current form value with the matching option if it exists
+          const currentValue = form.getFieldValue(field.name);
+          if (currentValue) {
+            const valueToMatch = typeof currentValue === 'object' ? currentValue.value : currentValue;
+            const matchingOption = options.find(opt => opt.value === valueToMatch);
+            if (matchingOption) {
+              form.setFieldsValue({
+                [field.name]: {
+                  label: matchingOption.label,
+                  value: matchingOption.value,
+                },
+              });
+            }
+          }
         }
       } catch (error) {
         console.error(`Error loading options for ${field.name}:`, error);
@@ -137,6 +159,11 @@ const FormComponent = ({
             size={field.size}
             placeholder={field.placeholder}
             allowClear={field.allowClear}
+            labelInValue
+            showSearch={field.dropdownProps?.showSearch}
+            filterOption={(input, option) =>
+              option?.label?.toLowerCase().includes(input.toLowerCase())
+            }
             style={{ width: '100%' }}
           />
         );
@@ -206,8 +233,12 @@ const FormComponent = ({
 
       const field = formSection.fields.find(f => f.name === key);
       if (field) {
-        if (['date', 'datetime'].includes(field.type) && moment.isMoment(value)) {
-          acc[key] = value.isValid() ? value.toISOString() : null;
+        if (field.type === 'select') {
+          // For select fields, just take the value part
+          acc[key] = value?.value !== undefined ? value.value : value;
+        } else if (['date', 'datetime'].includes(field.type)) {
+          // Convert moment object to ISO string
+          acc[key] = value ? value.toISOString() : null;
         } else {
           acc[key] = value;
         }
@@ -261,6 +292,13 @@ const FormComponent = ({
               rules={field.rules}
               dependencies={field.dependencies}
               tooltip={field.tooltip}
+              getValueProps={
+                ['date', 'datetime'].includes(field.type) 
+                  ? (value) => ({ 
+                      value: value ? moment(value) : "",
+                    })
+                  : undefined
+              }
             >
               {renderFormField(field)}
             </Form.Item>
@@ -331,6 +369,16 @@ FormComponent.propTypes = {
             type: PropTypes.string.isRequired,
             label: PropTypes.string,
             rules: PropTypes.array,
+            api: PropTypes.shape({
+              endpoint: PropTypes.string,
+              method: PropTypes.string,
+              params: PropTypes.object
+            }),
+            fieldNames: PropTypes.shape({
+              label: PropTypes.string,
+              value: PropTypes.string,
+              customLabel: PropTypes.string
+            }),
           })
         ),
         actions: PropTypes.array,
