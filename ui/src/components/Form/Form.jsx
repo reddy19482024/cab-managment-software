@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Button, Select, DatePicker, TimePicker, InputNumber, Divider } from 'antd';
+import { Form, Input, Button, Select, DatePicker, TimePicker, InputNumber, Divider, Checkbox, Radio, Space } from 'antd';
 import * as AntdIcons from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -21,10 +21,8 @@ const FormComponent = ({
     const initializeForm = async () => {
       form.resetFields();
       
-      // First load all select field options
       await loadSelectFieldOptions();
       
-      // Then set initial values, but only after options are loaded
       if (initialValues && Object.keys(initialValues).length > 0) {
         const formattedValues = await formatInitialValues(initialValues);
         form.setFieldsValue(formattedValues);
@@ -45,31 +43,41 @@ const FormComponent = ({
       const field = formSection.fields.find(f => f.name === key);
       if (!field) continue;
   
-      if (field.type === 'select') {
-        if (field.mode === 'multiple' && Array.isArray(value)) {
-          const options = await ensureOptionsLoaded(field, value);
-          formattedValues[key] = value; // Prefill with array of values for multiple mode
-        } else {
-          const options = await ensureOptionsLoaded(field, [value]);
-          const option = options.find(opt => opt.value === value);
-          if (option) {
-            formattedValues[key] = value; // Prefill with single value
+      switch (field.type) {
+        case 'select':
+          if (field.mode === 'multiple' && Array.isArray(value)) {
+            const options = await ensureOptionsLoaded(field, value);
+            formattedValues[key] = value;
           } else {
-            formattedValues[key] = value; // Fallback to raw value if no matching option
+            const options = await ensureOptionsLoaded(field, [value]);
+            formattedValues[key] = value;
           }
-        }
-      } else if (['date', 'datetime'].includes(field.type)) {
-        formattedValues[key] = value ? moment(value) : null;
-      } else {
-        // Handle text and other non-select fields
-        formattedValues[key] = value;
+          break;
+        
+        case 'date':
+        case 'datetime':
+          formattedValues[key] = value ? moment(value) : null;
+          break;
+        
+        case 'checkbox':
+        case 'checkbox-group':
+          formattedValues[key] = value;
+          break;
+        
+        case 'radio':
+        case 'radio-group':
+          formattedValues[key] = value;
+          break;
+        
+        default:
+          formattedValues[key] = value;
       }
     }
   
     return formattedValues;
   };
-  
 
+  // ... (keep existing ensureOptionsLoaded and loadSelectFieldOptions functions)
   const ensureOptionsLoaded = async (field, values) => {
     if (!field.api?.endpoint || !values?.length) return [];
 
@@ -100,6 +108,9 @@ const FormComponent = ({
       queryParams.append('ids', values.join(','));
 
       const endpoint = `${field.api.endpoint}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      console.log("endpoint",endpoint);
+      
       const response = await apiRequest(endpoint, field.api.method || 'GET');
 
       if (response?.data) {
@@ -256,6 +267,45 @@ const FormComponent = ({
           />
         );
 
+        case 'checkbox':
+          return (
+            <Checkbox
+              {...field.checkboxProps}
+              onChange={field.onChange}
+            >
+              {field.checkboxLabel || field.label}
+            </Checkbox>
+          );
+
+      case 'checkbox-group':
+        return (
+          <Checkbox.Group
+            {...field.checkboxGroupProps}
+            options={field.options}
+            style={{ width: '100%' }}
+          >
+            {field.children}
+          </Checkbox.Group>
+        );
+
+      case 'radio':
+        return (
+          <Radio {...field.radioProps}>
+            {field.radioLabel || field.label}
+          </Radio>
+        );
+
+      case 'radio-group':
+        return (
+          <Radio.Group
+            {...field.radioGroupProps}
+            options={field.options}
+            style={{ width: '100%' }}
+          >
+            {field.children}
+          </Radio.Group>
+        );
+
       case 'datetime':
         return (
           <DatePicker
@@ -321,18 +371,29 @@ const FormComponent = ({
 
       const field = formSection.fields.find(f => f.name === key);
       if (field) {
-        if (field.type === 'select') {
-          if (field.mode === 'multiple') {
-            // Handle multiple select - extract just the values from the array of objects
-            acc[key] = value.map(v => v.value);
-          } else {
-            // Handle single select - extract just the value
-            acc[key] = value.value;
-          }
-        } else if (['date', 'datetime'].includes(field.type)) {
-          acc[key] = value ? value.toISOString() : null;
-        } else {
-          acc[key] = value;
+        switch (field.type) {
+          case 'select':
+            if (field.mode === 'multiple') {
+              acc[key] = value.map(v => v.value);
+            } else {
+              acc[key] = value.value;
+            }
+            break;
+          
+          case 'date':
+          case 'datetime':
+            acc[key] = value ? value.toISOString() : null;
+            break;
+          
+          case 'checkbox':
+          case 'checkbox-group':
+          case 'radio':
+          case 'radio-group':
+            acc[key] = value;
+            break;
+          
+          default:
+            acc[key] = value;
         }
       }
       return acc;
@@ -375,25 +436,20 @@ const FormComponent = ({
           labelCol={formSection.layout?.labelCol}
           wrapperCol={formSection.layout?.wrapperCol}
           onFinish={handleFinish}
+          requiredMark={formSection.layout?.requiredMark}
         >
           {formSection.fields?.map((field) => (
             <Form.Item
-              key={field.name}
-              name={field.name}
-              label={field.label}
-              rules={field.rules}
-              dependencies={field.dependencies}
-              tooltip={field.tooltip}
-              getValueProps={
-                ['date', 'datetime'].includes(field.type) 
-                  ? (value) => ({ 
-                      value: value ? moment(value) : "",
-                    })
-                  : undefined
-              }
-            >
-              {renderFormField(field)}
-            </Form.Item>
+            key={field.name}
+            name={field.name}
+            label={field.type === 'checkbox' ? null : field.label}  // Don't show label for checkboxes
+            rules={field.rules}
+            dependencies={field.dependencies}
+            tooltip={field.tooltip}
+            valuePropName={['checkbox', 'radio'].includes(field.type) ? 'checked' : 'value'}
+          >
+            {renderFormField(field)}
+          </Form.Item>
           ))}
 
           {formSection.actions?.map((action, index) => (
@@ -458,7 +514,19 @@ FormComponent.propTypes = {
         fields: PropTypes.arrayOf(
           PropTypes.shape({
             name: PropTypes.string.isRequired,
-            type: PropTypes.string.isRequired,
+            type: PropTypes.oneOf([
+              'text',
+              'password',
+              'select',
+              'date',
+              'datetime',
+              'time',
+              'number',
+              'checkbox',
+              'checkbox-group',
+              'radio',
+              'radio-group'
+            ]).isRequired,
             label: PropTypes.string,
             rules: PropTypes.array,
             api: PropTypes.shape({
@@ -471,12 +539,23 @@ FormComponent.propTypes = {
               value: PropTypes.string,
               customLabel: PropTypes.string
             }),
+            checkboxProps: PropTypes.object,
+            checkboxGroupProps: PropTypes.object,
+            radioProps: PropTypes.object,
+            radioGroupProps: PropTypes.object,
+            options: PropTypes.array,
           })
         ),
         actions: PropTypes.array,
         divider: PropTypes.object,
         links: PropTypes.array,
         socialButtonGroup: PropTypes.object,
+        layout: PropTypes.shape({
+          type: PropTypes.string,
+          labelCol: PropTypes.object,
+          wrapperCol: PropTypes.object,
+          requiredMark: PropTypes.oneOf(['optional', true, false])
+        })
       })
     ).isRequired,
   }).isRequired,
