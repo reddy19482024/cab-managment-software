@@ -98,33 +98,56 @@
             "employee_id": "uuid-employee-id"
           }
         },
-        "list": {
-          "path": "/api/employees",
-          "method": "GET",
-          "route_type": "private",
-          "description": "List all employees with filtering options",
-          "params": {
-            "search": "name, email",
-            "sort": "name, role",
-            "filter": "role"
+"list": {
+        "path": "/api/employees",
+        "method": "GET",
+        "route_type": "private",
+        "description": "List all employees with filtering options",
+        "params": {
+          "search": "name, email",
+          "sort": "name, role",
+          "filter": "role",
+          "page": {
+            "type": "integer",
+            "description": "Page number (starts from 1)",
+            "default": 1
           },
-          "response": [
-            {
-              "employee_id": "uuid-1",
-              "name": "John Doe",
-              "email": "john@example.com",
-              "role": "admin",
-              "phone": "1234567890"
-            },
-            {
-              "employee_id": "uuid-2",
-              "name": "Jane Smith",
-              "email": "jane@example.com",
-              "role": "employee",
-              "phone": "0987654321"
-            }
-          ]
-        }
+          "limit": {
+            "type": "integer",
+            "description": "Number of records per page",
+            "default": 10,
+            "max": 100
+          },
+          "sort_by": {
+            "type": "string",
+            "enum": ["name", "role", "created_at"],
+            "default": "name"
+          },
+          "sort_order": {
+            "type": "string",
+            "enum": ["asc", "desc"],
+            "default": "asc"
+          }
+        },
+        "response": [
+          {
+            "employee_id": "uuid-1",
+            "name": "John Doe",
+            "email": "john@example.com",
+            "role": "admin",
+            "phone": "1234567890",
+            "created_at": "2024-11-17T09:00:00Z"
+          },
+          {
+            "employee_id": "uuid-2",
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "role": "employee",
+            "phone": "0987654321",
+            "created_at": "2024-11-17T09:00:00Z"
+          }
+        ]
+       }
       }
     }
   }

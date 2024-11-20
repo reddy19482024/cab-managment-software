@@ -12,110 +12,107 @@
         "lineHeight": "64px"
       }
     },
-      "sidebar": {
-        "enabled": true,
-        "collapsed": false,
-        "width": 256,
-        "collapsedWidth": 80,
-        "theme": "dark",
-        "style": {
-          "background": "#001529",
-          "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
-        },
-        "menu": {
-          "items": [
-            { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
-            {
-              "type": "group",
-              "label": "Management",
-              "children": [
-                { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
-                { "key": "drivers", "label": "Drivers", "icon": "IdcardOutlined", "path": "/drivers" },
-                { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
-                { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
-              ]
-            },
-            {
-              "type": "group",
-              "label": "Reports",
-              "children": [
-                { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
-                { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
-                { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
-              ]
-            }
-          ]
-        },
-        "footer": {
-          "enabled": true,
-          "style": {
-            "padding": "16px",
-            "background": "rgba(0, 0, 0, 0.25)",
-            "color": "#fff",
-            "height": "auto",
-            "cursor": "pointer"
+    "sidebar": {
+      "enabled": true,
+      "collapsed": false,
+      "width": 256,
+      "collapsedWidth": 80,
+      "theme": "dark",
+      "style": {
+        "background": "#001529",
+        "boxShadow": "2px 0 8px 0 rgba(29,35,41,.05)"
+      },
+      "menu": {
+        "items": [
+          { "key": "dashboard", "label": "Dashboard", "icon": "DashboardOutlined", "path": "/dashboard" },
+          {
+            "type": "group",
+            "label": "Management",
+            "children": [
+              { "key": "employees", "label": "Employees", "icon": "UserOutlined", "path": "/employees" },
+              { "key": "drivers", "label": "Drivers", "icon": "IdcardOutlined", "path": "/drivers" },
+              { "key": "vehicles", "label": "Vehicles", "icon": "CarOutlined", "path": "/vehicles" },
+              { "key": "trips", "label": "Trips", "icon": "CompassOutlined", "path": "/trips" }
+            ]
           },
-          "content": {
-            "expanded": { 
-              "avatar": "/images/user-avatar.png", 
-              "name": "John Doe", 
-              "role": "Admin" 
-            },
-            "collapsed": { 
-              "avatar": "/images/user-avatar.png" 
-            },
-            "menu": {
-              "items": [
-                { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
-                { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
-                { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
-              ]
-            }
+          {
+            "type": "group",
+            "label": "Reports",
+            "children": [
+              { "key": "reports", "label": "Reports", "icon": "BarChartOutlined", "path": "/reports" },
+              { "key": "expenses", "label": "Expenses", "icon": "DollarOutlined", "path": "/expenses" },
+              { "key": "maintenance", "label": "Maintenance", "icon": "ToolOutlined", "path": "/maintenance" }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "enabled": true,
+        "style": {
+          "padding": "16px",
+          "background": "rgba(0, 0, 0, 0.25)",
+          "color": "#fff",
+          "height": "auto",
+          "cursor": "pointer"
+        },
+        "content": {
+          "expanded": { 
+            "avatar": "/images/user-avatar.png", 
+            "name": "John Doe", 
+            "role": "Admin" 
+          },
+          "collapsed": { 
+            "avatar": "/images/user-avatar.png" 
+          },
+          "menu": {
+            "items": [
+              { "key": "profile", "label": "Profile", "icon": "UserOutlined", "path": "/profile" },
+              { "key": "settings", "label": "Settings", "icon": "SettingOutlined", "path": "/settings" },
+              { "key": "logout", "label": "Logout", "icon": "LogoutOutlined", "type": "button" }
+            ]
           }
         }
-      },
+      }
+    },
     "content": {
       "style": {
         "minHeight": "calc(100vh - 64px)",
-        "background": "#f0f2f5"
+        "background": "#f0f2f5",
+        "padding": "24px"
       }
     },
     "footer": {
       "enabled": true,
-      "text": "© 2024 My Application. All rights reserved.",
+      "text": "© 2024 Employee Management System. All rights reserved.",
       "style": {
         "textAlign": "center",
         "padding": "16px",
         "background": "#f7f7f7"
-      },
-      "links": [
-        { "text": "Privacy Policy", "url": "/privacy" },
-        { "text": "Terms", "url": "/terms" }
-      ]
+      }
     }
   },
   "sections": [
     {
       "type": "banner",
       "style": {
-        "background": "#1890ff",
+        "background": "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
         "padding": "24px",
-        "marginBottom": "24px"
+        "marginBottom": "24px",
+        "borderRadius": "8px"
       },
       "content": {
         "title": "Employee Management",
-        "description": "Manage your organization's employees",
+        "description": "Manage your organization's employees efficiently",
         "style": {
           "maxWidth": "100%",
-          "padding": "0 24px"
+          "padding": "0 24px",
+          "color": "#ffffff"
         }
       }
     },
     {
       "type": "form",
-      "containerStyle": {
-        "padding": "0 24px"
-      },
+      "containerStyle": { "padding": "0" },
       "wrapperStyle": {
         "background": "#ffffff",
         "padding": "24px",
@@ -124,40 +121,83 @@
       },
       "title": "Employee List",
       "subtitle": "View and manage employees",
-      "layout": {
-        "type": "vertical"
-      },
       "table": {
         "enabled": true,
+        "rowKey": "employee_id",
+        "size": "middle",
+        "scroll": { "x": true },
+        "pagination": {
+          "pageSize": 10,
+          "showSizeChanger": true,
+          "showQuickJumper": true,
+          "showTotal": true,
+          "pageSizeOptions": [10, 20, 50, 100],
+          "position": ["bottomRight"]
+        },
         "columns": [
-          { 
-            "title": "Name", 
-            "dataIndex": "name", 
+          {
+            "title": "Name",
+            "dataIndex": "name",
             "key": "name",
-            "width": "20%"
+            "width": "20%",
+            "sorter": true,
+            "sortField": "name",
+            "fixed": "left",
+            "ellipsis": true,
+            "searchable": true
           },
-          { 
-            "title": "Email", 
-            "dataIndex": "email", 
+          {
+            "title": "Email",
+            "dataIndex": "email",
             "key": "email",
-            "width": "30%"
+            "width": "25%",
+            "ellipsis": true,
+            "searchable": true
           },
-          { 
-            "title": "Role", 
-            "dataIndex": "role", 
+          {
+            "title": "Role",
+            "dataIndex": "role",
             "key": "role",
-            "width": "15%"
+            "width": "15%",
+            "sorter": true,
+            "sortField": "role",
+            "render": {
+              "type": "tag",
+              "colorMap": {
+                "admin": "gold",
+                "employee": "blue"
+              }
+            },
+            "filters": [
+              { "text": "Admin", "value": "admin" },
+              { "text": "Employee", "value": "employee" }
+            ]
           },
-          { 
-            "title": "Phone", 
-            "dataIndex": "phone", 
+          {
+            "title": "Phone",
+            "dataIndex": "phone",
             "key": "phone",
-            "width": "20%"
+            "width": "15%",
+            "ellipsis": true,
+            "searchable": true
+          },
+          {
+            "title": "Created At",
+            "dataIndex": "created_at",
+            "key": "created_at",
+            "width": "15%",
+            "sorter": true,
+            "sortField": "created_at",
+            "render": {
+              "type": "datetime",
+              "format": "YYYY-MM-DD HH:mm"
+            }
           },
           {
             "title": "Actions",
             "key": "actions",
-            "width": "15%",
+            "width": "10%",
+            "fixed": "right",
             "render": {
               "type": "actions",
               "items": [
@@ -167,6 +207,7 @@
                     "type": "link",
                     "icon": "EditOutlined"
                   },
+                  "tooltip": "Edit Employee",
                   "onClick": {
                     "type": "modal",
                     "modalId": "editEmployeeModal"
@@ -179,6 +220,7 @@
                     "danger": true,
                     "icon": "DeleteOutlined"
                   },
+                  "tooltip": "Delete Employee",
                   "onClick": {
                     "type": "modal",
                     "modalId": "deleteEmployeeModal"
@@ -190,24 +232,32 @@
         ],
         "api": {
           "endpoint": "/api/employees",
-          "method": "GET"
-        },
-        "fallbackData": [
-          {
-            "id": "1",
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "role": "Admin",
-            "phone": "123-456-7890"
-          },
-          {
-            "id": "2",
-            "name": "Jane Smith",
-            "email": "jane.smith@example.com",
-            "role": "Employee",
-            "phone": "098-765-4321"
+          "method": "GET",
+          "params": {
+            "page": "{current}",
+            "limit": "{pageSize}",
+            "sort_by": "{sortField}",
+            "sort_order": "{sortOrder}",
+            "search": "{searchText}",
+            "role": "{filters.role}"
           }
-        ]
+        },
+        "searchConfig": {
+          "placeholder": "Search employees...",
+          "fields": ["name", "email", "phone"],
+          "searchOnChange": true,
+          "searchDelay": 500
+        },
+        "toolbarConfig": {
+          "settings": {
+            "enabled": true,
+            "items": ["reload", "density", "fullScreen"]
+          },
+          "refresh": {
+            "enabled": true,
+            "tooltip": "Refresh data"
+          }
+        }
       },
       "actions": [
         {
@@ -215,9 +265,6 @@
           "buttonProps": {
             "type": "primary",
             "icon": "PlusOutlined"
-          },
-          "style": {
-            "marginBottom": "16px"
           },
           "onClick": {
             "type": "modal",
@@ -230,9 +277,8 @@
   "modals": {
     "addEmployeeModal": {
       "title": "Add New Employee",
-      "layout": {
-        "type": "vertical"
-      },
+      "width": 600,
+      "layout": { "type": "vertical" },
       "fields": [
         {
           "name": "name",
@@ -254,14 +300,25 @@
           ]
         },
         {
+          "name": "password",
+          "type": "password",
+          "label": "Password",
+          "placeholder": "Enter password",
+          "size": "large",
+          "rules": [
+            { "required": true, "message": "Please enter password" },
+            { "min": 8, "message": "Password must be at least 8 characters" }
+          ]
+        },
+        {
           "name": "role",
           "type": "select",
           "label": "Role",
           "placeholder": "Select role",
           "size": "large",
           "options": [
-            { "label": "Admin", "value": "Admin" },
-            { "label": "Employee", "value": "Employee" }
+            { "label": "Admin", "value": "admin" },
+            { "label": "Employee", "value": "employee" }
           ],
           "rules": [{ "required": true, "message": "Please select role" }]
         },
@@ -271,35 +328,41 @@
           "label": "Phone",
           "placeholder": "Enter phone number",
           "size": "large",
-          "rules": [{ "required": true, "message": "Please enter phone number" }]
+          "rules": [
+            { "required": true, "message": "Please enter phone number" },
+            { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit phone number" }
+          ]
         }
       ],
       "actions": [
         {
+          "label": "Cancel",
+          "buttonProps": { "type": "default" },
+          "onClick": { "type": "close" }
+        },
+        {
           "label": "Add Employee",
-          "buttonProps": {
-            "type": "primary",
-            "htmlType": "submit",
-            "block": true
-          },
-          "style": {
-            "marginTop": "24px"
-          },
+          "buttonProps": { "type": "primary", "htmlType": "submit" },
           "api": {
             "endpoint": "/api/employees/register",
             "method": "POST"
           },
           "messages": {
             "success": "Employee added successfully",
-            "failure": "Failed to add employee"
+            "error": "Failed to add employee"
           }
         }
       ]
     },
     "editEmployeeModal": {
       "title": "Edit Employee",
-      "layout": {
-        "type": "vertical"
+      "width": 600,
+      "layout": { "type": "vertical" },
+      "api": {
+        "fetch": {
+          "endpoint": "/api/employees/{id}",
+          "method": "GET"
+        }
       },
       "fields": [
         {
@@ -328,8 +391,8 @@
           "placeholder": "Select role",
           "size": "large",
           "options": [
-            { "label": "Admin", "value": "Admin" },
-            { "label": "Employee", "value": "Employee" }
+            { "label": "Admin", "value": "admin" },
+            { "label": "Employee", "value": "employee" }
           ],
           "rules": [{ "required": true, "message": "Please select role" }]
         },
@@ -339,27 +402,28 @@
           "label": "Phone",
           "placeholder": "Enter phone number",
           "size": "large",
-          "rules": [{ "required": true, "message": "Please enter phone number" }]
+          "rules": [
+            { "required": true, "message": "Please enter phone number" },
+            { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit phone number" }
+          ]
         }
       ],
       "actions": [
         {
+          "label": "Cancel",
+          "buttonProps": { "type": "default" },
+          "onClick": { "type": "close" }
+        },
+        {
           "label": "Update Employee",
-          "buttonProps": {
-            "type": "primary",
-            "htmlType": "submit",
-            "block": true
-          },
-          "style": {
-            "marginTop": "24px"
-          },
+          "buttonProps": { "type": "primary", "htmlType": "submit" },
           "api": {
             "endpoint": "/api/employees/{id}",
             "method": "PUT"
           },
           "messages": {
             "success": "Employee updated successfully",
-            "failure": "Failed to update employee"
+            "error": "Failed to update employee"
           }
         }
       ]
@@ -381,7 +445,7 @@
           },
           "messages": {
             "success": "Employee deleted successfully",
-            "failure": "Failed to delete employee"
+            "error": "Failed to delete employee"
           }
         }
       ]
