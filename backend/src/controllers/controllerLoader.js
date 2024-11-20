@@ -137,24 +137,41 @@ const createController = (entityName, entityConfig) => {
           });
         }
 
-        // Handle sorting
+        // Handle sorting with new format
         let sort = {};
-        if (endpoint.params?.sort && req.query.sort) {
+        if (req.query.sort_by) {
+          const sortField = req.query.sort_by;
+          const sortOrder = req.query.sort_order === 'desc' ? -1 : 1;
+          if (endpoint.params?.sort.includes(sortField)) {
+            sort[sortField] = sortOrder;
+          }
+        } else if (endpoint.params?.sort && req.query.sort) {
+          // Keep backward compatibility for old sort parameter
           const [field, order] = req.query.sort.split(':');
           if (endpoint.params.sort.includes(field)) {
             sort[field] = order === 'desc' ? -1 : 1;
           }
         }
 
+        // Handle pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 10, 100); // Max 100 records per page
+        const skip = (page - 1) * limit;
+
+        // Execute query with pagination
         const records = await Model.find(filters)
           .sort(sort)
+          .skip(skip)
+          .limit(limit)
           .select('-password');
 
-        res.json({
-          message: "Records retrieved successfully",
-          data: records
-        });
-      } catch (error) {
+      // Total count for pagination
+      const total = await Model.countDocuments(filters);
+      res.json({
+        message: "Records retrieved successfully",
+        data: records
+      });
+     } catch (error) {
         res.status(400).json({ error: error.message });
       }
     },

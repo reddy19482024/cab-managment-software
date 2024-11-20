@@ -137,40 +137,61 @@
           "driver_id": "uuid-driver-id"
         }
       },
-      "list": {
-        "path": "/api/drivers",
-        "method": "GET",
-        "route_type": "private",
-        "description": "List all drivers with filtering options",
-        "params": {
-          "search": "name, mobile, license_number",
-          "sort": "name, status",
-          "filter": "status, assigned_vehicle"
-        },
-        "response": [
-          {
-            "driver_id": "uuid-1",
-            "name": "Jane Doe",
-            "mobile": "0987654321",
-            "license_number": "LIC123456",
-            "status": "available",
-            "assigned_vehicle": {
-              "vehicle_id": "uuid-vehicle-id-1",
-              "registration_number": "ABC123"
-            }
-          },
-          {
-            "driver_id": "uuid-2",
-            "name": "John Smith",
-            "mobile": "1234567890",
-            "license_number": "LIC654321",
-            "status": "on-duty",
-            "assigned_vehicle": {
-              "vehicle_id": "uuid-vehicle-id-2",
-              "registration_number": "XYZ789"
-            }
-          }
-        ]
+            "list": {
+              "path": "/api/drivers",
+              "method": "GET",
+              "route_type": "private",
+              "description": "List all drivers with filtering options",
+              "params": {
+                "search": "name, mobile, license_number",
+                "sort": "name, status",
+                "filter": "status, assigned_vehicle",
+                "page": {
+                  "type": "integer",
+                  "description": "Page number (starts from 1)",
+                  "default": 1
+                },
+                "limit": {
+                  "type": "integer",
+                  "description": "Number of records per page",
+                  "default": 10,
+                  "max": 100
+                },
+                "sort_by": {
+                  "type": "string",
+                  "enum": ["name", "status", "created_at"],
+                  "default": "name"
+                },
+                "sort_order": {
+                  "type": "string",
+                  "enum": ["asc", "desc"],
+                  "default": "asc"
+                }
+              },
+              "response": [
+                {
+                  "driver_id": "uuid-1",
+                  "name": "Jane Doe",
+                  "mobile": "0987654321",
+                  "license_number": "LIC123456", 
+                  "status": "available",
+                  "assigned_vehicle": {
+                    "vehicle_id": "uuid-vehicle-id-1",
+                    "registration_number": "ABC123"
+                  }
+                },
+                {
+                  "driver_id": "uuid-2",
+                  "name": "John Smith",
+                  "mobile": "1234567890",
+                  "license_number": "LIC654321",
+                  "status": "on-duty",
+                  "assigned_vehicle": {
+                    "vehicle_id": "uuid-vehicle-id-2",
+                    "registration_number": "XYZ789"
+                  }
+                }
+              ]
       }
     }
   }

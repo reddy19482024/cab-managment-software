@@ -42,34 +42,175 @@
     { "type": "banner", "style": { "background": "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)", "padding": "24px", "marginBottom": "24px", "borderRadius": "8px" },
       "content": { "title": "Driver Management", "description": "Manage your organization's drivers efficiently", "style": { "maxWidth": "100%", "padding": "0 24px", "color": "#ffffff" } }
     },
-    { "type": "form", "containerStyle": { "padding": "0" }, "wrapperStyle": { "background": "#ffffff", "padding": "24px", "borderRadius": "8px", "boxShadow": "0 2px 8px rgba(0,0,0,0.1)" },
-      "title": "Driver List", "subtitle": "View and manage drivers",
+    {
+      "type": "form",
+      "containerStyle": { "padding": "0" },
+      "wrapperStyle": {
+        "background": "#ffffff",
+        "padding": "24px",
+        "borderRadius": "8px",
+        "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
+      },
+      "title": "Driver List",
+      "subtitle": "View and manage drivers",
       "table": {
-        "enabled": true, "rowKey": "_id", "size": "middle", "scroll": { "x": true },
-        "pagination": { "pageSize": 10, "showSizeChanger": true, "showQuickJumper": true, "showTotal": true },
+        "enabled": true,
+        "rowKey": "_id",
+        "size": "middle",
+        "scroll": { "x": true },
+        "pagination": {
+          "pageSize": 10,
+          "showSizeChanger": true,
+          "showQuickJumper": true,
+          "showTotal": true,
+          "pageSizeOptions": [10, 20, 50, 100],
+          "position": ["bottomRight"]
+        },
         "columns": [
-          { "title": "Name", "dataIndex": "name", "key": "name", "width": "20%", "sorter": true, "fixed": "left" },
-          { "title": "Mobile", "dataIndex": "mobile", "key": "mobile", "width": "15%" },
-          { "title": "License Number", "dataIndex": "license_number", "key": "license_number", "width": "15%" },
-          { "title": "Status", "dataIndex": "status", "key": "status", "width": "15%", 
-            "render": { "type": "tag", "colorMap": { "available": "success", "on-duty": "processing", "inactive": "default" } },
-            "filters": [{ "text": "Available", "value": "available" }, { "text": "On Duty", "value": "on-duty" }, { "text": "Inactive", "value": "inactive" }]
+          {
+            "title": "Name",
+            "dataIndex": "name",
+            "key": "name",
+            "width": "20%",
+            "sorter": true,
+            "sortField": "name",
+            "fixed": "left",
+            "ellipsis": true,
+            "searchable": true
           },
-          { "title": "Assigned Vehicle", "dataIndex": "assigned_vehicle", "key": "assigned_vehicle", "width": "20%",
-            "render": { "type": "text", "api": { "endpoint": "/api/vehicles", "method": "GET", "params": { "ids": "{vehicleIds}" } },
-              "template": "${registration_number} - ${brand} ${model}", "fallback": "Not Assigned" }
+          {
+            "title": "Mobile",
+            "dataIndex": "mobile",
+            "key": "mobile",
+            "width": "15%",
+            "ellipsis": true,
+            "searchable": true
           },
-          { "title": "Actions", "key": "actions", "width": "15%", "fixed": "right",
-            "render": { "type": "actions", "items": [
-              { "type": "button", "buttonProps": { "type": "link", "icon": "EditOutlined" }, "tooltip": "Edit Driver", "onClick": { "type": "modal", "modalId": "editDriverModal" } },
-              { "type": "button", "buttonProps": { "type": "link", "danger": true, "icon": "DeleteOutlined" }, "tooltip": "Delete Driver", "onClick": { "type": "modal", "modalId": "deleteDriverModal" } }
-            ]}
+          {
+            "title": "License Number",
+            "dataIndex": "license_number",
+            "key": "license_number",
+            "width": "15%",
+            "ellipsis": true,
+            "searchable": true
+          },
+          {
+            "title": "Status",
+            "dataIndex": "status",
+            "key": "status",
+            "width": "15%",
+            "sorter": true,
+            "sortField": "status",
+            "render": {
+              "type": "tag",
+              "colorMap": {
+                "available": "success",
+                "on-duty": "processing",
+                "inactive": "default"
+              }
+            },
+            "filters": [
+              { "text": "Available", "value": "available" },
+              { "text": "On Duty", "value": "on-duty" },
+              { "text": "Inactive", "value": "inactive" }
+            ]
+          },
+          {
+            "title": "Assigned Vehicle",
+            "dataIndex": "assigned_vehicle",
+            "key": "assigned_vehicle",
+            "width": "20%",
+            "render": {
+              "type": "text",
+              "api": {
+                "endpoint": "/api/vehicles",
+                "method": "GET",
+                "params": { "ids": "{vehicleIds}" }
+              },
+              "template": "${registration_number} - ${brand} ${model}",
+              "fallback": "Not Assigned"
+            }
+          },
+          {
+            "title": "Actions",
+            "key": "actions",
+            "width": "15%",
+            "fixed": "right",
+            "render": {
+              "type": "actions",
+              "items": [
+                {
+                  "type": "button",
+                  "buttonProps": {
+                    "type": "link",
+                    "icon": "EditOutlined"
+                  },
+                  "tooltip": "Edit Driver",
+                  "onClick": {
+                    "type": "modal",
+                    "modalId": "editDriverModal"
+                  }
+                },
+                {
+                  "type": "button",
+                  "buttonProps": {
+                    "type": "link",
+                    "danger": true,
+                    "icon": "DeleteOutlined"
+                  },
+                  "tooltip": "Delete Driver",
+                  "onClick": {
+                    "type": "modal",
+                    "modalId": "deleteDriverModal"
+                  }
+                }
+              ]
+            }
           }
         ],
-        "api": { "endpoint": "/api/drivers", "method": "GET", "params": { "sort": "-createdAt" } },
-        "searchConfig": { "placeholder": "Search drivers...", "fields": ["name", "mobile", "license_number"] }
+        "api": {
+          "endpoint": "/api/drivers",
+          "method": "GET",
+          "params": {
+            "page": "{current}",
+            "limit": "{pageSize}",
+            "sort_by": "{sortField}",
+            "sort_order": "{sortOrder}",
+            "search": "{searchText}",
+            "status": "{filters.status}",
+            "assigned_vehicle": "{filters.assigned_vehicle}"
+          }
+        },
+        "searchConfig": {
+          "placeholder": "Search drivers...",
+          "fields": ["name", "mobile", "license_number"],
+          "searchOnChange": true,
+          "searchDelay": 500
+        },
+        "toolbarConfig": {
+          "settings": {
+            "enabled": true,
+            "items": ["reload", "density", "fullScreen"]
+          },
+          "refresh": {
+            "enabled": true,
+            "tooltip": "Refresh data"
+          }
+        }
       },
-      "actions": [{ "label": "Add Driver", "buttonProps": { "type": "primary", "icon": "PlusOutlined" }, "onClick": { "type": "modal", "modalId": "addDriverModal" } }]
+      "actions": [
+        {
+          "label": "Add Driver",
+          "buttonProps": {
+            "type": "primary",
+            "icon": "PlusOutlined"
+          },
+          "onClick": {
+            "type": "modal",
+            "modalId": "addDriverModal"
+          }
+        }
+      ]
     }
   ],
   "modals": {

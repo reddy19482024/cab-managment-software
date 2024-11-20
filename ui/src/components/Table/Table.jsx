@@ -6,19 +6,72 @@ import useApi from '../../hooks/useApi';
 
 const { confirm } = Modal;
 
-const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilter, onDelete, onTableChange, pagination }) => {
-  const { apiRequest } = useApi();
+const TableComponent = ({ section, loading: externalLoading, data: externalData, onModalOpen, onSearch, onFilter, onDelete, onTableChange, pagination: externalPagination }) => {
+  const { apiRequest, loading: apiLoading } = useApi();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: section.table.pagination?.pageSize || 10,
+    total: 0
+  });
   const [relatedData, setRelatedData] = useState({});
   const [currentFilters, setCurrentFilters] = useState({});
   const [currentSorter, setCurrentSorter] = useState(null);
+  const [searchText, setSearchText] = useState('');
 
+  // Initial data loading
   useEffect(() => {
-    if (data?.length > 0) {
-      loadRelatedData();
-    }
-  }, [data]);
+    loadTableData();
+  }, []);
 
-  const loadRelatedData = async () => {
+  // Update data when external data changes
+  useEffect(() => {
+    if (externalData?.length > 0) {
+      setData(externalData);
+      loadRelatedData(externalData);
+    }
+  }, [externalData]);
+
+  const loadTableData = async (params = {}) => {
+    try {
+      setLoading(true);
+      const { endpoint } = section.table.api;
+  
+      const queryParams = {
+        pagination: {
+          current: params.pagination?.current || pagination.current,
+          pageSize: params.pagination?.pageSize || pagination.pageSize,
+        },
+        sorter: params.sorter || currentSorter,
+        filters: params.filters || currentFilters,
+      };
+  
+      // Only add search param if it's not empty
+      if (params.search || searchText) {
+        queryParams.search = params.search ?? searchText;
+      }
+  
+      const response = await apiRequest(endpoint, 'GET', null, queryParams);
+  
+      if (response?.data) {
+        setData(response.data);
+        setPagination(prev => ({
+          ...prev,
+          current: params.pagination?.current || prev.current,
+          pageSize: params.pagination?.pageSize || prev.pageSize,
+          total: response.total || response.data.length
+        }));
+        await loadRelatedData(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading table data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadRelatedData = async (tableData) => {
     try {
       const columnsNeedingData = section.table.columns.filter(col => 
         col.render?.api && col.render?.type === 'text'
@@ -26,44 +79,29 @@ const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilte
 
       for (const column of columnsNeedingData) {
         const { api } = column.render;
-        
-        // Get unique IDs from the data for this column
         const columnKey = Array.isArray(column.dataIndex) ? column.dataIndex[0] : column.dataIndex;
-        const ids = [...new Set(data
+        const ids = [...new Set(tableData
           .map(item => item[columnKey])
           .filter(Boolean))];
 
         if (ids.length === 0) continue;
 
-        let endpoint = api.endpoint;
-        const queryParams = new URLSearchParams();
+        const params = {
+          ...(api.params || {}),
+          ids: ids.join(',')
+        };
+
+        const response = await apiRequest(api.endpoint, api.method || 'GET', null, params);
         
-        // Handle params for GET request
-        if (!api.method || api.method === 'GET') {
-          Object.entries(api.params || {}).forEach(([key, value]) => {
-            if (typeof value === 'string' && value.includes('{')) {
-              value = value.replace(/\{(\w+)\}/g, (match, key) => {
-                if (key === 'vehicleIds') return ids.join(',');
-                return match;
-              });
-            }
-            queryParams.append(key, value);
-          });
-          if (queryParams.toString()) {
-            endpoint = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryParams.toString()}`;
-          }
-          
-          const response = await apiRequest(endpoint);
-          if (response?.data) {
-            const mappedData = response.data.reduce((acc, item) => {
-              acc[item._id] = item;
-              return acc;
-            }, {});
-            setRelatedData(prev => ({
-              ...prev,
-              [column.key]: mappedData
-            }));
-          }
+        if (response?.data) {
+          const mappedData = response.data.reduce((acc, item) => {
+            acc[item._id] = item;
+            return acc;
+          }, {});
+          setRelatedData(prev => ({
+            ...prev,
+            [column.key]: mappedData
+          }));
         }
       }
     } catch (error) {
@@ -71,13 +109,16 @@ const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilte
     }
   };
 
+  
+  // Rest of your component code (getIcon, handleDelete, renderColumnContent) remains the same...
+    
   const getIcon = (iconName) => {
     const Icon = AntdIcons[iconName];
     return Icon ? React.createElement(Icon) : null;
   };
 
   const handleDelete = (record, modalId) => {
-    confirm({
+  confirm({
       title: 'Are you sure you want to delete this item?',
       icon: React.createElement(AntdIcons.ExclamationCircleOutlined),
       content: 'This action cannot be undone.',
@@ -156,19 +197,8 @@ const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilte
       render: (text, record) => renderColumnContent(column, text, record),
       filteredValue: currentFilters[column.dataIndex],
       sortOrder: currentSorter?.columnKey === column.key ? currentSorter.order : null,
-      sorter: column.sorter && ((a, b) => {
-        const aValue = Array.isArray(column.dataIndex) 
-          ? column.dataIndex.reduce((obj, key) => obj?.[key], a)
-          : a[column.dataIndex];
-        const bValue = Array.isArray(column.dataIndex)
-          ? column.dataIndex.reduce((obj, key) => obj?.[key], b)
-          : b[column.dataIndex];
-        
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return aValue - bValue;
-        }
-        return String(aValue || '').localeCompare(String(bValue || ''));
-      }),
+      sorter: column.sorter,
+      sortField: column.sortField,
       filters: column.filters,
       filterMode: column.filterMode || 'menu',
       filterSearch: column.filterSearch,
@@ -180,61 +210,35 @@ const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilte
       })
     }));
   };
-
   const handleTableChange = async (paginationParams, filters, sorter) => {
+    const params = {
+      pagination: paginationParams,
+      filters,
+      sorter,
+      search: searchText
+    };
+
     setCurrentFilters(filters);
     setCurrentSorter(sorter);
 
     if (onTableChange) {
-      const { endpoint, method = 'GET', params = {} } = section.table.api;
-      const queryParams = new URLSearchParams();
-
-      // Add pagination
-      if (paginationParams) {
-        queryParams.append('page', paginationParams.current);
-        queryParams.append('limit', paginationParams.pageSize);
-      }
-
-      // Add sorting
-      if (sorter?.order) {
-        const sortOrder = sorter.order === 'ascend' ? '' : '-';
-        queryParams.append('sort', `${sortOrder}${sorter.field}`);
-      }
-
-      // Add filters
-      Object.entries(filters).forEach(([key, values]) => {
-        if (values?.length) {
-          queryParams.append(key, values.join(','));
-        }
-      });
-
-      // Add configured params
-      Object.entries(params).forEach(([key, value]) => {
-        queryParams.append(key, value);
-      });
-
-      const url = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryParams.toString()}`;
-      onTableChange(url, paginationParams, filters, sorter);
+      await loadTableData(params);
     }
   };
 
-  const handleSearch = (value) => {
-    if (onSearch && section.table.searchConfig) {
-      const { endpoint } = section.table.api;
-      const searchFields = section.table.searchConfig.fields;
-      const queryParams = new URLSearchParams();
-
-      if (value) {
-        searchFields.forEach(field => {
-          queryParams.append(field, value);
-        });
-      }
-
-      const url = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${queryParams.toString()}`;
-      onSearch(url, value);
-    }
+  const handleSearch = async (value) => {
+    const newSearchText = value || ''; // Handle empty string case
+    setSearchText(newSearchText);
+    
+    const params = {
+      pagination: { ...pagination, current: 1 }, // Reset to first page
+      filters: currentFilters,
+      sorter: currentSorter,
+      search: newSearchText // This will be empty string when cleared
+    };
+  
+    await loadTableData(params);
   };
-
   const renderToolbar = () => (
     <div style={{
       marginBottom: '16px',
@@ -252,18 +256,24 @@ const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilte
           </p>
         )}
       </div>
-
+  
       <Space wrap>
         {section.table.searchConfig && (
           <Input.Search
             placeholder={section.table.searchConfig.placeholder}
             onSearch={handleSearch}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              // Optional: Add debounced search here if you want to search while typing
+            }}
+            value={searchText}
             style={{ width: 300 }}
             allowClear
+            onClear={() => handleSearch('')}
             prefix={getIcon('SearchOutlined')}
           />
         )}
-
+  
         {section.actions?.map((action, index) => (
           <Button
             key={index}
@@ -296,17 +306,16 @@ const TableComponent = ({ section, loading, data, onModalOpen, onSearch, onFilte
         {...section.table}
         columns={getColumns()}
         dataSource={data}
-        loading={loading}
+        loading={loading || externalLoading || apiLoading}
         onChange={handleTableChange}
         pagination={
           section.table.pagination === false
             ? false
             : {
                 ...section.table.pagination,
-                current: pagination?.current,
-                pageSize: pagination?.pageSize,
-                total: pagination?.total,
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+                ...pagination,
+                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+                position: section.table.pagination.position || ['bottomRight']
               }
         }
       />
