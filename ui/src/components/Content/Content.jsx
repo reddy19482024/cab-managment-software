@@ -145,17 +145,32 @@ const ContentLayout = ({
           borderRadius: '8px',
           ...section.wrapperStyle
         }}>
-          <TableComponent
-            section={section}
-            loading={loading}
-            data={tableData}
-            onModalOpen={onModalOpen}
-            onSearch={onSearch}
-            onFilter={onFilter}
-            onDelete={onDelete}
-            onTableChange={onTableChange}
-            pagination={pagination}
-          />
+        <TableComponent
+          section={section}
+          loading={loading}
+          data={tableData}
+          onModalOpen={onModalOpen}
+          onSearch={onSearch}
+          onFilter={onFilter}
+          onDelete={onDelete}
+          onTableChange={(paginationParams, filters, sorter) => {
+            // Sanitize sorter before passing it
+            const sanitizedSorter = sorter?.field
+              ? {
+                  columnKey: sorter.field,
+                  order: sorter.order === 'descend' ? 'desc' : 'asc',
+                }
+              : null;
+
+            onTableChange?.(paginationParams, filters, sanitizedSorter);
+          }}
+          pagination={{
+            ...pagination,
+            current: pagination?.current || 1,
+            pageSize: pagination?.pageSize || 10,
+          }}
+        />
+
         </div>
       </div>
     );

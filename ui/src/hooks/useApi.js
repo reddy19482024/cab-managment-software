@@ -6,7 +6,7 @@ const useApi = () => {
   const [loading, setLoading] = useState(false);
   const apiCallInProgress = useRef(false);
   const navigate = useNavigate();
-
+  
   const getAuthHeaders = () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -36,70 +36,81 @@ const useApi = () => {
     let url = `${baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
 
     if (params) {
-      const flatParams = new URLSearchParams();
-      
-      Object.entries(params).forEach(([key, value]) => {
-        // Skip null, undefined or empty string values
-        if (value == null || value === '') return;
+        const flatParams = new URLSearchParams();
         
-        // Handle pagination
-        if (key === 'pagination' && value) {
-          if (value.current) flatParams.append('page', value.current);
-          if (value.pageSize) flatParams.append('limit', value.pageSize);
-          return;
-        }
+        Object.entries(params).forEach(([key, value]) => {
+            if (value == null || value === '') return;
 
-        // Handle sorting
-        if (key === 'sorter' && value) {
-          const sortField = value.column?.sortField || value.field;
-          if (sortField) {
-            flatParams.append('sort_by', sortField);
-            flatParams.append('sort_order', value.order === 'ascend' ? 'asc' : 'desc');
-          }
-          return;
-        }
-
-        // Handle filters
-        if (key === 'filters' && value) {
-          Object.entries(value).forEach(([filterKey, filterValue]) => {
-            if (filterValue && filterValue.length > 0) {
-              flatParams.append(filterKey, filterValue[0]);
+            if (key === 'pagination' && value) {
+                if (value.current) flatParams.append('page', value.current);
+                if (value.pageSize) flatParams.append('limit', value.pageSize);
+                return;
             }
-          });
-          return;
+
+            if (key === 'sorter' && value) {
+                if (value.field || value.column?.sortField) {
+                    const sortField = value.column?.sortField || value.field;
+                    flatParams.append('sort_by', sortField);
+                    flatParams.append('sort_order', value.order === 'ascend' ? 'asc' : 'desc');
+                }
+                return;
+            }
+
+            if (key === 'filters' && value) {
+                Object.entries(value).forEach(([filterKey, filterValue]) => {
+                    if (Array.isArray(filterValue) && filterValue.length > 0) {
+                        flatParams.append(filterKey, filterValue.join(','));
+                    } else if (filterValue) {
+                        flatParams.append(filterKey, filterValue);
+                    }
+                });
+                return;
+            }
+
+            if (key === 'search' && value) {
+                flatParams.append('search', value);
+                return;
+            }
+
+            if (Array.isArray(value)) {
+                if (value.length > 0) {
+                    flatParams.append(key, value.join(','));
+                }
+                return;
+            }
+
+            // Add fallback for replacing placeholder-like values
+            if (typeof value === 'string' && value.includes('{') && value.includes('}')) {
+                value = value.replace(/{([^}]+)}/g, ''); // Remove unprocessed placeholders
+            }
+
+            flatParams.append(key, value);
+        });
+
+        const queryString = flatParams.toString();
+        if (queryString) {
+            url += `${url.includes('?') ? '&' : '?'}${queryString}`;
         }
-
-        // Handle arrays
-        if (Array.isArray(value)) {
-          if (value.length > 0) {
-            flatParams.append(key, value.join(','));
-          }
-          return;
-        }
-
-        // Handle regular params
-        flatParams.append(key, value);
-      });
-
-      const queryString = flatParams.toString();
-      if (queryString) {
-        url += `${url.includes('?') ? '&' : '?'}${queryString}`;
-      }
     }
 
     return url;
-  };
+};
+
 
   const apiRequest = async (endpoint, method = 'GET', body = null, params = null, additionalHeaders = {}) => {
-    if (apiCallInProgress.current) return;
-
     const headers = { ...getAuthHeaders(), ...additionalHeaders };
     if (!headers) return;
 
     try {
       setLoading(true);
+      
+      // Don't use apiCallInProgress for GET requests
+      if (method !== 'GET' && apiCallInProgress.current) {
+        return;
+      }
+      
       apiCallInProgress.current = true;
-
+      
       const url = buildUrl(endpoint, params);
       
       const response = await fetch(url, {

@@ -69,57 +69,83 @@ const DynamicPage = ({ configName }) => {
 
   const loadTableData = async (apiConfig) => {
     try {
-      // Process filters
-      const processedFilters = {};
+      // Create a new URLSearchParams object for query parameters
+      const queryParams = new URLSearchParams();
+  
+      // Add pagination parameters
+      queryParams.append('page', currentPage);
+      queryParams.append('limit', pageSize);
+  
+      // Only add offset if it's needed by your API
+      // queryParams.append('offset', (currentPage - 1) * pageSize);
+  
+      // Process filters - only add if they have real values (not placeholders)
       Object.entries(filterParams).forEach(([key, values]) => {
-        if (values && values.length > 0) {
-          processedFilters[`filters[${key}]`] = values.join(',');
+        if (values && Array.isArray(values) && values.length > 0) {
+          // Filter out any placeholder values that contain '{' or '}'
+          const cleanValues = values.filter(value => 
+            typeof value === 'string' && !value.includes('{') && !value.includes('}')
+          );
+          if (cleanValues.length > 0) {
+            queryParams.append(`filters[${key}]`, cleanValues.join(','));
+          }
+        } else if (values && typeof values === 'string' && !values.includes('{')) {
+          queryParams.append(`filters[${key}]`, values);
         }
       });
   
-      // Process search
-      const searchQuery = searchParams.search ? {
-        search: searchParams.search,
-        searchFields: searchParams.searchFields
-      } : {};
+      // Add search parameters if they exist
+      if (searchParams.search) {
+        queryParams.append('search', searchParams.search);
+        if (searchParams.searchFields) {
+          queryParams.append('searchFields', searchParams.searchFields);
+        }
+      }
   
-      // Process sorting
-      const sortParam = currentSorter?.field ? {
-        sort: `${currentSorter.order === 'descend' ? '-' : ''}${currentSorter.field}`
-      } : {};
+      // Add sorting parameters if they exist and are not placeholders
+      if (currentSorter?.field && currentSorter?.order) {
+        const sortOrder = currentSorter.order === 'descend' ? 'desc' : 'asc';
+        // Only add if not a placeholder
+        if (!sortOrder.includes('{')) {
+          queryParams.append('sort_order', sortOrder);
+        }
+        if (!currentSorter.field.includes('{')) {
+          queryParams.append('sort_by', currentSorter.field);
+        }
+      }
   
-      // Prepare params
-      const queryParams = new URLSearchParams({
-        ...(apiConfig.params || {}),
-        ...processedFilters,
-        ...searchQuery,
-        ...sortParam,
-        page: currentPage,
-        limit: pageSize,
-        offset: (currentPage - 1) * pageSize // Add offset for proper pagination
-      }).toString();
+      // Add any additional API params from config, filtering out placeholders
+      if (apiConfig.params) {
+        Object.entries(apiConfig.params).forEach(([key, value]) => {
+          if (value && typeof value === 'string' && !value.includes('{')) {
+            queryParams.append(key, value);
+          }
+        });
+      }
   
-      const endpoint = `${apiConfig.endpoint}${queryParams ? '?' + queryParams : ''}`;
-      
-      const response = await apiRequest(
-        endpoint,
-        apiConfig.method || 'GET'
-      );
+      // Construct the final endpoint
+      const queryString = queryParams.toString();
+      const endpoint = `${apiConfig.endpoint}${queryString ? '?' + queryString : ''}`;
+  
+      const response = await apiRequest(endpoint, apiConfig.method || 'GET');
   
       if (response?.data) {
         const items = response.data.items || response.data || [];
         const total = response.data.total || items.length;
   
-        setTableData(items.map(item => ({
-          key: item._id || item.id,
-          ...item
-        })));
+        setTableData(
+          items.map((item) => ({
+            key: item._id || item.id,
+            ...item,
+          }))
+        );
         setTotalRecords(total);
       }
     } catch (error) {
-      // Error handled by useApi
+      console.error('Error loading table data:', error);
     }
   };
+  
 
   const loadDependentFieldData = async (field, params = {}, currentValue = null) => {
     if (!field.api) return;

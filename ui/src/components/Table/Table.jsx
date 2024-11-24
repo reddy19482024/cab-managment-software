@@ -33,34 +33,77 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
     }
   }, [externalData]);
 
+  const buildQueryParams = (params = {}) => {
+    const queryParams = new URLSearchParams();
+
+    // Add pagination parameters
+    if (params.pagination) {
+      if (params.pagination.current) {
+        queryParams.append('page', params.pagination.current);
+      }
+      if (params.pagination.pageSize) {
+        queryParams.append('limit', params.pagination.pageSize);
+      }
+    }
+
+    // Add sorter parameters only if they exist and are valid
+    if (params.sorter?.field && params.sorter?.order) {
+      queryParams.append('sort_by', params.sorter.field);
+      queryParams.append('sort_order', params.sorter.order);
+    }
+
+    // Add filter parameters only if they have actual values
+    if (params.filters) {
+      Object.entries(params.filters).forEach(([key, value]) => {
+        if (Array.isArray(value) && value.length > 0) {
+          // Only add filter if it has actual values and isn't a placeholder
+          const validValues = value.filter(v => !v.includes('{') && v.trim() !== '');
+          if (validValues.length > 0) {
+            queryParams.append(`filters[${key}]`, validValues.join(','));
+          }
+        } else if (value && typeof value === 'string' && !value.includes('{')) {
+          queryParams.append(`filters[${key}]`, value);
+        }
+      });
+    }
+
+    // Add search parameter if it exists and isn't empty
+    if (params.search?.trim()) {
+      queryParams.append('search', params.search.trim());
+    }
+
+    return queryParams.toString();
+  };
+
   const loadTableData = async (params = {}) => {
     try {
       setLoading(true);
       const { endpoint } = section.table.api;
-  
-      const queryParams = {
+
+      // Build clean query parameters
+      const queryString = buildQueryParams({
         pagination: {
           current: params.pagination?.current || pagination.current,
           pageSize: params.pagination?.pageSize || pagination.pageSize,
         },
         sorter: params.sorter || currentSorter,
         filters: params.filters || currentFilters,
-      };
-  
-      // Only add search param if it's not empty
-      if (params.search || searchText) {
-        queryParams.search = params.search ?? searchText;
-      }
-  
-      const response = await apiRequest(endpoint, 'GET', null, queryParams);
-  
+        search: params.search || searchText
+      });
+
+      // Construct the final endpoint
+      const finalEndpoint = `${endpoint}${queryString ? '?' + queryString : ''}`;
+
+      // Make API request
+      const response = await apiRequest(finalEndpoint, 'GET');
+
       if (response?.data) {
         setData(response.data);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
           current: params.pagination?.current || prev.current,
           pageSize: params.pagination?.pageSize || prev.pageSize,
-          total: response.total || response.data.length
+          total: response.total || response.data.length,
         }));
         await loadRelatedData(response.data);
       }
@@ -70,6 +113,7 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
       setLoading(false);
     }
   };
+  
 
   const loadRelatedData = async (tableData) => {
     try {
@@ -210,20 +254,38 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
       })
     }));
   };
+
   const handleTableChange = async (paginationParams, filters, sorter) => {
+    // Only include valid sorter information
+    const validSorter = sorter?.field && sorter?.order ? {
+      field: sorter.field,
+      order: sorter.order === 'descend' ? 'desc' : 'asc'
+    } : null;
+
+    // Clean filters to remove any placeholders or empty values
+    const validFilters = {};
+    Object.entries(filters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        const cleanValues = value.filter(v => v && !v.includes('{'));
+        if (cleanValues.length > 0) {
+          validFilters[key] = cleanValues;
+        }
+      } else if (value && !value.includes('{')) {
+        validFilters[key] = value;
+      }
+    });
+
     const params = {
       pagination: paginationParams,
-      filters,
-      sorter,
-      search: searchText
+      filters: validFilters,
+      sorter: validSorter,
+      search: searchText.trim()
     };
 
-    setCurrentFilters(filters);
-    setCurrentSorter(sorter);
+    setCurrentFilters(validFilters);
+    setCurrentSorter(validSorter);
 
-    if (onTableChange) {
-      await loadTableData(params);
-    }
+    await loadTableData(params);
   };
 
   const handleSearch = async (value) => {
