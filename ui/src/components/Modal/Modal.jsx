@@ -3,6 +3,38 @@ import { Modal, Spin, Button, Space } from 'antd';
 import PropTypes from 'prop-types';
 import * as AntdIcons from '@ant-design/icons';
 import FormComponent from '../Form/Form';
+import './ModalComponent.css';
+
+const POSITION_STYLES = {
+  right: {
+    wrapper: {
+      position: 'fixed',
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: 'fit-content',
+      margin: 0,
+      padding: 0,
+    }
+  },
+  left: {
+    wrapper: {
+      position: 'fixed',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 'fit-content',
+      margin: 0,
+      padding: 0,
+    }
+  }
+};
+
+const getModalClassName = (position) => {
+  if (position === 'right') return 'modal-right';
+  if (position === 'left') return 'modal-left';
+  return '';
+};
 
 const ModalComponent = ({
   config,
@@ -29,15 +61,27 @@ const ModalComponent = ({
     }
   };
 
+  const position = config.position || 'center';
+  const baseStyles = POSITION_STYLES[position] || {};
+
+  const modalProps = {
+    title: config.title,
+    open: visible,
+    onCancel: onClose,
+    width: config.width,
+    maskClosable: false,
+    destroyOnClose: true,
+    className: getModalClassName(position),
+    style: {
+      ...baseStyles.wrapper,
+      ...config.style
+    }
+  };
+
   if (config.type === 'confirm') {
     return (
       <Modal
-        title={config.title}
-        open={visible}
-        onCancel={onClose}
-        width={config.width}
-        maskClosable={false}
-        destroyOnClose
+        {...modalProps}
         footer={
           <Space>
             {config.actions?.map((action, index) => (
@@ -65,7 +109,6 @@ const ModalComponent = ({
     );
   }
 
-  // Create form config for FormComponent
   const formConfig = {
     sections: [{
       type: 'form',
@@ -77,12 +120,7 @@ const ModalComponent = ({
 
   return (
     <Modal
-      title={config.title}
-      open={visible}
-      onCancel={onClose}
-      width={config.width}
-      maskClosable={false}
-      destroyOnClose
+      {...modalProps}
       footer={
         <Space>
           {config.actions?.map((action, index) => (
@@ -122,6 +160,7 @@ ModalComponent.propTypes = {
   config: PropTypes.shape({
     title: PropTypes.string.isRequired,
     type: PropTypes.oneOf(['confirm', 'form']),
+    position: PropTypes.oneOf(['center', 'right', 'left']),
     width: PropTypes.number,
     layout: PropTypes.shape({
       type: PropTypes.oneOf(['vertical', 'horizontal', 'inline'])

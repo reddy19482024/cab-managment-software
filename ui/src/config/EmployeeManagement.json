@@ -274,11 +274,12 @@
       ]
     }
   ],
-  "modals": {
+"modals": {
     "addEmployeeModal": {
       "title": "Add New Employee",
       "width": 600,
       "layout": { "type": "vertical" },
+      "position": "right",
       "fields": [
         {
           "name": "name",
@@ -357,6 +358,7 @@
     "editEmployeeModal": {
       "title": "Edit Employee",
       "width": 600,
+      "position": "right",
       "layout": { "type": "vertical" },
       "api": {
         "fetch": {
@@ -431,6 +433,7 @@
     "deleteEmployeeModal": {
       "title": "Delete Employee",
       "type": "confirm",
+      "position": "right",
       "content": "Are you sure you want to delete this employee? This action cannot be undone.",
       "actions": [
         {
@@ -450,5 +453,5 @@
         }
       ]
     }
-  }
+}
 }
