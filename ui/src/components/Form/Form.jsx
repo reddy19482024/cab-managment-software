@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Button, Select, DatePicker, TimePicker, InputNumber, Divider, Checkbox, Radio, Space } from 'antd';
+import { Form, Button, Divider } from 'antd';
 import * as AntdIcons from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import useApi from '../../hooks/useApi';
+import FormFieldRenderer from './FormFieldRenderer';
 
 const FormComponent = ({
   config,
@@ -61,9 +62,6 @@ const FormComponent = ({
         
         case 'checkbox':
         case 'checkbox-group':
-          formattedValues[key] = value;
-          break;
-        
         case 'radio':
         case 'radio-group':
           formattedValues[key] = value;
@@ -77,11 +75,9 @@ const FormComponent = ({
     return formattedValues;
   };
 
-  // ... (keep existing ensureOptionsLoaded and loadSelectFieldOptions functions)
   const ensureOptionsLoaded = async (field, values) => {
     if (!field.api?.endpoint || !values?.length) return [];
 
-    // If options already exist and contain all values, use existing options
     if (field.options?.length) {
       const hasAllValues = values.every(value => 
         field.options.some(opt => opt.value === value)
@@ -89,7 +85,6 @@ const FormComponent = ({
       if (hasAllValues) return field.options;
     }
 
-    // Otherwise, fetch the options specifically for these values
     try {
       const queryParams = new URLSearchParams();
       if (field.api.params) {
@@ -104,36 +99,20 @@ const FormComponent = ({
           }
         });
       }
-      // Add the values to fetch
       queryParams.append('ids', values.join(','));
 
       const endpoint = `${field.api.endpoint}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      
-      console.log("endpoint",endpoint);
-      
       const response = await apiRequest(endpoint, field.api.method || 'GET');
 
       if (response?.data) {
         const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
 
-        const newOptions = response.data.map(item => {
-          let label;
-          if (customLabel) {
-            label = customLabel.replace(/\${([^}]+)}/g, (_, path) => {
-              return path.split('.').reduce((obj, key) => obj?.[key], item) || '';
-            });
-          } else {
-            label = item[labelKey];
-          }
+        const newOptions = response.data.map(item => ({
+          label: getOptionLabel(item, customLabel, labelKey),
+          value: item[valueKey],
+          record: item
+        }));
 
-          return {
-            label,
-            value: item[valueKey],
-            record: item
-          };
-        });
-
-        // Merge new options with existing options, avoiding duplicates
         field.options = field.options || [];
         newOptions.forEach(newOpt => {
           if (!field.options.some(opt => opt.value === newOpt.value)) {
@@ -159,11 +138,7 @@ const FormComponent = ({
 
     for (const field of selectFields) {
       try {
-        // If field has predefined options, use them
-        if (field.options) {
-          continue;
-        }
-
+        if (field.options) continue;
         if (!field.api?.endpoint) continue;
 
         let endpoint = field.api.endpoint;
@@ -195,24 +170,11 @@ const FormComponent = ({
 
         if (response?.data) {
           const { label: labelKey = 'label', value: valueKey = '_id', customLabel } = field.fieldNames || {};
-
-          field.options = response.data.map(item => {
-            let label;
-            if (customLabel) {
-              // Handle custom label template with complex object paths
-              label = customLabel.replace(/\${([^}]+)}/g, (_, path) => {
-                return path.split('.').reduce((obj, key) => obj?.[key], item) || '';
-              });
-            } else {
-              label = item[labelKey];
-            }
-
-            return {
-              label,
-              value: item[valueKey],
-              record: item
-            };
-          });
+          field.options = response.data.map(item => ({
+            label: getOptionLabel(item, customLabel, labelKey),
+            value: item[valueKey],
+            record: item
+          }));
         }
       } catch (error) {
         console.error(`Error loading options for ${field.name}:`, error);
@@ -234,133 +196,6 @@ const FormComponent = ({
     if (!iconName) return null;
     const Icon = AntdIcons[iconName];
     return Icon ? <Icon /> : null;
-  };
-
-  const renderFormField = (field) => {
-    switch (field.type) {
-      case 'password':
-        return (
-          <Input.Password
-            {...field.inputProps}
-            size={field.size}
-            placeholder={field.placeholder}
-            prefix={field.prefix && getIcon(field.prefix)}
-            allowClear={field.allowClear}
-          />
-        );
-
-      case 'select':
-        return (
-          <Select
-            {...field.dropdownProps}
-            options={field.options}
-            mode={field.mode}
-            size={field.size}
-            placeholder={field.placeholder}
-            allowClear={field.allowClear}
-            labelInValue
-            showSearch={field.dropdownProps?.showSearch}
-            filterOption={(input, option) =>
-              option?.label?.toLowerCase().includes(input.toLowerCase())
-            }
-            style={{ width: '100%' }}
-          />
-        );
-
-        case 'checkbox':
-          return (
-            <Checkbox
-              {...field.checkboxProps}
-              onChange={field.onChange}
-            >
-              {field.checkboxLabel || field.label}
-            </Checkbox>
-          );
-
-      case 'checkbox-group':
-        return (
-          <Checkbox.Group
-            {...field.checkboxGroupProps}
-            options={field.options}
-            style={{ width: '100%' }}
-          >
-            {field.children}
-          </Checkbox.Group>
-        );
-
-      case 'radio':
-        return (
-          <Radio {...field.radioProps}>
-            {field.radioLabel || field.label}
-          </Radio>
-        );
-
-      case 'radio-group':
-        return (
-          <Radio.Group
-            {...field.radioGroupProps}
-            options={field.options}
-            style={{ width: '100%' }}
-          >
-            {field.children}
-          </Radio.Group>
-        );
-
-      case 'datetime':
-        return (
-          <DatePicker
-            showTime={{
-              format: 'HH:mm:ss',
-              defaultValue: moment('00:00:00', 'HH:mm:ss')
-            }}
-            size={field.size}
-            placeholder={field.placeholder}
-            format="YYYY-MM-DD HH:mm:ss"
-            style={{ width: '100%' }}
-          />
-        );
-
-      case 'date':
-        return (
-          <DatePicker
-            size={field.size}
-            placeholder={field.placeholder}
-            format="YYYY-MM-DD"
-            style={{ width: '100%' }}
-          />
-        );
-
-      case 'time':
-        return (
-          <TimePicker
-            size={field.size}
-            placeholder={field.placeholder}
-            format="HH:mm:ss"
-            style={{ width: '100%' }}
-          />
-        );
-
-      case 'number':
-        return (
-          <InputNumber
-            {...field.inputProps}
-            size={field.size}
-            placeholder={field.placeholder}
-            style={{ width: '100%' }}
-          />
-        );
-
-      default:
-        return (
-          <Input
-            {...field.inputProps}
-            size={field.size}
-            placeholder={field.placeholder}
-            prefix={field.prefix && getIcon(field.prefix)}
-            allowClear
-          />
-        );
-    }
   };
 
   const handleFinish = (values) => {
@@ -439,17 +274,7 @@ const FormComponent = ({
           requiredMark={formSection.layout?.requiredMark}
         >
           {formSection.fields?.map((field) => (
-            <Form.Item
-            key={field.name}
-            name={field.name}
-            label={field.type === 'checkbox' ? null : field.label}  // Don't show label for checkboxes
-            rules={field.rules}
-            dependencies={field.dependencies}
-            tooltip={field.tooltip}
-            valuePropName={['checkbox', 'radio'].includes(field.type) ? 'checked' : 'value'}
-          >
-            {renderFormField(field)}
-          </Form.Item>
+            <FormFieldRenderer key={field.name} field={field} />
           ))}
 
           {formSection.actions?.map((action, index) => (
@@ -511,45 +336,18 @@ FormComponent.propTypes = {
     sections: PropTypes.arrayOf(
       PropTypes.shape({
         type: PropTypes.string.isRequired,
-        fields: PropTypes.arrayOf(
-          PropTypes.shape({
-            name: PropTypes.string.isRequired,
-            type: PropTypes.oneOf([
-              'text',
-              'password',
-              'select',
-              'date',
-              'datetime',
-              'time',
-              'number',
-              'checkbox',
-              'checkbox-group',
-              'radio',
-              'radio-group'
-            ]).isRequired,
-            label: PropTypes.string,
-            rules: PropTypes.array,
-            api: PropTypes.shape({
-              endpoint: PropTypes.string,
-              method: PropTypes.string,
-              params: PropTypes.object
-            }),
-            fieldNames: PropTypes.shape({
-              label: PropTypes.string,
-              value: PropTypes.string,
-              customLabel: PropTypes.string
-            }),
-            checkboxProps: PropTypes.object,
-            checkboxGroupProps: PropTypes.object,
-            radioProps: PropTypes.object,
-            radioGroupProps: PropTypes.object,
-            options: PropTypes.array,
-          })
-        ),
-        actions: PropTypes.array,
+        title: PropTypes.string,
+        subtitle: PropTypes.string,
+        containerStyle: PropTypes.object,
+        wrapperStyle: PropTypes.object,
+        fields: PropTypes.arrayOf(PropTypes.object),
+        actions: PropTypes.arrayOf(PropTypes.object),
         divider: PropTypes.object,
-        links: PropTypes.array,
-        socialButtonGroup: PropTypes.object,
+        links: PropTypes.arrayOf(PropTypes.object),
+        socialButtonGroup: PropTypes.shape({
+          style: PropTypes.object,
+          buttons: PropTypes.arrayOf(PropTypes.object)
+        }),
         layout: PropTypes.shape({
           type: PropTypes.string,
           labelCol: PropTypes.object,
@@ -557,17 +355,17 @@ FormComponent.propTypes = {
           requiredMark: PropTypes.oneOf(['optional', true, false])
         })
       })
-    ).isRequired,
+    ).isRequired
   }).isRequired,
   form: PropTypes.object.isRequired,
   loading: PropTypes.bool,
   onFormSubmit: PropTypes.func.isRequired,
-  initialValues: PropTypes.object,
+  initialValues: PropTypes.object
 };
 
 FormComponent.defaultProps = {
   loading: false,
-  initialValues: {},
+  initialValues: {}
 };
 
 export default FormComponent;
