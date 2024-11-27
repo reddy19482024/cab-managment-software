@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { Form, Button, Divider } from 'antd';
+import { Form, Divider } from 'antd';
 import * as AntdIcons from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import useApi from '../../hooks/useApi';
 import FormFieldRenderer from './FormFieldRenderer';
+import Button from './Button'; // Import custom Button component
 
 const FormComponent = ({
   config,
@@ -48,18 +49,31 @@ const FormComponent = ({
         case 'select':
           if (field.mode === 'multiple' && Array.isArray(value)) {
             const options = await ensureOptionsLoaded(field, value);
-            formattedValues[key] = value;
+            formattedValues[key] = value.map(v => ({
+              key: v,  // Add this
+              value: v,
+              label: options.find(opt => opt.value === v)?.label || v
+            }));
           } else {
             const options = await ensureOptionsLoaded(field, [value]);
-            formattedValues[key] = value;
+            formattedValues[key] = {
+              key: value,  // Add this
+              value: value,
+              label: options.find(opt => opt.value === value)?.label || value
+            };
           }
           break;
         
         case 'date':
         case 'datetime':
+        case 'time':
           formattedValues[key] = value ? moment(value) : null;
           break;
         
+        case 'number':
+          formattedValues[key] = typeof value === 'string' ? parseFloat(value) : value;
+          break;
+  
         case 'checkbox':
         case 'checkbox-group':
         case 'radio':
@@ -200,26 +214,31 @@ const FormComponent = ({
 
   const handleFinish = (values) => {
     if (!values || !formSection?.fields) return;
-
+  
     const formattedValues = Object.entries(values).reduce((acc, [key, value]) => {
       if (value === undefined || value === null) return acc;
-
+  
       const field = formSection.fields.find(f => f.name === key);
       if (field) {
         switch (field.type) {
           case 'select':
             if (field.mode === 'multiple') {
-              acc[key] = value.map(v => v.value);
+              acc[key] = Array.isArray(value) ? value.map(v => v.value || v) : [];
             } else {
-              acc[key] = value.value;
+              acc[key] = value?.value || value;
             }
             break;
           
           case 'date':
           case 'datetime':
+          case 'time':
             acc[key] = value ? value.toISOString() : null;
             break;
           
+          case 'number':
+            acc[key] = typeof value === 'string' ? parseFloat(value) : value;
+            break;
+  
           case 'checkbox':
           case 'checkbox-group':
           case 'radio':
@@ -233,7 +252,7 @@ const FormComponent = ({
       }
       return acc;
     }, {});
-
+  
     onFormSubmit(formattedValues);
   };
 
@@ -242,6 +261,7 @@ const FormComponent = ({
   return (
     <div style={formSection.containerStyle}>
       <div style={formSection.wrapperStyle}>
+        {/* ... keep existing title section ... */}
         {formSection.title && (
           <div style={{ marginBottom: '24px' }}>
             <h2 style={{ 
@@ -282,13 +302,22 @@ const FormComponent = ({
               <Button
                 {...action.buttonProps}
                 loading={loading && action.buttonProps?.htmlType === 'submit'}
-                icon={action.buttonProps?.icon && getIcon(action.buttonProps.icon)}
+                icon={action.buttonProps?.icon}
+                theme={action.theme || 'light'}
+                variant={action.variant || 'filled'}
+                borderless={action.borderless}
+                iconPosition={action.iconPosition || 'left'}
+                tooltipTitle={action.tooltip}
+                width={action.width}
+                height={action.height}
+                customColors={action.customColors}
                 onClick={() => {
                   if (action.onClick?.type === 'modal') {
                     // Handle modal action
                   } else if (action.buttonProps?.htmlType === 'submit') {
                     form.submit();
                   }
+                  action.onClick?.handler?.();
                 }}
               >
                 {action.label}
@@ -308,23 +337,24 @@ const FormComponent = ({
                 <Button
                   key={index}
                   {...button.buttonProps}
+                  theme={button.theme || 'light'}
+                  variant={button.variant || 'outlined'}
+                  borderless={button.borderless}
+                  iconPosition={button.iconPosition || 'left'}
+                  tooltipTitle={button.tooltip}
+                  width={button.width}
+                  height={button.height}
+                  customColors={button.customColors}
+                  icon={button.buttonProps?.icon}
                   style={button.style}
-                  icon={button.buttonProps?.icon && getIcon(button.buttonProps.icon)}
                   aria-label={button.ariaLabel}
+                  onClick={button.onClick}
                 />
               ))}
             </div>
           )}
 
-          {formSection.links?.map((link, index) => (
-            <a 
-              key={index} 
-              href={link.url}
-              style={link.style}
-            >
-              {link.text}
-            </a>
-          ))}
+          {/* ... keep existing links section ... */}
         </Form>
       </div>
     </div>
@@ -341,12 +371,59 @@ FormComponent.propTypes = {
         containerStyle: PropTypes.object,
         wrapperStyle: PropTypes.object,
         fields: PropTypes.arrayOf(PropTypes.object),
-        actions: PropTypes.arrayOf(PropTypes.object),
+        actions: PropTypes.arrayOf(
+          PropTypes.shape({
+            label: PropTypes.string,
+            buttonProps: PropTypes.object,
+            style: PropTypes.object,
+            onClick: PropTypes.shape({
+              type: PropTypes.string,
+              handler: PropTypes.func
+            }),
+            theme: PropTypes.oneOf(['light', 'dark']),
+            variant: PropTypes.oneOf(['filled', 'outlined']),
+            borderless: PropTypes.bool,
+            iconPosition: PropTypes.oneOf(['left', 'right']),
+            tooltip: PropTypes.node,
+            width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            customColors: PropTypes.shape({
+              background: PropTypes.string,
+              text: PropTypes.string,
+              border: PropTypes.string,
+              hoverBackground: PropTypes.string,
+              hoverText: PropTypes.string,
+              hoverBorder: PropTypes.string
+            })
+          })
+        ),
         divider: PropTypes.object,
         links: PropTypes.arrayOf(PropTypes.object),
         socialButtonGroup: PropTypes.shape({
           style: PropTypes.object,
-          buttons: PropTypes.arrayOf(PropTypes.object)
+          buttons: PropTypes.arrayOf(
+            PropTypes.shape({
+              buttonProps: PropTypes.object,
+              style: PropTypes.object,
+              ariaLabel: PropTypes.string,
+              onClick: PropTypes.func,
+              theme: PropTypes.oneOf(['light', 'dark']),
+              variant: PropTypes.oneOf(['filled', 'outlined']),
+              borderless: PropTypes.bool,
+              iconPosition: PropTypes.oneOf(['left', 'right']),
+              tooltip: PropTypes.node,
+              width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+              height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+              customColors: PropTypes.shape({
+                background: PropTypes.string,
+                text: PropTypes.string,
+                border: PropTypes.string,
+                hoverBackground: PropTypes.string,
+                hoverText: PropTypes.string,
+                hoverBorder: PropTypes.string
+              })
+            })
+          )
         }),
         layout: PropTypes.shape({
           type: PropTypes.string,
