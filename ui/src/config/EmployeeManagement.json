@@ -194,6 +194,25 @@
             }
           },
           {
+            "title": "Status",
+            "dataIndex": "status",
+            "key": "status",
+            "width": "10%",
+            "render": {
+              "type": "switch",
+              "tooltip": "Toggle employee status",
+              "onChange": {
+                "api": {
+                  "endpoint": "/api/employees/status/{id}",
+                  "method": "PATCH"
+                },
+                "params": {
+                  "status": "{checked}"
+                }
+              }
+            }
+          },
+          {
             "title": "Actions",
             "key": "actions",
             "width": "10%",
@@ -428,6 +447,21 @@
             { "required": true, "message": "Please enter phone number" },
             { "pattern": "^[0-9]{10}$", "message": "Please enter a valid 10-digit phone number" }
           ]
+        },
+        {
+          "name": "status",
+          "type": "switch",
+          "label": "Status",
+          "tooltip": "Enable or disable employee",
+          "onChange": {
+            "api": {
+              "endpoint": "/api/employees/status/{id}",
+              "method": "PATCH"
+            },
+            "params": {
+              "status": "{checked}"
+            }
+          }
         }
       ],
       "actions": [
