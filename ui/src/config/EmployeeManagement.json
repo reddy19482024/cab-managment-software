@@ -324,6 +324,16 @@
           "rules": [{ "required": true, "message": "Please select role" }]
         },
         {
+          "name": "gender",
+          "type": "radio-group",
+          "label": "Gender",
+          "options": [
+            { "label": "Male", "value": "male" },
+            { "label": "Female", "value": "female" }
+          ],
+          "rules": [{ "required": true, "message": "Please select gender" }]
+        },        
+        {
           "name": "phone",
           "type": "text",
           "label": "Phone",
@@ -398,6 +408,16 @@
           ],
           "rules": [{ "required": true, "message": "Please select role" }]
         },
+        {
+          "name": "gender",
+          "type": "radio-group",
+          "label": "Gender",
+          "options": [
+            { "label": "Male", "value": "male" },
+            { "label": "Female", "value": "female" }
+          ],
+          "rules": [{ "required": true, "message": "Please select gender" }]
+        },        
         {
           "name": "phone",
           "type": "text",

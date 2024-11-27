@@ -96,47 +96,39 @@ const FormFieldRenderer = ({ field }) => {
           </Checkbox.Group>
         );
 
-      case 'radio':
-        return (
-          <Radio
-            {...field.radioProps}
-            theme={field.theme}
-            customColors={field.customColors}
-            size={field.size}
-            tooltipTitle={field.tooltip}
-            buttonStyle={field.buttonStyle}
-          >
-            {field.radioLabel || field.label}
-          </Radio>
-        );
+        case 'radio':
+          return (
+            <Radio
+              {...field.radioProps}
+              theme={field.theme}
+              customColors={field.customColors}
+              size={field.size}
+              tooltipTitle={field.tooltip}
+              buttonStyle={field.buttonStyle}
+            >
+              {field.radioLabel || field.label}
+            </Radio>
+          );
+  
+        case 'radio-group':
+          return (
+            <Radio.Group
+              {...field.radioGroupProps}
+              onChange={field.onChange}
+              value={field.value}
+              theme={field.theme}
+              customColors={field.customColors}
+              size={field.size}
+              buttonStyle={field.buttonStyle}
+            >
+              {field.options.map((option) => (
+                <Radio key={option.value} value={option.value}>
+                  {option.label}
+                </Radio>
+              ))}
+            </Radio.Group>
+          );
 
-      case 'radio-group':
-        return (
-          <Radio.Group
-            {...field.radioGroupProps}
-            options={field.options}
-            theme={field.theme}
-            customColors={field.customColors}
-            size={field.size}
-            buttonStyle={field.buttonStyle}
-          >
-            {field.children}
-          </Radio.Group>
-        );
-
-      case 'datetime':
-        return (
-          <DatePicker
-            showTime={{
-              format: 'HH:mm:ss',
-              defaultValue: moment('00:00:00', 'HH:mm:ss')
-            }}
-            size={field.size}
-            placeholder={field.placeholder}
-            format="YYYY-MM-DD HH:mm:ss"
-            style={{ width: '100%' }}
-          />
-        );
 
         case 'datetime':
           return (
