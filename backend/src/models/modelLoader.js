@@ -6,69 +6,195 @@ const loadConfig = require('../utils/configLoader');
 const apiConfigs = loadConfig();
 const models = {};
 
-// Log the loaded configuration to verify structure
-//console.log("Loaded API Configurations:", JSON.stringify(apiConfigs, null, 2));
+// Helper function to determine mongoose field type
+function getMongooseFieldType(fieldConfig) {
+  if (!fieldConfig || !fieldConfig?.type) return mongoose.Schema.Types.Mixed;
 
+  const type = String(fieldConfig.type || "").toLowerCase();
+  
+  switch (type) {
+    case 'uuid':
+      return { type: String, default: uuid.v4 };
+    case 'string':
+      const stringField = { type: String };
+      if (fieldConfig.enum) stringField.enum = fieldConfig.enum;
+      if (fieldConfig.required) stringField.required = true;
+      if (fieldConfig.unique) stringField.unique = true;
+      return stringField;
+    case 'float':
+    case 'integer':
+      return { 
+        type: Number, 
+        required: fieldConfig.required || false 
+      };
+    case 'datetime':
+    case 'date':
+    case 'time':
+      return { 
+        type: Date,
+        required: fieldConfig.required || false,
+        default: fieldConfig.default === 'CURRENT_TIMESTAMP' ? Date.now : undefined
+      };
+    case 'boolean':
+      return { 
+        type: Boolean, 
+        default: fieldConfig.default 
+      };
+    case 'array':
+      if (fieldConfig.items && fieldConfig.items.type === 'object') {
+        const subSchema = {};
+        Object.entries(fieldConfig.items.properties || {}).forEach(([key, value]) => {
+          subSchema[key] = getMongooseFieldType(value);
+        });
+        return [subSchema];
+      }
+      return [getMongooseFieldType(fieldConfig.items || { type: 'string' })];
+    case 'object':
+      if (fieldConfig.properties) {
+        const objectSchema = {};
+        Object.entries(fieldConfig.properties).forEach(([key, value]) => {
+          objectSchema[key] = getMongooseFieldType(value);
+        });
+        return objectSchema;
+      }
+      return mongoose.Schema.Types.Mixed;
+    default:
+      return mongoose.Schema.Types.Mixed;
+  }
+}
+
+// Function to extract fields from endpoints
+function extractFieldsFromEndpoints(endpoints, entityConfig) {
+  const fields = {};
+  
+  // Check each endpoint for fields in request_payload and response
+  Object.entries(endpoints).forEach(([endpointName, endpoint]) => {
+    // Extract from request_payload
+    if (endpoint.request_payload) {
+      Object.entries(endpoint.request_payload).forEach(([fieldName, fieldConfig]) => {
+        if (!fields[fieldName] || (!fields[fieldName].required && fieldConfig.required)) {
+          fields[fieldName] = {
+            ...fieldConfig,
+            // For enums, check if they exist in constants
+            enum: fieldConfig.enum && entityConfig.constants ? 
+                  getEnumFromConstants(fieldConfig.enum, entityConfig.constants) : 
+                  fieldConfig.enum
+          };
+        }
+      });
+    }
+
+    // Handle nested response objects
+    if (endpoint.response && typeof endpoint.response === 'object') {
+      Object.entries(endpoint.response).forEach(([fieldName, fieldValue]) => {
+        if (typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+          Object.entries(fieldValue).forEach(([nestedField, nestedType]) => {
+            const fullFieldName = `${fieldName}.${nestedField}`;
+            if (!fields[fullFieldName]) {
+              fields[fullFieldName] = { type: nestedType };
+            }
+          });
+        } else if (!fields[fieldName] && fieldValue !== 'UUID' && typeof fieldValue === 'string') {
+          fields[fieldName] = { type: fieldValue };
+        }
+      });
+    }
+  });
+
+  // Add password field for login functionality with proper configuration
+  if (endpoints.login) {
+    fields.password = { 
+      type: 'string',
+      required: true,
+      select: false // Password won't be returned in queries by default
+    };
+    
+    // Ensure email field has proper configuration for login
+    if (!fields.email) {
+      fields.email = { 
+        type: 'string',
+        required: true,
+        unique: true,
+        lowercase: true, // Ensure email is stored in lowercase
+        trim: true // Remove whitespace
+      };
+    } else {
+      fields.email = {
+        ...fields.email,
+        unique: true,
+        lowercase: true,
+        trim: true
+      };
+    }
+  }
+
+  return fields;
+}
+
+// Helper function to get enum values from constants
+function getEnumFromConstants(enumFields, constants) {
+  if (Array.isArray(enumFields)) return enumFields;
+  
+  for (const [groupName, groupConstants] of Object.entries(constants)) {
+    if (Array.isArray(groupConstants)) {
+      return groupConstants;
+    } else if (typeof groupConstants === 'object') {
+      return Object.keys(groupConstants);
+    }
+  }
+  return enumFields;
+}
+
+// Process each entity in the configuration
 Object.keys(apiConfigs).forEach(entityFileName => {
   const entityConfigFile = apiConfigs[entityFileName];
-
-  // Extract the actual entity key (e.g., "Driver", "Employee")
   const entityKey = Object.keys(entityConfigFile)[0];
   const entityConfig = entityConfigFile[entityKey];
 
-  // Log each entity's configuration
-  //console.log(`\nProcessing entity: "${entityKey}" from file: "${entityFileName}"`);
-  //console.log("Entity Config:", JSON.stringify(entityConfig, null, 2));
+  console.log(`Processing model: ${entityKey}`);
 
   if (!entityConfig.endpoints) {
     console.error(`The entity "${entityKey}" is missing the "endpoints" key.`);
     return;
   }
 
-  // Find the first endpoint that has a 'request_payload'
-  const endpointWithPayload = Object.values(entityConfig.endpoints).find(
-    endpoint => endpoint.request_payload
-  );
-
-  if (!endpointWithPayload) {
-    console.error(`The entity "${entityKey}" is missing any endpoint with "request_payload".`);
-    return;
-  }
-
-  const modelConfig = endpointWithPayload.request_payload;
-  console.log("Creating schema for model:", entityKey);
-  console.log("Model Configuration:", JSON.stringify(modelConfig, null, 2));
-
+  // Extract fields from endpoints
+  const fields = extractFieldsFromEndpoints(entityConfig.endpoints, entityConfig);
+  
   const schemaDefinition = {};
 
-  // Define schema based on request payload and log each field
-  Object.keys(modelConfig).forEach(fieldName => {
-    const fieldValue = modelConfig[fieldName];
-
-    // Determine field type based on the field value or description in JSON
-    let fieldType;
-    if (fieldValue === 'UUID') {
-      fieldType = { type: String, default: uuid.v4 };
-    } else if (fieldValue === 'datetime') {
-      fieldType = Date;
-    } else if (typeof fieldValue === 'string' && fieldValue === 'string') {
-      fieldType = String;
-    } else if (typeof fieldValue === 'number') {
-      fieldType = Number;
-    } else if (Array.isArray(fieldValue)) {
-      fieldType = [String]; // Assuming array of strings as default
+  // Process each field
+  Object.entries(fields).forEach(([fieldName, fieldConfig]) => {
+    // Handle foreign keys
+    if (fieldConfig.foreign_key) {
+      const [refModel] = fieldConfig.foreign_key.split('.');
+      schemaDefinition[fieldName] = {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: refModel,
+        required: fieldConfig.required || false
+      };
     } else {
-      fieldType = mongoose.Schema.Types.Mixed;
+      schemaDefinition[fieldName] = getMongooseFieldType(fieldConfig);
     }
-
-    schemaDefinition[fieldName] = fieldType;
-    console.log(`Adding field: ${fieldName}, Type: ${JSON.stringify(fieldType)}`);
   });
 
-  const schema = new mongoose.Schema(schemaDefinition, { timestamps: true });
-  models[entityKey] = mongoose.model(entityKey, schema);
+  // Create schema with timestamps
+  const schema = new mongoose.Schema(schemaDefinition, { 
+    timestamps: true,
+    collection: entityKey.toLowerCase() + 's' // Add 's' for plural collection names
+  });
 
-  console.log(`Model for "${entityKey}" created successfully.`);
+  // Add compound indexes for better query performance
+  if (entityKey === 'Employee') {
+    schema.index({ email: 1 }, { unique: true });
+    schema.index({ employee_code: 1 }, { unique: true });
+    schema.index({ status: 1, role: 1 });
+    schema.index({ department: 1, status: 1 });
+  }
+
+  // Create and store the model
+  models[entityKey] = mongoose.model(entityKey, schema);
+  console.log(`Model "${entityKey}" created successfully with fields:`, Object.keys(schemaDefinition));
 });
 
 module.exports = models;

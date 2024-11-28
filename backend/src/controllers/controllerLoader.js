@@ -3,12 +3,11 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-// Utility function to check if an endpoint is defined in the JSON config
+// Existing utility functions remain the same
 const isEndpointDefined = (entityConfig, endpointName) => {
   return entityConfig.endpoints && entityConfig.endpoints[endpointName];
 };
 
-// Utility function to get endpoint by HTTP method and path
 const getEndpointByMethod = (entityConfig, method, path) => {
   const endpoints = entityConfig.endpoints;
   return Object.keys(endpoints).find(endpointName => {
@@ -18,7 +17,6 @@ const getEndpointByMethod = (entityConfig, method, path) => {
   });
 };
 
-// Utility to get the ID param name from the path
 const getIdParamName = (path) => {
   const match = path.match(/{(\w+)_id}/);
   return match ? match[1] + "_id" : "id";
@@ -28,7 +26,7 @@ const createController = (entityName, entityConfig) => {
   const Model = models[entityName];
 
   const controller = {
-    // Standard CRUD operations
+    // Existing CRUD operations remain the same
     async create(req, res) {
       try {
         const newRecord = await Model.create(req.body);
@@ -121,7 +119,7 @@ const createController = (entityName, entityConfig) => {
         
         // Handle search parameters
         if (endpoint.params?.search && req.query.search) {
-          const searchFields = endpoint.params.search.split(',').map(field => field.trim());
+          const searchFields = endpoint.params.search.description.split(',').map(field => field.trim());
           filters.$or = searchFields.map(field => ({
             [field]: { $regex: req.query.search, $options: 'i' }
           }));
@@ -137,95 +135,155 @@ const createController = (entityName, entityConfig) => {
           });
         }
 
-        // Handle sorting with new format
+        // Handle sorting
         let sort = {};
         if (req.query.sort_by) {
           const sortField = req.query.sort_by;
           const sortOrder = req.query.sort_order === 'desc' ? -1 : 1;
-          if (endpoint.params?.sort.includes(sortField)) {
-            sort[sortField] = sortOrder;
-          }
-        } else if (endpoint.params?.sort && req.query.sort) {
-          // Keep backward compatibility for old sort parameter
-          const [field, order] = req.query.sort.split(':');
-          if (endpoint.params.sort.includes(field)) {
-            sort[field] = order === 'desc' ? -1 : 1;
-          }
+          sort[sortField] = sortOrder;
         }
 
         // Handle pagination
         const page = parseInt(req.query.page) || 1;
-        const limit = Math.min(parseInt(req.query.limit) || 10, 100); // Max 100 records per page
+        const limit = Math.min(parseInt(req.query.limit) || 10, 100);
         const skip = (page - 1) * limit;
 
-        // Execute query with pagination
         const records = await Model.find(filters)
           .sort(sort)
           .skip(skip)
           .limit(limit)
           .select('-password');
 
-      // Total count for pagination
-      const total = await Model.countDocuments(filters);
-      res.json({
-        message: "Records retrieved successfully",
-        data: records
-      });
-     } catch (error) {
+        const total = await Model.countDocuments(filters);
+        res.json({
+          message: "Records retrieved successfully",
+          data: records,
+          pagination: {
+            current_page: page,
+            total_pages: Math.ceil(total / limit),
+            total_records: total,
+            has_next: page * limit < total,
+            has_previous: page > 1
+          }
+        });
+      } catch (error) {
         res.status(400).json({ error: error.message });
       }
     },
 
-    // Custom operations
+    // Updated login handler
     async login(req, res) {
       try {
         const { email, password } = req.body;
 
-        const user = await Model.findOne({ email });
-        if (!user || user.password !== password) {
+        // Find user by email and explicitly select password field
+        const user = await Model.findOne({ email: email?.toLowerCase() }).select('+password');
+        
+        console.log("Login attempt for:", email);
+        
+        if (!user) {
           return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        const expiresIn = process.env.JWT_EXPIRES_IN || "1h";
+        // Check if user has required fields
+        if (!user.password || !user.role) {
+          console.error("User data incomplete:", user);
+          return res.status(500).json({ message: "User data incomplete" });
+        }
+
+        // Basic password validation
+        if (user.password !== password) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        // Get role permissions from constants
+        let permissions = [];
+        if (entityConfig.constants?.roles && user.role) {
+          permissions = entityConfig.constants.roles[user.role]?.permissions || [];
+        }
+
         const token = jwt.sign(
           { 
             id: user._id,
             email: user.email,
-            role: user.role
+            role: user.role,
+            permissions
           },
           process.env.JWT_SECRET,
-          { expiresIn }
+          { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
         );
 
+        // Format response according to the endpoint specification
         res.status(200).json({
-          message: "Login successful",
           token,
-          email: user.email
+          employee: {
+            employee_id: user._id,
+            name: user.first_name && user.last_name ? 
+                  `${user.first_name} ${user.last_name}` : user.name || user.email,
+            role: user.role,
+            permissions
+          }
         });
       } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Login error:', error);
+        res.status(400).json({ 
+          error: error.message,
+          details: "An error occurred during login. Please try again."
+        });
       }
     },
 
+    // Updated register handler
     async register(req, res) {
       try {
+        // Ensure required fields are present
+        const requiredFields = ['email', 'password', 'first_name', 'last_name', 'role'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
+          return res.status(400).json({
+            error: `Missing required fields: ${missingFields.join(', ')}`
+          });
+        }
+
+        // Convert email to lowercase
+        req.body.email = req.body.email?.toLowerCase();
+
+        // Create new user
         const newRecord = await Model.create(req.body);
+        
+        // Remove password from response
+        const response = newRecord.toObject();
+        delete response.password;
+
         res.status(201).json({
           message: "Registration successful",
-          data: newRecord
+          data: response
         });
       } catch (error) {
+        console.error('Registration error:', error);
+        if (error.code === 11000) {
+          return res.status(400).json({ 
+            error: "Email already exists"
+          });
+        }
         res.status(400).json({ error: error.message });
       }
     }
   };
 
-  // Add dynamically named methods based on endpoint names
+  // Modified dynamic endpoint handler
   Object.keys(entityConfig.endpoints).forEach(endpointName => {
     if (!controller[endpointName]) {
       controller[endpointName] = async (req, res) => {
-        const method = entityConfig.endpoints[endpointName].method.toUpperCase();
+        const endpoint = entityConfig.endpoints[endpointName];
+        const method = endpoint.method.toUpperCase();
         
+        // Handle special cases first
+        if (endpointName === 'login') {
+          return controller.login(req, res);
+        }
+
         switch (method) {
           case 'GET':
             if (req.params && Object.keys(req.params).length > 0) {

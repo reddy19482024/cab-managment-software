@@ -58,34 +58,6 @@
         "attendance": "Regular availability for duty"
       }
     },
-    "rules": {
-      "working_hours": {
-        "max_daily": 12,
-        "max_weekly": 72,
-        "min_rest_between_shifts": 8
-      },
-      "verification_requirements": {
-        "minimum_documents": [
-          "license_scan",
-          "background_verification",
-          "police_verification"
-        ],
-        "license_expiry_warning": 30,
-        "document_renewal_reminder": 15
-      },
-      "rating_system": {
-        "minimum_rating": 3.5,
-        "warning_threshold": 3.8,
-        "excellent_threshold": 4.5,
-        "rating_calculation": "Average of last 50 trips"
-      },
-      "assignment_rules": {
-        "max_consecutive_trips": 5,
-        "required_break_after_hours": 4,
-        "max_daily_distance": 300,
-        "zone_restrictions": "Based on license type"
-      }
-    },
     "endpoints": {
         "register": {
           "path": "/api/drivers/register",
