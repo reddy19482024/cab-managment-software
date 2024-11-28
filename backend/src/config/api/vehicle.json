@@ -1,127 +1,188 @@
 {
   "Vehicle": {
-    "endpoints": {
-      "create": {
-        "path": "/api/vehicles",
-        "method": "POST",
-        "route_type": "private",
-        "description": "Add a new vehicle to the fleet",
-        "request_payload": {
-          "registration_number": "string",
-          "brand": "string",
-          "model": "string",
-          "status": "string",
-          "seats": "integer"
+    "constants": {
+      "vehicle_types": {
+        "sedan": {
+          "description": "4-door car suitable for 4 passengers",
+          "typical_seats": 4,
+          "luggage_capacity": "small"
         },
-        "response": {
-          "vehicle_id": "uuid-generated-id",
-          "registration_number": "ABC1234",
-          "brand": "Toyota",
-          "model": "Camry",
-          "status": "available",
-          "seats": 4,
-          "created_at": "timestamp"
-        }
-      },
-      "read": {
-        "path": "/api/vehicles/{vehicle_id}",
-        "method": "GET",
-        "route_type": "private",
-        "description": "Retrieve details of a specific vehicle by ID",
-        "response": {
-          "vehicle_id": "uuid-vehicle-id",
-          "registration_number": "ABC1234",
-          "brand": "Toyota",
-          "model": "Camry",
-          "status": "available",
-          "seats": 4,
-          "created_at": "timestamp"
-        }
-      },
-      "update": {
-        "path": "/api/vehicles/{vehicle_id}",
-        "method": "PUT",
-        "route_type": "private",
-        "description": "Update an existing vehicle",
-        "request_payload": {
-          "registration_number": "string",
-          "brand": "string",
-          "model": "string",
-          "status": "string",
-          "seats": "integer"
+        "suv": {
+          "description": "Sport utility vehicle for comfort and space",
+          "typical_seats": 7,
+          "luggage_capacity": "large"
         },
-        "response": {
-          "vehicle_id": "uuid-vehicle-id",
-          "registration_number": "ABC1234",
-          "brand": "Toyota",
-          "model": "Camry",
-          "status": "maintenance",
-          "seats": 5,
-          "updated_at": "timestamp"
+        "minivan": {
+          "description": "Large vehicle for group transport",
+          "typical_seats": 8,
+          "luggage_capacity": "extra-large"
         }
       },
-      "delete": {
-        "path": "/api/vehicles/{vehicle_id}",
-        "method": "DELETE",
-        "route_type": "private",
-        "description": "Delete a vehicle by ID",
-        "response": {
-          "message": "Vehicle deleted successfully",
-          "vehicle_id": "uuid-vehicle-id"
-        }
+      "vehicle_statuses": {
+        "available": "Ready for assignment",
+        "on-duty": "Currently assigned to a trip",
+        "maintenance": "Under scheduled maintenance",
+        "inactive": "Temporarily out of service"
       },
-      "list": {
-        "path": "/api/vehicles",
-        "method": "GET",
-        "route_type": "private",
-        "description": "List all vehicles with filtering options",
-        "params": {
-          "search": "registration_number, brand, model",
-          "sort": "status, seats",
-          "filter": "status",
-          "page": {
-            "type": "integer",
-            "description": "Page number (starts from 1)",
-            "default": 1
+      "fuel_types": {
+        "petrol": "Regular petrol/gasoline vehicle",
+        "diesel": "Diesel-powered vehicle",
+        "cng": "Compressed Natural Gas vehicle",
+        "electric": "Battery-powered electric vehicle"
+      },
+      "maintenance_types": {
+        "routine": "Regular scheduled maintenance",
+        "repair": "Repairs for specific issues",
+        "inspection": "Safety and compliance checks"
+      }
+    },
+      "endpoints": {
+        "create": {
+          "path": "/api/vehicles",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Add a new vehicle to the fleet",
+          "request_payload": {
+            "vendor_id": { "type": "UUID", "required": true },
+            "registration_number": { "type": "string", "required": true, "unique": true },
+            "type": { "type": "string", "enum": ["sedan", "suv", "minivan"], "required": true },
+            "brand": { "type": "string", "required": true },
+            "model": { "type": "string", "required": true },
+            "capacity": { "type": "integer", "required": true },
+            "fuel_type": { "type": "string", "enum": ["petrol", "diesel", "cng", "electric"], "required": true },
+            "status": { "type": "string", "enum": ["available", "on-duty", "maintenance", "inactive"], "required": true },
+            "insurance_expiry": { "type": "date", "required": true },
+            "last_maintenance": { "type": "date" }
           },
-          "limit": {
-            "type": "integer",
-            "description": "Number of records per page",
-            "default": 10,
-            "max": 100
-          },
-          "sort_by": {
+          "response": {
+            "vehicle_id": "UUID",
+            "registration_number": "string",
             "type": "string",
-            "enum": ["registration_number", "status", "created_at"],
-            "default": "registration_number"
-          },
-          "sort_order": {
-            "type": "string",
-            "enum": ["asc", "desc"],
-            "default": "asc"
+            "brand": "string",
+            "model": "string",
+            "status": "string",
+            "created_at": "timestamp"
           }
         },
-        "response": [
-          {
-            "vehicle_id": "uuid-1",
-            "registration_number": "ABC1234",
-            "brand": "Toyota",
-            "model": "Camry",
-            "status": "available",
-            "seats": 4,
-            "created_at": "2024-11-17T09:00:00Z"
-          },
-          {
-            "vehicle_id": "uuid-2",
-            "registration_number": "DEF5678",
-            "brand": "Honda",
-            "model": "Civic",
-            "status": "maintenance",
-            "seats": 5,
-            "created_at": "2024-11-17T09:00:00Z"
+        "read": {
+          "path": "/api/vehicles/{vehicle_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Get detailed vehicle information",
+          "response": {
+            "vehicle_id": "UUID",
+            "vendor_id": "UUID",
+            "registration_number": "string",
+            "type": "string",
+            "brand": "string",
+            "model": "string",
+            "capacity": "integer",
+            "fuel_type": "string",
+            "status": "string",
+            "insurance_expiry": "date",
+            "last_maintenance": "date",
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
           }
-        ]
+        },
+        "update": {
+          "path": "/api/vehicles/{vehicle_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update vehicle details",
+          "request_payload": {
+            "type": { "type": "string", "enum": ["sedan", "suv", "minivan"] },
+            "brand": { "type": "string" },
+            "model": { "type": "string" },
+            "capacity": { "type": "integer" },
+            "fuel_type": { "type": "string", "enum": ["petrol", "diesel", "cng", "electric"] },
+            "status": { "type": "string", "enum": ["available", "on-duty", "maintenance", "inactive"] },
+            "insurance_expiry": { "type": "date" },
+            "last_maintenance": { "type": "date" }
+          },
+          "response": {
+            "vehicle_id": "UUID",
+            "message": "Vehicle updated successfully",
+            "updated_at": "timestamp"
+          }
+        },
+        "list": {
+          "path": "/api/vehicles",
+          "method": "GET",
+          "route_type": "private",
+          "description": "List vehicles with filtering options",
+          "params": {
+            "search": { 
+              "type": "string",
+              "description": "Search in registration_number, brand, model"
+            },
+            "vendor_id": { "type": "UUID" },
+            "type": { 
+              "type": "string",
+              "enum": ["sedan", "suv", "minivan"]
+            },
+            "status": {
+              "type": "string",
+              "enum": ["available", "on-duty", "maintenance", "inactive"]
+            },
+            "fuel_type": {
+              "type": "string",
+              "enum": ["petrol", "diesel", "cng", "electric"]
+            },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            },
+            "sort_by": {
+              "type": "string",
+              "enum": ["registration_number", "brand", "status", "created_at"],
+              "default": "registration_number"
+            },
+            "sort_order": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "asc"
+            }
+          },
+          "response": {
+            "data": [{
+              "vehicle_id": "UUID",
+              "vendor_id": "UUID",
+              "registration_number": "string",
+              "type": "string",
+              "brand": "string",
+              "model": "string",
+              "capacity": "integer",
+              "fuel_type": "string",
+              "status": "string",
+              "insurance_expiry": "date",
+              "last_maintenance": "date"
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
+          }
+        },
+        "delete": {
+          "path": "/api/vehicles/{vehicle_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete a vehicle",
+          "response": {
+            "message": "string",
+            "vehicle_id": "UUID"
+          }
+        }
       }
     }
   }
-}

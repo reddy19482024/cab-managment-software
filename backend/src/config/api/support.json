@@ -1,0 +1,213 @@
+{
+    "Support": {
+      "constants": {
+        "ticket_types": {
+          "complaint": "Customer complaint about service",
+          "request": "Service request or inquiry",
+          "incident": "Incident report during service",
+          "feedback": "General feedback about service"
+        },
+        "priority_levels": {
+          "low": "Non-urgent issues",
+          "medium": "Standard priority issues",
+          "high": "Urgent issues requiring quick response",
+          "urgent": "Critical issues needing immediate attention"
+        },
+        "ticket_statuses": {
+          "open": "Ticket is newly created",
+          "assigned": "Ticket assigned to support staff",
+          "in-progress": "Ticket is being worked on",
+          "resolved": "Issue has been resolved",
+          "closed": "Ticket has been closed"
+        },
+        "reporter_types": {
+          "employee": "Company employee",
+          "driver": "Transport service driver"
+        }
+      },
+        "endpoints": {
+          "create": {
+            "path": "/api/support",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Create a new support ticket",
+            "request_payload": {
+              "reported_by": { "type": "UUID", "required": true },
+              "reporter_type": { "type": "string", "enum": ["employee", "driver"], "required": true },
+              "type": { "type": "string", "enum": ["complaint", "request", "incident", "feedback"], "required": true },
+              "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"], "required": true },
+              "subject": { "type": "string", "required": true },
+              "description": { "type": "string", "required": true },
+              "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id" },
+              "assigned_to": { "type": "UUID", "foreign_key": "Employee.employee_id" },
+              "status": { "type": "string", "enum": ["open", "assigned", "in-progress", "resolved", "closed"], "required": true },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "file_name": { "type": "string" },
+                    "file_type": { "type": "string" },
+                    "file_url": { "type": "string" }
+                  }
+                }
+              }
+            },
+            "response": {
+              "ticket_id": "UUID",
+              "type": "string",
+              "status": "string",
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/support/{ticket_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Get support ticket details",
+            "response": {
+              "ticket_id": "UUID",
+              "reported_by": "UUID",
+              "reporter_type": "string",
+              "type": "string",
+              "priority": "string",
+              "subject": "string",
+              "description": "string",
+              "trip_id": "UUID",
+              "assigned_to": "UUID",
+              "status": "string",
+              "resolution": "string",
+              "resolved_at": "datetime",
+              "attachments": [{
+                "file_name": "string",
+                "file_type": "string",
+                "file_url": "string"
+              }],
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/support/{ticket_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update support ticket details",
+            "request_payload": {
+              "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+              "assigned_to": { "type": "UUID" },
+              "status": { "type": "string", "enum": ["open", "assigned", "in-progress", "resolved", "closed"] },
+              "resolution": { "type": "string" },
+              "resolved_at": { "type": "datetime" }
+            },
+            "response": {
+              "ticket_id": "UUID",
+              "message": "Ticket updated successfully",
+              "updated_at": "timestamp"
+            }
+          },
+          "addComment": {
+            "path": "/api/support/{ticket_id}/comments",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Add comment to support ticket",
+            "request_payload": {
+              "comment": { "type": "string", "required": true },
+              "added_by": { "type": "UUID", "required": true },
+              "attachments": [{
+                "file_name": { "type": "string" },
+                "file_type": { "type": "string" },
+                "file_url": { "type": "string" }
+              }]
+            },
+            "response": {
+              "comment_id": "UUID",
+              "ticket_id": "UUID",
+              "created_at": "timestamp"
+            }
+          },
+          "list": {
+            "path": "/api/support",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List support tickets with filtering options",
+            "params": {
+              "reported_by": { "type": "UUID" },
+              "reporter_type": { "type": "string", "enum": ["employee", "driver"] },
+              "type": { "type": "string", "enum": ["complaint", "request", "incident", "feedback"] },
+              "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+              "status": { "type": "string", "enum": ["open", "assigned", "in-progress", "resolved", "closed"] },
+              "assigned_to": { "type": "UUID" },
+              "trip_id": { "type": "UUID" },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100
+              },
+              "sort_by": {
+                "type": "string",
+                "enum": ["created_at", "priority", "status", "type"],
+                "default": "created_at"
+              },
+              "sort_order": {
+                "type": "string",
+                "enum": ["asc", "desc"],
+                "default": "desc"
+              }
+            },
+            "response": {
+              "data": [{
+                "ticket_id": "UUID",
+                "reported_by": "UUID",
+                "reporter_type": "string",
+                "type": "string",
+                "priority": "string",
+                "subject": "string",
+                "status": "string",
+                "assigned_to": "UUID",
+                "created_at": "timestamp"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          },
+          "getComments": {
+            "path": "/api/support/{ticket_id}/comments",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Get comments for a support ticket",
+            "response": {
+              "data": [{
+                "comment_id": "UUID",
+                "ticket_id": "UUID",
+                "comment": "string",
+                "added_by": "UUID",
+                "attachments": [{
+                  "file_name": "string",
+                  "file_type": "string",
+                  "file_url": "string"
+                }],
+                "created_at": "timestamp"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  

@@ -1,198 +1,327 @@
 {
   "Driver": {
+    "constants": {
+      "driver_statuses": {
+        "available": "Driver is available for new assignments",
+        "on-duty": "Driver is currently on an assigned trip",
+        "on-break": "Driver is on a scheduled break",
+        "inactive": "Driver is not available for assignments"
+      },
+      "verification_statuses": {
+        "pending": "Document verification is in progress",
+        "verified": "All documents have been verified",
+        "rejected": "Document verification failed",
+        "expired": "One or more documents have expired"
+      },
+      "document_types": {
+        "license_scan": "Driver's license scanned copy",
+        "background_verification": "Background verification report", 
+        "police_verification": "Police verification certificate",
+        "medical_certificate": "Medical fitness certificate",
+        "training_certificate": "Driver training completion certificate",
+        "insurance_document": "Personal accident insurance",
+        "address_proof": "Proof of residence"
+      },
+      "rating_criteria": {
+        "punctuality": "Driver's timely arrival and adherence to schedule",
+        "behavior": "Professional conduct and communication",
+        "driving_safety": "Safe driving practices and rule adherence", 
+        "vehicle_maintenance": "Vehicle cleanliness and maintenance",
+        "route_adherence": "Following assigned routes and stops"
+      },
+      "break_types": {
+        "lunch": {
+          "duration": 30,
+          "preferred_time": "12:00-14:00"
+        },
+        "tea": {
+          "duration": 15,
+          "preferred_time": "16:00-17:00"
+        },
+        "rest": {
+          "duration": 20,
+          "max_per_shift": 2
+        }
+      },
+      "notification_preferences": {
+        "trip_assignment": "Notification for new trip assignments",
+        "schedule_change": "Changes in scheduled trips", 
+        "document_expiry": "Upcoming document expiration alerts",
+        "emergency_alerts": "Emergency or urgent notifications",
+        "maintenance_reminders": "Vehicle maintenance due alerts"
+      },
+      "performance_metrics": {
+        "on_time_arrival": "Percentage of on-time arrivals",
+        "trip_completion": "Successful trip completion rate",
+        "passenger_satisfaction": "Average passenger rating",
+        "safety_score": "Based on driving behavior analytics",
+        "attendance": "Regular availability for duty"
+      }
+    },
+    "rules": {
+      "working_hours": {
+        "max_daily": 12,
+        "max_weekly": 72,
+        "min_rest_between_shifts": 8
+      },
+      "verification_requirements": {
+        "minimum_documents": [
+          "license_scan",
+          "background_verification",
+          "police_verification"
+        ],
+        "license_expiry_warning": 30,
+        "document_renewal_reminder": 15
+      },
+      "rating_system": {
+        "minimum_rating": 3.5,
+        "warning_threshold": 3.8,
+        "excellent_threshold": 4.5,
+        "rating_calculation": "Average of last 50 trips"
+      },
+      "assignment_rules": {
+        "max_consecutive_trips": 5,
+        "required_break_after_hours": 4,
+        "max_daily_distance": 300,
+        "zone_restrictions": "Based on license type"
+      }
+    },
     "endpoints": {
-      "register": {
-        "path": "/api/drivers/register",
-        "method": "POST",
-        "route_type": "private",
-        "description": "Register a new driver",
-        "request_payload": {
-          "name": "string",
-          "mobile": "string",
-          "license_number": "string",
-          "status": "string",
-          "assigned_vehicle": "UUID"
-        },
-        "response": {
-          "driver_id": "uuid-generated-id",
-          "name": "Jane Doe",
-          "mobile": "0987654321",
-          "license_number": "LIC123456",
-          "status": "available",
-          "assigned_vehicle": "uuid-vehicle-id",
-          "created_at": "timestamp"
-        }
-      },
-      "requestOtp": {
-        "path": "/api/drivers/request-otp",
-        "method": "POST",
-        "route_type": "public",
-        "description": "Request OTP for driver login",
-        "request_payload": {
-          "mobile": "0987654321"
-        },
-        "response": {
-          "message": "OTP sent to your mobile number"
-        }
-      },
-      "verifyOtp": {
-        "path": "/api/drivers/verify-otp",
-        "method": "POST",
-        "route_type": "public",
-        "description": "Verify OTP for driver login",
-        "request_payload": {
-          "mobile": "0987654321",
-          "otp": "123456"
-        },
-        "response": {
-          "token": "jwt-token-for-authentication"
-        }
-      },
-      "create": {
-        "path": "/api/drivers",
-        "method": "POST",
-        "route_type": "private",
-        "description": "Create a new driver",
-        "request_payload": {
-          "name": "string",
-          "mobile": "string",
-          "license_number": "string",
-          "status": {
-            "type": "string",
-            "enum": ["available", "on-duty", "inactive"]
+        "register": {
+          "path": "/api/drivers/register",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Register a new driver",
+          "request_payload": {
+            "name": { "type": "string", "required": true },
+            "mobile": { "type": "string", "required": true, "unique": true },
+            "email": { "type": "string", "unique": true },
+            "license_number": { "type": "string", "required": true },
+            "license_expiry": { "type": "date", "required": true },
+            "documents": {
+              "type": "object",
+              "properties": {
+                "license_scan": { "type": "string" },
+                "background_verification": { "type": "string" },
+                "police_verification": { "type": "string" }
+              }
+            },
+            "status": {
+              "type": "string",
+              "enum": ["available", "on-duty", "inactive", "on-break"],
+              "default": "available"
+            },
+            "assigned_vehicle": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id" }
           },
-          "assigned_vehicle": {
-            "type": "UUID",
-            "foreign_key": "Vehicle.vehicle_id",
-            "description": "ID of the assigned vehicle"
+          "response": {
+            "driver_id": "UUID",
+            "name": "string",
+            "mobile": "string",
+            "email": "string",
+            "license_number": "string",
+            "license_expiry": "date",
+            "status": "string",
+            "verification_status": "string",
+            "assigned_vehicle": "UUID",
+            "created_at": "timestamp"
           }
         },
-        "response": {
-          "driver_id": "uuid-generated-id",
-          "name": "John Smith",
-          "mobile": "1234567890",
-          "license_number": "LIC654321",
-          "status": "available",
-          "assigned_vehicle": "uuid-vehicle-id",
-          "created_at": "timestamp"
-        }
-      },
-      "read": {
-        "path": "/api/drivers/{driver_id}",
-        "method": "GET",
-        "route_type": "private",
-        "description": "Retrieve details of a specific driver by ID",
-        "response": {
-          "driver_id": "uuid-driver-id",
-          "name": "John Smith",
-          "mobile": "1234567890",
-          "license_number": "LIC654321",
-          "status": "available",
-          "assigned_vehicle": {
-            "vehicle_id": "uuid-vehicle-id",
-            "registration_number": "ABC123",
-            "brand": "Toyota",
-            "model": "Camry",
-            "seats": 4
+        "requestOtp": {
+          "path": "/api/drivers/request-otp",
+          "method": "POST",
+          "route_type": "public",
+          "description": "Request OTP for driver login",
+          "request_payload": {
+            "mobile": { "type": "string", "required": true }
           },
-          "created_at": "timestamp"
-        }
-      },
-      "update": {
-        "path": "/api/drivers/{driver_id}",
-        "method": "PUT",
-        "route_type": "private",
-        "description": "Update an existing driver",
-        "request_payload": {
-          "name": "string",
-          "mobile": "string",
-          "license_number": "string",
-          "status": {
-            "type": "string",
-            "enum": ["available", "on-duty", "inactive"]
-          },
-          "assigned_vehicle": {
-            "type": "UUID",
-            "foreign_key": "Vehicle.vehicle_id",
-            "description": "ID of the assigned vehicle"
+          "response": {
+            "message": "string",
+            "expiry": "timestamp"
           }
         },
-        "response": {
-          "driver_id": "uuid-driver-id",
-          "name": "John Doe",
-          "mobile": "1234567890",
-          "license_number": "LIC123654",
-          "status": "on-duty",
-          "assigned_vehicle": "uuid-vehicle-id",
-          "updated_at": "timestamp"
+        "verifyOtp": {
+          "path": "/api/drivers/verify-otp",
+          "method": "POST",
+          "route_type": "public",
+          "description": "Verify OTP for driver login",
+          "request_payload": {
+            "mobile": { "type": "string", "required": true },
+            "otp": { "type": "string", "required": true }
+          },
+          "response": {
+            "token": "string",
+            "driver": {
+              "driver_id": "UUID",
+              "name": "string", 
+              "status": "string",
+              "verification_status": "string"
+            }
+          }
+        },
+        "updateLocation": {
+          "path": "/api/drivers/{driver_id}/location",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Update driver's current location",
+          "request_payload": {
+            "latitude": { "type": "float", "required": true },
+            "longitude": { "type": "float", "required": true }
+          },
+          "response": {
+            "message": "string",
+            "timestamp": "datetime"
+          }
+        },
+        "updateStatus": {
+          "path": "/api/drivers/{driver_id}/status",
+          "method": "PUT",
+          "route_type": "private", 
+          "description": "Update driver's status",
+          "request_payload": {
+            "status": {
+              "type": "string",
+              "enum": ["available", "on-duty", "inactive", "on-break"],
+              "required": true
+            }
+          },
+          "response": {
+            "driver_id": "UUID",
+            "status": "string",
+            "updated_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/drivers/{driver_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Retrieve details of a specific driver",
+          "response": {
+            "driver_id": "UUID",
+            "name": "string",
+            "mobile": "string",
+            "email": "string", 
+            "license_number": "string",
+            "license_expiry": "date",
+            "status": "string",
+            "verification_status": "string",
+            "rating": "float",
+            "total_trips": "integer",
+            "current_location": {
+              "latitude": "float",
+              "longitude": "float",
+              "last_updated": "timestamp"
+            },
+            "assigned_vehicle": {
+              "vehicle_id": "UUID",
+              "registration_number": "string",
+              "brand": "string",
+              "model": "string",
+              "type": "string",
+              "status": "string"
+            }
+          }
+        },
+        "update": {
+          "path": "/api/drivers/{driver_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update driver details",
+          "request_payload": {
+            "name": { "type": "string" },
+            "email": { "type": "string" },
+            "mobile": { "type": "string" },
+            "license_number": { "type": "string" },
+            "license_expiry": { "type": "date" },
+            "documents": {
+              "type": "object",
+              "properties": {
+                "license_scan": { "type": "string" },
+                "background_verification": { "type": "string" },
+                "police_verification": { "type": "string" }
+              }
+            }
+          },
+          "response": {
+            "driver_id": "UUID",
+            "name": "string",
+            "updated_at": "timestamp"
+          }
+        },
+        "list": {
+          "path": "/api/drivers",
+          "method": "GET",
+          "route_type": "private",
+          "description": "List all drivers with filtering options",
+          "params": {
+            "search": {
+              "type": "string",
+              "description": "Search in name, mobile, license_number, email"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["available", "on-duty", "inactive", "on-break"]
+            },
+            "verification_status": {
+              "type": "string", 
+              "enum": ["pending", "verified", "rejected"]
+            },
+            "assigned_vehicle": { "type": "UUID" },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            },
+            "sort_by": {
+              "type": "string",
+              "enum": ["name", "status", "rating", "total_trips", "created_at"],
+              "default": "name"
+            },
+            "sort_order": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "asc"
+            }
+          },
+          "response": {
+            "data": [{
+              "driver_id": "UUID",
+              "name": "string",
+              "mobile": "string",
+              "email": "string",
+              "license_number": "string",
+              "status": "string",
+              "verification_status": "string",
+              "rating": "float",
+              "total_trips": "integer",
+              "assigned_vehicle": {
+                "vehicle_id": "UUID",
+                "registration_number": "string"
+              }
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
+          }
+        },
+        "delete": {
+          "path": "/api/drivers/{driver_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete a driver",
+          "response": {
+            "message": "string",
+            "driver_id": "UUID"
+          }
         }
-      },
-      "delete": {
-        "path": "/api/drivers/{driver_id}",
-        "method": "DELETE",
-        "route_type": "private",
-        "description": "Delete a driver by ID",
-        "response": {
-          "message": "Driver deleted successfully",
-          "driver_id": "uuid-driver-id"
-        }
-      },
-            "list": {
-              "path": "/api/drivers",
-              "method": "GET",
-              "route_type": "private",
-              "description": "List all drivers with filtering options",
-              "params": {
-                "search": "name, mobile, license_number",
-                "sort": "name, status",
-                "filter": "status, assigned_vehicle",
-                "page": {
-                  "type": "integer",
-                  "description": "Page number (starts from 1)",
-                  "default": 1
-                },
-                "limit": {
-                  "type": "integer",
-                  "description": "Number of records per page",
-                  "default": 10,
-                  "max": 100
-                },
-                "sort_by": {
-                  "type": "string",
-                  "enum": ["name", "status", "created_at"],
-                  "default": "name"
-                },
-                "sort_order": {
-                  "type": "string",
-                  "enum": ["asc", "desc"],
-                  "default": "asc"
-                }
-              },
-              "response": [
-                {
-                  "driver_id": "uuid-1",
-                  "name": "Jane Doe",
-                  "mobile": "0987654321",
-                  "license_number": "LIC123456", 
-                  "status": "available",
-                  "assigned_vehicle": {
-                    "vehicle_id": "uuid-vehicle-id-1",
-                    "registration_number": "ABC123"
-                  }
-                },
-                {
-                  "driver_id": "uuid-2",
-                  "name": "John Smith",
-                  "mobile": "1234567890",
-                  "license_number": "LIC654321",
-                  "status": "on-duty",
-                  "assigned_vehicle": {
-                    "vehicle_id": "uuid-vehicle-id-2",
-                    "registration_number": "XYZ789"
-                  }
-                }
-              ]
       }
     }
   }
-}

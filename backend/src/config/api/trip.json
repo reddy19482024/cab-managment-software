@@ -1,182 +1,191 @@
 {
   "Trip": {
-    "endpoints": {
-      "schedule": {
-        "path": "/api/trips",
-        "method": "POST",
-        "route_type": "private",
-        "description": "Schedule a new trip",
-        "request_payload": {
-          "pickup_location": "123 Main St",
-          "dropoff_location": "456 Elm St",
-          "vehicle_id": "uuid-vehicle-id",
-          "start_time": "2023-10-12T09:00:00Z",
-          "end_time": "2023-10-12T10:00:00Z",
-          "status": "scheduled",
-          "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"]
-        },
-        "constraints": {
-          "assigned_employees_limit": "The number of assigned employees cannot exceed the vehicle's seating capacity."
-        },
-        "response": {
-          "trip_id": "uuid-generated-id",
-          "pickup_location": "123 Main St",
-          "dropoff_location": "456 Elm St",
-          "vehicle_id": "uuid-vehicle-id",
-          "vehicle_details": {
-            "registration_number": "ABC123",
-            "brand": "Toyota",
-            "model": "Innova",
-            "driver": {
-              "name": "John Doe",
-              "mobile": "1234567890"
-            }
-          },
-          "start_time": "2023-10-12T09:00:00Z",
-          "end_time": "2023-10-12T10:00:00Z",
-          "status": "scheduled",
-          "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"],
-          "created_at": "2024-11-17T09:00:00Z",
-          "updated_at": "2024-11-17T09:00:00Z"
-        }
+    "constants": {
+      "trip_types": {
+        "pickup": "Morning pickup trip",
+        "drop": "Evening drop trip"
       },
-      "read": {
-        "path": "/api/trips/{trip_id}",
-        "method": "GET",
-        "route_type": "private",
-        "description": "Retrieve details of a specific trip by ID",
-        "response": {
-          "trip_id": "uuid-trip-id",
-          "pickup_location": "123 Main St",
-          "dropoff_location": "456 Elm St",
-          "vehicle_id": "uuid-vehicle-id",
-          "vehicle_details": {
-            "registration_number": "ABC123",
-            "brand": "Toyota",
-            "model": "Innova",
-            "driver": {
-              "name": "John Doe",
-              "mobile": "1234567890"
-            }
-          },
-          "start_time": "2023-10-12T09:00:00Z",
-          "end_time": "2023-10-12T10:00:00Z",
-          "status": "scheduled",
-          "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"],
-          "created_at": "2024-11-17T09:00:00Z",
-          "updated_at": "2024-11-17T09:00:00Z"
-        }
+      "trip_statuses": {
+        "scheduled": "Trip is planned but not started",
+        "in-progress": "Trip is currently ongoing",
+        "completed": "Trip has been completed",
+        "cancelled": "Trip was cancelled"
       },
-      "update": {
-        "path": "/api/trips/{trip_id}",
-        "method": "PUT",
-        "route_type": "private",
-        "description": "Update an existing trip",
-        "request_payload": {
-          "pickup_location": "123 Main St",
-          "dropoff_location": "789 Oak St",
-          "vehicle_id": "uuid-vehicle-id",
-          "start_time": "2023-10-12T10:00:00Z",
-          "end_time": "2023-10-12T11:00:00Z",
-          "status": "completed",
-          "assigned_employees": ["uuid-employee-id-1"]
-        },
-        "response": {
-          "trip_id": "uuid-trip-id",
-          "pickup_location": "123 Main St",
-          "dropoff_location": "789 Oak St",
-          "vehicle_id": "uuid-vehicle-id",
-          "vehicle_details": {
-            "registration_number": "ABC123",
-            "brand": "Toyota",
-            "model": "Innova",
-            "driver": {
-              "name": "John Doe",
-              "mobile": "1234567890"
-            }
-          },
-          "start_time": "2023-10-12T10:00:00Z",
-          "end_time": "2023-10-12T11:00:00Z",
-          "status": "completed",
-          "assigned_employees": ["uuid-employee-id-1"],
-          "updated_at": "2024-11-17T10:00:00Z"
-        }
-      },
-      "delete": {
-        "path": "/api/trips/{trip_id}",
-        "method": "DELETE",
-        "route_type": "private",
-        "description": "Delete a trip by ID",
-        "response": {
-          "message": "Trip deleted successfully",
-          "trip_id": "uuid-trip-id"
-        }
-      },
-      "list": {
-        "path": "/api/trips",
-        "method": "GET",
-        "route_type": "private",
-        "description": "List all trips with filtering options",
-        "params": {
-          "search": "pickup_location, dropoff_location",
-          "sort": "start_time, status, created_at",
-          "filter": "status, vehicle_id",
-          "page": "1",
-          "limit": "10"
-        },
-        "response": {
-          "data": [
-            {
-              "trip_id": "uuid-1",
-              "pickup_location": "123 Main St",
-              "dropoff_location": "456 Elm St",
-              "vehicle_id": "uuid-vehicle-id",
-              "vehicle_details": {
-                "registration_number": "ABC123",
-                "brand": "Toyota",
-                "model": "Innova",
-                "driver": {
-                  "name": "John Doe",
-                  "mobile": "1234567890"
-                }
-              },
-              "start_time": "2023-10-12T09:00:00Z",
-              "end_time": "2023-10-12T10:00:00Z",
-              "status": "completed",
-              "assigned_employees": ["uuid-employee-id-1", "uuid-employee-id-2"],
-              "created_at": "2024-11-17T09:00:00Z",
-              "updated_at": "2024-11-17T09:00:00Z"
+      "passenger_statuses": {
+        "scheduled": "Passenger is scheduled",
+        "picked-up": "Passenger has been picked up",
+        "dropped-off": "Passenger has been dropped off",
+        "cancelled": "Passenger cancelled",
+        "no-show": "Passenger didn't show up"
+      }
+    },
+      "endpoints": {
+        "create": {
+          "path": "/api/trips",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Create a new trip",
+          "request_payload": {
+            "route_id": { "type": "UUID", "foreign_key": "Route.route_id", "required": true },
+            "vehicle_id": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id", "required": true },
+            "driver_id": { "type": "UUID", "foreign_key": "Driver.driver_id", "required": true },
+            "type": { "type": "string", "enum": ["pickup", "drop"], "required": true },
+            "passengers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "employee_id": { "type": "UUID", "foreign_key": "Employee.employee_id" },
+                  "sequence": { "type": "integer" },
+                  "status": { "type": "string", "enum": ["scheduled", "picked-up", "dropped-off", "cancelled", "no-show"] },
+                  "actual_time": { "type": "datetime" }
+                },
+                "required": ["employee_id", "sequence", "status"]
+              }
             },
-            {
-              "trip_id": "uuid-2",
-              "pickup_location": "789 Pine St",
-              "dropoff_location": "101 Maple St",
-              "vehicle_id": "uuid-vehicle-id-2",
-              "vehicle_details": {
-                "registration_number": "XYZ789",
-                "brand": "Honda",
-                "model": "City",
-                "driver": {
-                  "name": "Jane Smith",
-                  "mobile": "9876543210"
+            "start_time": { "type": "datetime", "required": true },
+            "status": { "type": "string", "enum": ["scheduled", "in-progress", "completed", "cancelled"], "required": true }
+          },
+          "response": {
+            "trip_id": "UUID",
+            "route_id": "UUID",
+            "status": "string",
+            "created_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/trips/{trip_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Get detailed trip information",
+          "response": {
+            "trip_id": "UUID",
+            "route_id": "UUID",
+            "vehicle_id": "UUID",
+            "driver_id": "UUID",
+            "type": "string",
+            "passengers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "employee_id": "UUID",
+                  "sequence": "integer",
+                  "status": "string",
+                  "actual_time": "datetime"
                 }
-              },
-              "start_time": "2023-10-13T15:00:00Z",
-              "end_time": "2023-10-13T16:00:00Z",
-              "status": "scheduled",
-              "assigned_employees": ["uuid-employee-id-3"],
-              "created_at": "2024-11-17T09:00:00Z",
-              "updated_at": "2024-11-17T09:00:00Z"
+              }
+            },
+            "start_time": "datetime",
+            "end_time": "datetime",
+            "status": "string",
+            "tracking": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "timestamp": "datetime",
+                  "latitude": "float",
+                  "longitude": "float"
+                }
+              }
+            },
+            "cost": "float",
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
+          }
+        },
+        "update": {
+          "path": "/api/trips/{trip_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update trip details",
+          "request_payload": {
+            "status": { "type": "string", "enum": ["scheduled", "in-progress", "completed", "cancelled"] },
+            "end_time": { "type": "datetime" },
+            "passengers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "employee_id": "UUID",
+                  "status": "string",
+                  "actual_time": "datetime"
+                }
+              }
+            },
+            "tracking": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "timestamp": "datetime",
+                  "latitude": "float",
+                  "longitude": "float"
+                }
+              }
+            },
+            "cost": { "type": "float" }
+          },
+          "response": {
+            "trip_id": "UUID",
+            "message": "Trip updated successfully",
+            "updated_at": "timestamp"
+          }
+        },
+        "list": {
+          "path": "/api/trips",
+          "method": "GET",
+          "route_type": "private",
+          "description": "List trips with filtering options",
+          "params": {
+            "route_id": { "type": "UUID" },
+            "vehicle_id": { "type": "UUID" },
+            "driver_id": { "type": "UUID" },
+            "type": { "type": "string", "enum": ["pickup", "drop"] },
+            "status": { "type": "string", "enum": ["scheduled", "in-progress", "completed", "cancelled"] },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            },
+            "sort_by": {
+              "type": "string",
+              "enum": ["start_time", "status", "created_at"],
+              "default": "start_time"
+            },
+            "sort_order": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "asc"
             }
-          ],
-          "pagination": {
-            "current_page": 1,
-            "total_pages": 1,
-            "total_items": 2,
-            "per_page": 10
+          },
+          "response": {
+            "data": [{
+              "trip_id": "UUID",
+              "route_id": "UUID",
+              "vehicle_id": "UUID",
+              "driver_id": "UUID",
+              "type": "string",
+              "start_time": "datetime",
+              "status": "string",
+              "passenger_count": "integer",
+              "created_at": "timestamp"
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
           }
         }
       }
     }
   }
-}

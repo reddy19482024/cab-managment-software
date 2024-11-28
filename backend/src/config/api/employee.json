@@ -1,5 +1,53 @@
 {
-    "Employee": {
+  "Employee": {
+    "constants": {
+      "departments": [
+        "Engineering",
+        "Product",
+        "Sales",
+        "Marketing",
+        "Human Resources",
+        "Finance",
+        "Operations",
+        "Customer Support",
+        "Legal",
+        "Administration"
+      ],
+      "roles": {
+        "admin": {
+          "description": "Full system access with user management capabilities",
+          "permissions": ["manage_users", "manage_routes", "manage_vehicles", "view_analytics", "manage_drivers"]
+        },
+        "employee": {
+          "description": "Regular employee with basic transport access",
+          "permissions": ["book_rides", "view_schedule", "update_profile"]
+        },
+        "transport_manager": {
+          "description": "Manages transport operations and scheduling",
+          "permissions": ["manage_routes", "manage_schedules", "manage_drivers", "view_analytics"]
+        },
+        "department_head": {
+          "description": "Department-level administration and approval",
+          "permissions": ["approve_requests", "view_department_analytics", "manage_department_employees"]
+        },
+        "hr_manager": {
+          "description": "HR-specific role for employee management",
+          "permissions": ["manage_employees", "view_employee_data", "manage_departments"]
+        }
+      },
+      "designations": [
+        "Software Engineer",
+        "Senior Software Engineer",
+        "Product Manager",
+        "Project Manager",
+        "Team Lead",
+        "Director",
+        "Vice President",
+        "Senior Manager",
+        "Associate",
+        "Analyst"
+      ]
+    },
       "endpoints": {
         "register": {
           "path": "/api/employees/register",
@@ -7,18 +55,34 @@
           "route_type": "public",
           "description": "Register a new employee",
           "request_payload": {
-            "name": "John Doe",
-            "email": "john@example.com",
-            "password": "securePassword123",
-            "role": "admin",
-            "phone": "1234567890"
+            "employee_code": { "type": "string", "required": true, "unique": true },
+            "first_name": { "type": "string", "required": true },
+            "last_name": { "type": "string", "required": true },
+            "email": { "type": "string", "required": true, "unique": true },
+            "phone": { "type": "string", "required": true },
+            "department": { "type": "string", "required": true },
+            "role": { "type": "string", "enum": ["admin", "employee", "transport_manager"], "required": true },
+            "pickup_location_id": { "type": "UUID", "required": true },
+            "dropoff_location_id": { "type": "UUID", "required": true },
+            "schedule": {
+              "type": "object",
+              "properties": {
+                "pickup_time": { "type": "time", "required": true },
+                "dropoff_time": { "type": "time", "required": true },
+                "days": { "type": "array", "items": { "type": "integer" }, "description": "0-6, where 0 is Sunday" }
+              },
+              "required": true
+            },
+            "status": { "type": "string", "enum": ["active", "inactive"], "required": true }
           },
           "response": {
-            "employee_id": "uuid-generated-id",
-            "name": "John Doe",
-            "email": "john@example.com",
-            "role": "admin",
-            "phone": "1234567890",
+            "employee_id": "UUID",
+            "employee_code": "string",
+            "first_name": "string",
+            "last_name": "string",
+            "email": "string",
+            "role": "string",
+            "department": "string",
             "created_at": "timestamp"
           }
         },
@@ -26,129 +90,148 @@
           "path": "/api/employees/login",
           "method": "POST",
           "route_type": "public",
-          "description": "Employee login with employee ID and password",
+          "description": "Employee login with email and password",
           "request_payload": {
-            "email": "email",
-            "password": "securePassword123"
+            "email": { "type": "string", "required": true },
+            "password": { "type": "string", "required": true }
           },
           "response": {
-            "token": "jwt-token-for-authentication"
-          }
-        },
-        "create": {
-          "path": "/api/employees",
-          "method": "POST",
-          "route_type": "private",
-          "description": "Create a new employee",
-          "request_payload": {
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "password": "password123",
-            "role": "employee",
-            "phone": "0987654321"
-          },
-          "response": {
-            "employee_id": "uuid-generated-id",
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "role": "employee",
-            "phone": "0987654321",
-            "created_at": "timestamp"
+            "token": "string",
+            "employee": {
+              "employee_id": "UUID",
+              "name": "string",
+              "role": "string",
+              "permissions": ["string"]
+            }
           }
         },
         "read": {
           "path": "/api/employees/{employee_id}",
           "method": "GET",
           "route_type": "private",
-          "description": "Retrieve details of a specific employee by ID",
+          "description": "Retrieve details of a specific employee",
           "response": {
-            "employee_id": "uuid-employee-id",
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "role": "employee",
-            "phone": "0987654321",
-            "created_at": "timestamp"
+            "employee_id": "UUID",
+            "employee_code": "string",
+            "first_name": "string",
+            "last_name": "string",
+            "email": "string",
+            "phone": "string",
+            "department": "string",
+            "role": "string",
+            "pickup_location_id": "UUID",
+            "dropoff_location_id": "UUID",
+            "schedule": {
+              "pickup_time": "time",
+              "dropoff_time": "time",
+              "days": ["integer"]
+            },
+            "status": "string",
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
           }
         },
         "update": {
           "path": "/api/employees/{employee_id}",
           "method": "PUT",
           "route_type": "private",
-          "description": "Update an existing employee",
+          "description": "Update employee details",
           "request_payload": {
-            "name": "Jane Doe",
-            "email": "jane.doe@example.com",
-            "phone": "1234567890"
+            "first_name": { "type": "string" },
+            "last_name": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" },
+            "department": { "type": "string" },
+            "role": { "type": "string", "enum": ["admin", "employee", "transport_manager"] },
+            "pickup_location_id": { "type": "UUID" },
+            "dropoff_location_id": { "type": "UUID" },
+            "schedule": {
+              "type": "object",
+              "properties": {
+                "pickup_time": { "type": "time" },
+                "dropoff_time": { "type": "time" },
+                "days": { "type": "array", "items": { "type": "integer" } }
+              }
+            },
+            "status": { "type": "string", "enum": ["active", "inactive"] }
           },
           "response": {
-            "employee_id": "uuid-employee-id",
-            "name": "Jane Doe",
-            "email": "jane.doe@example.com",
-            "phone": "1234567890",
+            "employee_id": "UUID",
+            "message": "Employee updated successfully",
             "updated_at": "timestamp"
+          }
+        },
+        "list": {
+          "path": "/api/employees",
+          "method": "GET",
+          "route_type": "private",
+          "description": "List all employees with filtering options",
+          "params": {
+            "search": {
+              "type": "string",
+              "description": "Search in first_name, last_name, email, employee_code"
+            },
+            "department": { "type": "string" },
+            "role": {
+              "type": "string",
+              "enum": ["admin", "employee", "transport_manager"]
+            },
+            "status": {
+              "type": "string",
+              "enum": ["active", "inactive"]
+            },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 100
+            },
+            "sort_by": {
+              "type": "string",
+              "enum": ["first_name", "last_name", "department", "role", "created_at"],
+              "default": "first_name"
+            },
+            "sort_order": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "asc"
+            }
+          },
+          "response": {
+            "data": [{
+              "employee_id": "UUID",
+              "employee_code": "string",
+              "first_name": "string",
+              "last_name": "string",
+              "email": "string",
+              "department": "string",
+              "role": "string",
+              "status": "string",
+              "created_at": "timestamp"
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
           }
         },
         "delete": {
           "path": "/api/employees/{employee_id}",
           "method": "DELETE",
           "route_type": "private",
-          "description": "Delete an employee by ID",
+          "description": "Delete an employee",
           "response": {
-            "message": "Employee deleted successfully",
-            "employee_id": "uuid-employee-id"
+            "message": "string",
+            "employee_id": "UUID"
           }
-        },
-"list": {
-        "path": "/api/employees",
-        "method": "GET",
-        "route_type": "private",
-        "description": "List all employees with filtering options",
-        "params": {
-          "search": "name, email",
-          "sort": "name, role",
-          "filter": "role",
-          "page": {
-            "type": "integer",
-            "description": "Page number (starts from 1)",
-            "default": 1
-          },
-          "limit": {
-            "type": "integer",
-            "description": "Number of records per page",
-            "default": 10,
-            "max": 100
-          },
-          "sort_by": {
-            "type": "string",
-            "enum": ["name", "role", "created_at"],
-            "default": "name"
-          },
-          "sort_order": {
-            "type": "string",
-            "enum": ["asc", "desc"],
-            "default": "asc"
-          }
-        },
-        "response": [
-          {
-            "employee_id": "uuid-1",
-            "name": "John Doe",
-            "email": "john@example.com",
-            "role": "admin",
-            "phone": "1234567890",
-            "created_at": "2024-11-17T09:00:00Z"
-          },
-          {
-            "employee_id": "uuid-2",
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "role": "employee",
-            "phone": "0987654321",
-            "created_at": "2024-11-17T09:00:00Z"
-          }
-        ]
-       }
+        }
       }
     }
   }
-  

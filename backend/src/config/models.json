@@ -1,107 +1,114 @@
 {
   "models": {
+    "Vendor": {
+      "description": "Manages transport service providers",
+      "fields": {
+        "vendor_id": { "type": "UUID", "primary_key": true },
+        "company_name": { "type": "string", "required": true },
+        "contact_person": { "type": "string", "required": true },
+        "email": { "type": "string", "unique": true, "required": true },
+        "phone": { "type": "string", "required": true },
+        "address": { "type": "string", "required": true },
+        "gst_number": { "type": "string", "unique": true },
+        "bank_details": {
+          "type": "object",
+          "properties": {
+            "account_number": { "type": "string" },
+            "ifsc_code": { "type": "string" },
+            "bank_name": { "type": "string" }
+          }
+        },
+        "commission_rate": { "type": "float", "required": true },
+        "status": { "type": "string", "enum": ["active", "inactive"], "required": true },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Vehicles": { "relation": "has_many", "model": "Vehicle" },
+        "Drivers": { "relation": "has_many", "model": "Driver" }
+      }
+    },
+
     "Employee": {
+      "description": "Core employee information with transport preferences",
       "fields": {
         "employee_id": { "type": "UUID", "primary_key": true },
         "employee_code": { "type": "string", "unique": true, "required": true },
         "first_name": { "type": "string", "required": true },
         "last_name": { "type": "string", "required": true },
         "email": { "type": "string", "unique": true, "required": true },
-        "password": { "type": "string", "required": true },
-        "role": { "type": "string", "enum": ["admin", "employee", "transport_manager"], "required": true },
         "phone": { "type": "string", "required": true },
         "department": { "type": "string", "required": true },
-        "designation": { "type": "string", "required": true },
-        "gender": { "type": "string", "enum": ["male", "female", "other"], "required": true },
+        "role": { "type": "string", "enum": ["admin", "employee", "transport_manager"], "required": true },
+        "pickup_location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
+        "dropoff_location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
+        "schedule": {
+          "type": "object",
+          "properties": {
+            "pickup_time": { "type": "time", "required": true },
+            "dropoff_time": { "type": "time", "required": true },
+            "days": { "type": "array", "items": { "type": "integer" }, "description": "0-6, where 0 is Sunday" }
+          },
+          "required": true
+        },
         "status": { "type": "string", "enum": ["active", "inactive"], "required": true },
-        "home_location_id": { "type": "UUID", "foreign_key": "Location.location_id" },
-        "office_location_id": { "type": "UUID", "foreign_key": "Location.location_id" },
-        "preferred_pickup_time": { "type": "time" },
-        "preferred_drop_time": { "type": "time" },
-        "created_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" },
-        "updated_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" }
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
       },
       "relationships": {
-        "HomeLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "home_location_id" },
-        "OfficeLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "office_location_id" },
-        "Trips": { "relation": "has_many", "through": "TripPassenger" },
-        "Notifications": { "relation": "has_many", "model": "Notification", "foreign_key": "recipient_id", 
-          "conditions": { "recipient_type": "employee" }
-        }
+        "PickupLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "pickup_location_id" },
+        "DropoffLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "dropoff_location_id" }
       }
     },
 
     "Driver": {
+      "description": "Driver management with compliance",
       "fields": {
         "driver_id": { "type": "UUID", "primary_key": true },
+        "vendor_id": { "type": "UUID", "foreign_key": "Vendor.vendor_id", "required": true },
         "name": { "type": "string", "required": true },
-        "mobile": { "type": "string", "unique": true, "required": true },
+        "phone": { "type": "string", "unique": true, "required": true },
         "email": { "type": "string", "unique": true },
         "license_number": { "type": "string", "required": true },
         "license_expiry": { "type": "date", "required": true },
-        "status": { "type": "string", "enum": ["available", "on-duty", "inactive", "on-break"], "required": true },
-        "assigned_vehicle": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id" },
-        "current_location": {
-          "type": "object",
-          "properties": {
-            "latitude": { "type": "float" },
-            "longitude": { "type": "float" },
-            "last_updated": { "type": "datetime" }
-          }
-        },
+        "status": { "type": "string", "enum": ["available", "on-duty", "inactive"], "required": true },
+        "current_vehicle": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id" },
         "rating": { "type": "float", "default": 0 },
         "total_trips": { "type": "integer", "default": 0 },
-        "verification_status": { "type": "string", "enum": ["pending", "verified", "rejected"], "required": true },
-        "documents": {
-          "type": "object",
-          "properties": {
-            "license_scan": { "type": "string" },
-            "background_verification": { "type": "string" },
-            "police_verification": { "type": "string" }
-          }
-        },
-        "otp": { "type": "string" },
-        "otp_expiration": { "type": "datetime" }
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
       },
-    "relationships": {
-        "Vehicle": { "relation": "belongs_to", "model": "Vehicle", "foreign_key": "assigned_vehicle" },
-        "Trips": { "relation": "has_many", "model": "Trip" },
-        "Notifications": { "relation": "has_many", "model": "Notification", "foreign_key": "recipient_id",
-          "conditions": { "recipient_type": "driver" }
-        }
-      }   
+      "relationships": {
+        "Vendor": { "relation": "belongs_to", "model": "Vendor" },
+        "Vehicle": { "relation": "belongs_to", "model": "Vehicle", "foreign_key": "current_vehicle" }
+      }
     },
 
     "Vehicle": {
+      "description": "Vehicle management with compliance",
       "fields": {
         "vehicle_id": { "type": "UUID", "primary_key": true },
+        "vendor_id": { "type": "UUID", "foreign_key": "Vendor.vendor_id", "required": true },
         "registration_number": { "type": "string", "unique": true, "required": true },
-        "status": { "type": "string", "enum": ["available", "on-duty", "maintenance", "inactive"], "required": true },
         "type": { "type": "string", "enum": ["sedan", "suv", "minivan"], "required": true },
         "brand": { "type": "string", "required": true },
         "model": { "type": "string", "required": true },
-        "year": { "type": "integer", "required": true },
-        "seats": { "type": "integer", "required": true },
-        "fuel_type": { "type": "string", "enum": ["petrol", "diesel", "cng", "electric"] },
-        "current_location": {
-          "type": "object",
-          "properties": {
-            "latitude": { "type": "float" },
-            "longitude": { "type": "float" },
-            "last_updated": { "type": "datetime" }
-          }
-        },
+        "capacity": { "type": "integer", "required": true },
+        "fuel_type": { "type": "string", "enum": ["petrol", "diesel", "cng", "electric"], "required": true },
+        "status": { "type": "string", "enum": ["available", "on-duty", "maintenance", "inactive"], "required": true },
         "insurance_expiry": { "type": "date", "required": true },
-        "pollution_certificate_expiry": { "type": "date", "required": true },
-        "last_maintenance_date": { "type": "date" },
-        "next_maintenance_due": { "type": "date" }
+        "last_maintenance": { "type": "date" },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
       },
       "relationships": {
-        "Driver": { "relation": "has_one", "model": "Driver", "foreign_key": "assigned_vehicle" },
-        "Trips": { "relation": "has_many", "model": "Trip" }
+        "Vendor": { "relation": "belongs_to", "model": "Vendor" },
+        "Driver": { "relation": "has_one", "model": "Driver" }
       }
     },
+
     "Location": {
+      "description": "Location management for routes and stops",
       "fields": {
         "location_id": { "type": "UUID", "primary_key": true },
         "name": { "type": "string", "required": true },
@@ -111,164 +118,243 @@
         "postal_code": { "type": "string", "required": true },
         "latitude": { "type": "float", "required": true },
         "longitude": { "type": "float", "required": true },
-        "type": { "type": "string", "enum": ["office", "residential", "landmark"], "required": true },
-        "is_active": { "type": "boolean", "default": true }
+        "type": { "type": "string", "enum": ["pickup", "dropoff"], "required": true },
+        "zone": { "type": "string", "description": "Area/zone code for route planning" },
+        "is_active": { "type": "boolean", "default": true },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
       },
-      "relationships": {
-        "Routes": { "relation": "has_many", "through": "RouteLocation" },
-        "EmployeeHomes": { "relation": "has_many", "model": "Employee", "foreign_key": "home_location_id" },
-        "EmployeeOffices": { "relation": "has_many", "model": "Employee", "foreign_key": "office_location_id" },
-        "TripPickups": { "relation": "has_many", "model": "TripPassenger", "foreign_key": "pickup_location_id" },
-        "TripDropoffs": { "relation": "has_many", "model": "TripPassenger", "foreign_key": "dropoff_location_id" }
-      }
+      "indexes": [
+        { "fields": ["city", "zone"], "type": "btree" },
+        { "fields": ["type", "is_active"], "type": "btree" }
+      ]
     },
 
     "Route": {
+      "description": "Route management with stops",
       "fields": {
         "route_id": { "type": "UUID", "primary_key": true },
         "name": { "type": "string", "required": true },
         "type": { "type": "string", "enum": ["pickup", "drop"], "required": true },
-        "estimated_duration": { "type": "integer", "description": "Duration in minutes" },
-        "estimated_distance": { "type": "float", "description": "Distance in kilometers" },
-        "status": { "type": "string", "enum": ["active", "inactive"], "required": true }
-      },
-      "relationships": {
-        "Locations": { "relation": "has_many", "through": "RouteLocation" },
-        "Schedules": { "relation": "has_many", "model": "Schedule" },
-        "Trips": { "relation": "has_many", "model": "Trip" }
-      }
-    },
-
-    "RouteLocation": {
-      "fields": {
-        "route_location_id": { "type": "UUID", "primary_key": true },
-        "route_id": { "type": "UUID", "foreign_key": "Route.route_id", "required": true },
-        "location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
-        "sequence": { "type": "integer", "required": true },
-        "estimated_time": { "type": "integer", "description": "Minutes from route start" }
-      },
-      "relationships": {
-        "Route": { "relation": "belongs_to", "model": "Route" },
-        "Location": { "relation": "belongs_to", "model": "Location" }
-      }
-    },
-
-    "Schedule": {
-      "fields": {
-        "schedule_id": { "type": "UUID", "primary_key": true },
-        "route_id": { "type": "UUID", "foreign_key": "Route.route_id", "required": true },
-        "name": { "type": "string", "required": true },
-        "type": { "type": "string", "enum": ["regular", "special"], "required": true },
-        "start_time": { "type": "time", "required": true },
-        "end_time": { "type": "time", "required": true },
-        "days_of_week": { "type": "array", "items": { "type": "integer" }, "description": "0-6, where 0 is Sunday" },
+        "stops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "location_id": { "type": "UUID", "foreign_key": "Location.location_id" },
+              "sequence": { "type": "integer" },
+              "estimated_time": { "type": "integer", "description": "Minutes from route start" }
+            },
+            "required": ["location_id", "sequence"]
+          },
+          "required": true
+        },
+        "estimated_duration": { "type": "integer", "description": "Total duration in minutes" },
         "status": { "type": "string", "enum": ["active", "inactive"], "required": true },
-        "created_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" },
-        "updated_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" }
-      },
-      "relationships": {
-        "Route": { "relation": "belongs_to", "model": "Route" },
-        "Trips": { "relation": "has_many", "model": "Trip" }
-      }
-    },
-
-    "Trip": {
-      "fields": {
-        "trip_id": { "type": "UUID", "primary_key": true },
-        "schedule_id": { "type": "UUID", "foreign_key": "Schedule.schedule_id", "required": true },
-        "route_id": { "type": "UUID", "foreign_key": "Route.route_id", "required": true },
-        "vehicle_id": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id", "required": true },
-        "driver_id": { "type": "UUID", "foreign_key": "Driver.driver_id", "required": true },
-        "status": { "type": "string", "enum": ["scheduled", "in-progress", "completed", "canceled"], "required": true },
-        "start_time": { "type": "datetime", "required": true },
-        "end_time": { "type": "datetime" },
-        "actual_start_time": { "type": "datetime" },
-        "actual_end_time": { "type": "datetime" },
-        "total_distance": { "type": "float" },
-        "total_duration": { "type": "integer" },
-        "created_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" },
-        "updated_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" }
-      },
-      "relationships": {
-        "Schedule": { "relation": "belongs_to", "model": "Schedule" },
-        "Route": { "relation": "belongs_to", "model": "Route" },
-        "Vehicle": { "relation": "belongs_to", "model": "Vehicle" },
-        "Driver": { "relation": "belongs_to", "model": "Driver" },
-        "Passengers": { "relation": "has_many", "through": "TripPassenger" },
-        "Tracking": { "relation": "has_many", "model": "TripTracking" },
-        "Notifications": { "relation": "has_many", "model": "Notification" }
-      }
-    },
-
-    "TripPassenger": {
-      "fields": {
-        "trip_passenger_id": { "type": "UUID", "primary_key": true },
-        "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id", "required": true },
-        "employee_id": { "type": "UUID", "foreign_key": "Employee.employee_id", "required": true },
-        "pickup_location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
-        "dropoff_location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
-        "sequence": { "type": "integer", "required": true },
-        "status": { "type": "string", "enum": ["scheduled", "picked-up", "dropped-off", "canceled", "no-show"], "required": true },
-        "pickup_time": { "type": "datetime" },
-        "dropoff_time": { "type": "datetime" },
-        "rating": { "type": "integer", "min": 1, "max": 5 },
-        "feedback": { "type": "string" }
-      },
-      "relationships": {
-        "Trip": { "relation": "belongs_to", "model": "Trip" },
-        "Employee": { "relation": "belongs_to", "model": "Employee" },
-        "PickupLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "pickup_location_id" },
-        "DropoffLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "dropoff_location_id" }
-      }
-    },
-
-    "TripTracking": {
-      "fields": {
-        "tracking_id": { "type": "UUID", "primary_key": true },
-        "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id", "required": true },
-        "timestamp": { "type": "datetime", "required": true },
-        "latitude": { "type": "float", "required": true },
-        "longitude": { "type": "float", "required": true },
-        "speed": { "type": "float" },
-        "battery_level": { "type": "float" },
-        "network_status": { "type": "string" }
-      },
-      "relationships": {
-        "Trip": { "relation": "belongs_to", "model": "Trip" }
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
       },
       "indexes": [
-        { "fields": ["trip_id", "timestamp"], "type": "btree" }
+        { "fields": ["type", "status"], "type": "btree" }
       ]
     },
 
-   "Notification": {
+    "Trip": {
+      "description": "Trip execution and tracking",
       "fields": {
-        "notification_id": { "type": "UUID", "primary_key": true },
-        "type": { "type": "string", "enum": ["trip_reminder", "pickup_alert", "delay_alert", "schedule_change", "emergency"], "required": true },
-        "recipient_id": { "type": "UUID", "required": true },
-        "recipient_type": { "type": "string", "enum": ["employee", "driver", "admin"], "required": true },
+        "trip_id": { "type": "UUID", "primary_key": true },
+        "route_id": { "type": "UUID", "foreign_key": "Route.route_id", "required": true },
+        "vehicle_id": { "type": "UUID", "foreign_key": "Vehicle.vehicle_id", "required": true },
+        "driver_id": { "type": "UUID", "foreign_key": "Driver.driver_id", "required": true },
+        "type": { "type": "string", "enum": ["pickup", "drop"], "required": true },
+        "passengers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "employee_id": { "type": "UUID", "foreign_key": "Employee.employee_id" },
+              "sequence": { "type": "integer" },
+              "status": { "type": "string", "enum": ["scheduled", "picked-up", "dropped-off", "cancelled", "no-show"] },
+              "actual_time": { "type": "datetime" }
+            },
+            "required": ["employee_id", "sequence", "status"]
+          }
+        },
+        "start_time": { "type": "datetime", "required": true },
+        "end_time": { "type": "datetime" },
+        "status": { "type": "string", "enum": ["scheduled", "in-progress", "completed", "cancelled"], "required": true },
+        "tracking": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "datetime" },
+              "latitude": { "type": "float" },
+              "longitude": { "type": "float" }
+            },
+            "required": ["timestamp", "latitude", "longitude"]
+          }
+        },
+        "cost": { "type": "float" },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "indexes": [
+        { "fields": ["route_id", "start_time"], "type": "btree" },
+        { "fields": ["vehicle_id", "status"], "type": "btree" },
+        { "fields": ["driver_id", "status"], "type": "btree" },
+        { "fields": ["type", "status", "start_time"], "type": "btree" }
+      ]
+    },
+
+    "Billing": {
+      "description": "Vendor billing management",
+      "fields": {
+        "bill_id": { "type": "UUID", "primary_key": true },
+        "vendor_id": { "type": "UUID", "foreign_key": "Vendor.vendor_id", "required": true },
+        "period_start": { "type": "date", "required": true },
+        "period_end": { "type": "date", "required": true },
+        "trips": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id" },
+              "amount": { "type": "float" }
+            },
+            "required": ["trip_id", "amount"]
+          }
+        },
+        "base_amount": { "type": "float", "required": true },
+        "tax_amount": { "type": "float", "required": true },
+        "total_amount": { "type": "float", "required": true },
+        "status": { "type": "string", "enum": ["draft", "pending", "paid", "cancelled"], "required": true },
+        "payment_date": { "type": "date" },
+        "payment_reference": { "type": "string" },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "indexes": [
+        { "fields": ["vendor_id", "status"], "type": "btree" },
+        { "fields": ["period_start", "period_end"], "type": "btree" }
+      ]
+    },
+
+    "Support": {
+      "description": "Support ticket management",
+      "fields": {
+        "ticket_id": { "type": "UUID", "primary_key": true },
+        "reported_by": { "type": "UUID", "required": true },
+        "reporter_type": { "type": "string", "enum": ["employee", "driver"], "required": true },
+        "type": { "type": "string", "enum": ["complaint", "request", "incident", "feedback"], "required": true },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"], "required": true },
+        "subject": { "type": "string", "required": true },
+        "description": { "type": "string", "required": true },
         "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id" },
-        "message": { "type": "string", "required": true },
-        "status": { "type": "string", "enum": ["pending", "sent", "failed"], "required": true },
-        "sent_at": { "type": "datetime" },
-        "read_at": { "type": "datetime" },
-        "created_at": { "type": "datetime", "required": true, "default": "CURRENT_TIMESTAMP" }
+        "assigned_to": { "type": "UUID", "foreign_key": "Employee.employee_id" },
+        "status": { "type": "string", "enum": ["open", "assigned", "in-progress", "resolved", "closed"], "required": true },
+        "resolution": { "type": "string" },
+        "resolved_at": { "type": "datetime" },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
       },
       "relationships": {
         "Trip": { "relation": "belongs_to", "model": "Trip" },
-        "Employee": { 
-          "relation": "belongs_to", "model": "Employee", "foreign_key": "recipient_id",
-          "conditions": {
-            "recipient_type": "employee"
+        "AssignedTo": { "relation": "belongs_to", "model": "Employee", "foreign_key": "assigned_to" }
+      }
+    },
+    "Notification": {
+      "description": "Notification management",
+      "fields": {
+        "notification_id": { "type": "UUID", "primary_key": true },
+        "recipient_id": { "type": "UUID", "required": true },
+        "recipient_type": { "type": "string", "enum": ["employee", "driver"], "required": true },
+        "type": { 
+          "type": "string", 
+          "enum": [
+            "trip_scheduled",
+            "trip_updated",
+            "trip_cancelled",
+            "driver_assigned",
+            "pickup_reminder",
+            "dropoff_reminder",
+            "route_change",
+            "delay_alert",
+            "support_update",
+            "document_expiry",
+            "billing_update",
+            "system_alert"
+          ], 
+          "required": true 
+        },
+        "content": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string", "required": true },
+            "message": { "type": "string", "required": true },
+            "data": { "type": "object", "description": "Additional content data" }
+          },
+          "required": true
+        },
+        "reference": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "UUID", "description": "Related entity ID" },
+            "type": { "type": "string", "enum": ["trip", "support", "billing", "vehicle", "driver", "route"] }
           }
         },
-        "Driver": {
-          "relation": "belongs_to", "model": "Driver", "foreign_key": "recipient_id",
-          "conditions": {
-            "recipient_type": "driver"
+        "channels": {
+          "type": "object",
+          "properties": {
+            "in_app": { 
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean", "default": true },
+                "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                "sent_at": { "type": "datetime" }
+              }
+            },
+            "email": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean", "default": true },
+                "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                "sent_at": { "type": "datetime" }
+              }
+            },
+            "sms": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean", "default": false },
+                "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                "sent_at": { "type": "datetime" }
+              }
+            },
+            "push": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean", "default": true },
+                "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                "sent_at": { "type": "datetime" }
+              }
+            }
           }
-        }
-      }
+        },
+        "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"], "required": true },
+        "status": { "type": "string", "enum": ["unread", "read", "archived"], "required": true, "default": "unread" },
+        "read_at": { "type": "datetime" },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Employee": { "relation": "belongs_to", "model": "Employee", "when": "recipient_type = 'employee'" },
+        "Driver": { "relation": "belongs_to", "model": "Driver", "when": "recipient_type = 'driver'" }
+      },
+      "indexes": [
+        { "fields": ["recipient_id", "recipient_type", "status"], "type": "btree" },
+        { "fields": ["type", "created_at"], "type": "btree" },
+        { "fields": ["reference.id", "reference.type"], "type": "btree" }
+      ]
     }
-  }
+}
 }

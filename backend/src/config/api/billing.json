@@ -1,0 +1,182 @@
+{
+    "Billing": {
+      "constants": {
+        "billing_statuses": {
+          "draft": "Bill is being prepared",
+          "pending": "Bill awaiting payment",
+          "paid": "Bill has been paid",
+          "cancelled": "Bill has been cancelled"
+        },
+        "payment_methods": {
+          "bank_transfer": "Direct bank transfer",
+          "cheque": "Payment by cheque",
+          "online": "Online payment",
+          "upi": "UPI payment"
+        },
+        "tax_rates": {
+          "gst": 18,
+          "service_tax": 5
+        }
+      },
+     "endpoints": {
+          "create": {
+            "path": "/api/billings",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Generate a new vendor bill",
+            "request_payload": {
+              "vendor_id": { "type": "UUID", "foreign_key": "Vendor.vendor_id", "required": true },
+              "period_start": { "type": "date", "required": true },
+              "period_end": { "type": "date", "required": true },
+              "trips": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "trip_id": { "type": "UUID", "foreign_key": "Trip.trip_id" },
+                    "amount": { "type": "float" }
+                  },
+                  "required": ["trip_id", "amount"]
+                }
+              },
+              "base_amount": { "type": "float", "required": true },
+              "tax_amount": { "type": "float", "required": true },
+              "total_amount": { "type": "float", "required": true },
+              "status": { "type": "string", "enum": ["draft", "pending", "paid", "cancelled"], "required": true }
+            },
+            "response": {
+              "bill_id": "UUID",
+              "vendor_id": "UUID",
+              "total_amount": "float",
+              "status": "string",
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/billings/{bill_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Get detailed bill information",
+            "response": {
+              "bill_id": "UUID",
+              "vendor_id": "UUID",
+              "period_start": "date",
+              "period_end": "date",
+              "trips": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "trip_id": "UUID",
+                    "amount": "float"
+                  }
+                }
+              },
+              "base_amount": "float",
+              "tax_amount": "float",
+              "total_amount": "float",
+              "status": "string",
+              "payment_date": "date",
+              "payment_reference": "string",
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/billings/{bill_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update bill details",
+            "request_payload": {
+              "status": { "type": "string", "enum": ["draft", "pending", "paid", "cancelled"] },
+              "payment_date": { "type": "date" },
+              "payment_reference": { "type": "string" },
+              "trips": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "trip_id": "UUID",
+                    "amount": "float"
+                  }
+                }
+              },
+              "base_amount": { "type": "float" },
+              "tax_amount": { "type": "float" },
+              "total_amount": { "type": "float" }
+            },
+            "response": {
+              "bill_id": "UUID",
+              "message": "Bill updated successfully",
+              "updated_at": "timestamp"
+            }
+          },
+          "list": {
+            "path": "/api/billings",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List bills with filtering options",
+            "params": {
+              "vendor_id": { "type": "UUID" },
+              "status": { 
+                "type": "string", 
+                "enum": ["draft", "pending", "paid", "cancelled"]
+              },
+              "period_start": { "type": "date" },
+              "period_end": { "type": "date" },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100
+              },
+              "sort_by": {
+                "type": "string",
+                "enum": ["period_start", "status", "total_amount", "created_at"],
+                "default": "period_start"
+              },
+              "sort_order": {
+                "type": "string",
+                "enum": ["asc", "desc"],
+                "default": "desc"
+              }
+            },
+            "response": {
+              "data": [{
+                "bill_id": "UUID",
+                "vendor_id": "UUID",
+                "period_start": "date",
+                "period_end": "date",
+                "base_amount": "float",
+                "tax_amount": "float",
+                "total_amount": "float",
+                "status": "string",
+                "payment_date": "date",
+                "created_at": "timestamp"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          },
+          "delete": {
+            "path": "/api/billings/{bill_id}",
+            "method": "DELETE",
+            "route_type": "private",
+            "description": "Delete a bill",
+            "response": {
+              "message": "string",
+              "bill_id": "UUID"
+            }
+          }
+  }
+ }
+}

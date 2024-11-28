@@ -1,0 +1,196 @@
+{
+    "Route": {
+      "constants": {
+        "route_types": {
+          "pickup": {
+            "description": "Morning pickup routes from residential to office",
+            "direction": "residential_to_office"
+          },
+          "drop": {
+            "description": "Evening drop routes from office to residential",
+            "direction": "office_to_residential"
+          }
+        },
+        "route_statuses": {
+          "active": "Route is active and can be assigned",
+          "inactive": "Route is temporarily disabled"
+        }
+      },
+        "endpoints": {
+          "create": {
+            "path": "/api/routes",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Create a new route",
+            "request_payload": {
+              "name": { "type": "string", "required": true },
+              "type": { 
+                "type": "string", 
+                "enum": ["pickup", "drop"],
+                "required": true
+              },
+              "stops": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "location_id": { "type": "UUID", "foreign_key": "Location.location_id" },
+                    "sequence": { "type": "integer" },
+                    "estimated_time": { "type": "integer", "description": "Minutes from route start" }
+                  },
+                  "required": ["location_id", "sequence"]
+                },
+                "required": true
+              },
+              "estimated_duration": { "type": "integer", "description": "Total duration in minutes" },
+              "status": { 
+                "type": "string",
+                "enum": ["active", "inactive"],
+                "required": true
+              }
+            },
+            "response": {
+              "route_id": "UUID",
+              "name": "string",
+              "type": "string",
+              "status": "string",
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/routes/{route_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Get detailed route information",
+            "response": {
+              "route_id": "UUID",
+              "name": "string",
+              "type": "string",
+              "stops": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "location_id": { "type": "UUID", "foreign_key": "Location.location_id" },
+                    "sequence": { "type": "integer" },
+                    "estimated_time": { "type": "integer" }
+                  }
+                }
+              },
+              "estimated_duration": "integer",
+              "status": "string",
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/routes/{route_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update route details",
+            "request_payload": {
+              "name": { "type": "string" },
+              "stops": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "location_id": { "type": "UUID", "foreign_key": "Location.location_id" },
+                    "sequence": { "type": "integer" },
+                    "estimated_time": { "type": "integer" }
+                  }
+                }
+              },
+              "estimated_duration": { "type": "integer" },
+              "status": { 
+                "type": "string",
+                "enum": ["active", "inactive"]
+              }
+            },
+            "response": {
+              "route_id": "UUID",
+              "message": "Route updated successfully",
+              "updated_at": "timestamp"
+            }
+          },
+          "list": {
+            "path": "/api/routes",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List routes with filtering options",
+            "params": {
+              "search": {
+                "type": "string",
+                "description": "Search in route name"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["pickup", "drop"]
+              },
+              "status": {
+                "type": "string",
+                "enum": ["active", "inactive"]
+              },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100
+              },
+              "sort_by": {
+                "type": "string",
+                "enum": ["name", "type", "status", "created_at"],
+                "default": "name"
+              },
+              "sort_order": {
+                "type": "string",
+                "enum": ["asc", "desc"],
+                "default": "asc"
+              }
+            },
+            "response": {
+              "data": [{
+                "route_id": "UUID",
+                "name": "string", 
+                "type": "string",
+                "stops": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "location_id": { "type": "UUID" },
+                      "sequence": { "type": "integer" },
+                      "estimated_time": { "type": "integer" }
+                    }
+                  }
+                },
+                "estimated_duration": "integer",
+                "status": "string"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          },
+          "delete": {
+            "path": "/api/routes/{route_id}",
+            "method": "DELETE",
+            "route_type": "private",
+            "description": "Delete a route",
+            "response": {
+              "message": "string",
+              "route_id": "UUID"
+            }
+          }
+        }
+      }
+    }
+  

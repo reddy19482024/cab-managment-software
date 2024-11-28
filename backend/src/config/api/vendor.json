@@ -1,0 +1,292 @@
+{
+    "Vendor": {
+      "constants": {
+        "vendor_statuses": {
+          "active": "Vendor is currently operational",
+          "inactive": "Vendor operations are suspended",
+          "pending": "Vendor registration under review",
+          "blacklisted": "Vendor is blacklisted from operations"
+        },
+        "document_types": {
+          "gst_certificate": "GST Registration Certificate",
+          "pan_card": "PAN Card",
+          "company_registration": "Company Registration Certificate",
+          "insurance_policy": "Business Insurance Policy",
+          "bank_details": "Bank Account Details",
+          "address_proof": "Business Address Proof",
+          "vendor_agreement": "Signed Service Agreement"
+        },
+        "service_types": {
+          "employee_transport": "Regular employee pickup/drop service",
+          "on_demand": "On-demand transport service",
+          "event_transport": "Event-specific transport service",
+          "emergency_service": "Emergency transport service"
+        },
+        "commission_structures": {
+          "fixed": {
+            "description": "Fixed percentage on trip cost",
+            "calculation": "percentage_of_trip_cost"
+          },
+          "tiered": {
+            "description": "Rate varies based on trip volume",
+            "tiers": [
+              {
+                "min_trips": 0,
+                "max_trips": 100,
+                "rate": 10
+              },
+              {
+                "min_trips": 101,
+                "max_trips": 500,
+                "rate": 8
+              },
+              {
+                "min_trips": 501,
+                "rate": 6
+              }
+            ]
+          },
+          "dynamic": {
+            "description": "Rate varies based on demand and time",
+            "factors": ["peak_hours", "special_events", "weather_conditions"]
+          }
+        },
+        "payment_terms": {
+          "weekly": {
+            "cycle": "7_days",
+            "processing_day": "monday",
+            "payment_day": "friday"
+          },
+          "biweekly": {
+            "cycle": "14_days",
+            "processing_day": "monday",
+            "payment_day": "friday"
+          },
+          "monthly": {
+            "cycle": "30_days",
+            "processing_day": "1st",
+            "payment_day": "7th"
+          }
+        },
+        "performance_metrics": {
+          "service_reliability": "Percentage of completed trips vs scheduled",
+          "on_time_performance": "Percentage of trips completed within schedule",
+          "vehicle_quality": "Average rating of vehicle condition",
+          "driver_behavior": "Average rating of driver conduct",
+          "customer_satisfaction": "Overall service satisfaction rating"
+        }
+      },
+      "rules": {
+        "onboarding_requirements": {
+          "minimum_vehicles": 5,
+          "minimum_drivers": 10,
+          "required_documents": [
+            "gst_certificate",
+            "company_registration",
+            "insurance_policy",
+            "vendor_agreement"
+          ],
+          "compliance_checks": [
+            "background_verification",
+            "financial_assessment",
+            "operational_audit"
+          ]
+        },
+        "service_level_agreement": {
+          "response_time": {
+            "emergency_requests": 15,
+            "regular_requests": 60,
+            "query_resolution": 24
+          },
+          "vehicle_standards": {
+            "max_vehicle_age": 5,
+            "required_features": [
+              "gps_tracking",
+              "air_conditioning",
+              "first_aid_kit",
+              "emergency_contact"
+            ],
+            "maintenance_schedule": "monthly"
+          },
+          "driver_requirements": {
+            "minimum_experience": 3,
+            "training_completion": true,
+            "background_verification": true,
+            "health_checkup": "yearly"
+          }
+        },
+        "billing_rules": {
+          "payment_cycle": "biweekly",
+          "late_payment_penalty": 2,
+          "minimum_balance": 10000,
+          "invoice_generation": "automatic",
+          "gst_applicable": true
+        },
+        "compliance_rules": {
+          "audit_frequency": "quarterly",
+          "reporting_frequency": "monthly",
+          "document_renewal_reminder": 30,
+          "mandatory_training_frequency": "yearly"
+        }
+      },
+        "endpoints": {
+          "register": {
+            "path": "/api/vendors/register",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Register a new vendor",
+            "request_payload": {
+              "company_name": { "type": "string", "required": true },
+              "contact_person": { "type": "string", "required": true },
+              "email": { "type": "string", "unique": true, "required": true },
+              "phone": { "type": "string", "required": true },
+              "address": { "type": "string", "required": true },
+              "gst_number": { "type": "string", "unique": true },
+              "bank_details": {
+                "type": "object",
+                "properties": {
+                  "account_number": { "type": "string" },
+                  "ifsc_code": { "type": "string" },
+                  "bank_name": { "type": "string" }
+                }
+              },
+              "commission_rate": { "type": "float", "required": true },
+              "status": { "type": "string", "enum": ["active", "inactive"], "required": true }
+            },
+            "response": {
+              "vendor_id": "UUID",
+              "company_name": "string",
+              "contact_person": "string",
+              "email": "string",
+              "status": "string",
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/vendors/{vendor_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Retrieve details of a specific vendor",
+            "response": {
+              "vendor_id": "UUID",
+              "company_name": "string",
+              "contact_person": "string",
+              "email": "string",
+              "phone": "string",
+              "address": "string",
+              "gst_number": "string",
+              "bank_details": {
+                "account_number": "string",
+                "ifsc_code": "string",
+                "bank_name": "string"
+              },
+              "commission_rate": "float",
+              "status": "string",
+              "performance_metrics": {
+                "service_reliability": "float",
+                "on_time_performance": "float",
+                "vehicle_quality": "float",
+                "driver_behavior": "float",
+                "customer_satisfaction": "float"
+              },
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/vendors/{vendor_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update vendor details",
+            "request_payload": {
+              "company_name": { "type": "string" },
+              "contact_person": { "type": "string" },
+              "email": { "type": "string" },
+              "phone": { "type": "string" },
+              "address": { "type": "string" },
+              "bank_details": {
+                "type": "object",
+                "properties": {
+                  "account_number": { "type": "string" },
+                  "ifsc_code": { "type": "string" },
+                  "bank_name": { "type": "string" }
+                }
+              },
+              "commission_rate": { "type": "float" },
+              "status": { "type": "string", "enum": ["active", "inactive"] }
+            },
+            "response": {
+              "vendor_id": "UUID",
+              "message": "Vendor updated successfully",
+              "updated_at": "timestamp"
+            }
+          },
+          "list": {
+            "path": "/api/vendors",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List all vendors with filtering options",
+            "params": {
+              "search": {
+                "type": "string",
+                "description": "Search in company_name, contact_person, email"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["active", "inactive"]
+              },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100
+              },
+              "sort_by": {
+                "type": "string",
+                "enum": ["company_name", "status", "commission_rate", "created_at"],
+                "default": "company_name"
+              },
+              "sort_order": {
+                "type": "string",
+                "enum": ["asc", "desc"],
+                "default": "asc"
+              }
+            },
+            "response": {
+              "data": [{
+                "vendor_id": "UUID",
+                "company_name": "string",
+                "contact_person": "string",
+                "email": "string",
+                "phone": "string",
+                "status": "string",
+                "commission_rate": "float",
+                "created_at": "timestamp"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          },
+          "delete": {
+            "path": "/api/vendors/{vendor_id}",
+            "method": "DELETE",
+            "route_type": "private",
+            "description": "Delete a vendor",
+            "response": {
+              "message": "string",
+              "vendor_id": "UUID"
+            }
+          }
+        }
+      }
+    }
+  

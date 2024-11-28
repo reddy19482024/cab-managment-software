@@ -1,0 +1,162 @@
+{
+    "Location": {
+      "constants": {
+        "location_types": {
+          "pickup": {
+            "description": "Pickup locations for employees",
+            "requires_validation": true
+          },
+          "dropoff": {
+            "description": "Drop-off locations for employees", 
+            "requires_validation": true
+          }
+        },
+        "zone_types": {
+          "residential": "Residential areas",
+          "commercial": "Commercial/office areas",
+          "industrial": "Industrial areas"
+        }
+      },
+        "endpoints": {
+          "create": {
+            "path": "/api/locations",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Create a new location",
+            "request_payload": {
+              "name": { "type": "string", "required": true },
+              "address": { "type": "string", "required": true },
+              "city": { "type": "string", "required": true },
+              "state": { "type": "string", "required": true },
+              "postal_code": { "type": "string", "required": true },
+              "latitude": { "type": "float", "required": true },
+              "longitude": { "type": "float", "required": true },
+              "type": { "type": "string", "enum": ["pickup", "dropoff"], "required": true },
+              "zone": { "type": "string", "description": "Area/zone code for route planning" },
+              "is_active": { "type": "boolean", "default": true }
+            },
+            "response": {
+              "location_id": "UUID",
+              "name": "string",
+              "type": "string",
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/locations/{location_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Get detailed location information",
+            "response": {
+              "location_id": "UUID",
+              "name": "string",
+              "address": "string",
+              "city": "string",
+              "state": "string",
+              "postal_code": "string",
+              "latitude": "float",
+              "longitude": "float",
+              "type": "string",
+              "zone": "string",
+              "is_active": "boolean",
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/locations/{location_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update location details",
+            "request_payload": {
+              "name": { "type": "string" },
+              "address": { "type": "string" },
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "postal_code": { "type": "string" },
+              "latitude": { "type": "float" },
+              "longitude": { "type": "float" },
+              "type": { "type": "string", "enum": ["pickup", "dropoff"] },
+              "zone": { "type": "string" },
+              "is_active": { "type": "boolean" }
+            },
+            "response": {
+              "location_id": "UUID",
+              "message": "Location updated successfully",
+              "updated_at": "timestamp"
+            }
+          },
+          "list": {
+            "path": "/api/locations",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List locations with filtering options",
+            "params": {
+              "search": {
+                "type": "string",
+                "description": "Search in name, address"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["pickup", "dropoff"]
+              },
+              "city": { "type": "string" },
+              "zone": { "type": "string" },
+              "is_active": { "type": "boolean" },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100
+              },
+              "sort_by": {
+                "type": "string",
+                "enum": ["name", "city", "type", "created_at"],
+                "default": "name"
+              },
+              "sort_order": {
+                "type": "string",
+                "enum": ["asc", "desc"],
+                "default": "asc"
+              }
+            },
+            "response": {
+              "data": [{
+                "location_id": "UUID",
+                "name": "string",
+                "address": "string",
+                "city": "string",
+                "state": "string",
+                "latitude": "float",
+                "longitude": "float",
+                "type": "string",
+                "zone": "string",
+                "is_active": "boolean"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          },
+          "delete": {
+            "path": "/api/locations/{location_id}",
+            "method": "DELETE",
+            "route_type": "private",
+            "description": "Delete a location",
+            "response": {
+              "message": "string",
+              "location_id": "UUID"
+            }
+          }
+        }
+      }
+    }
+  

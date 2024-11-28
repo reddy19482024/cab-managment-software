@@ -1,0 +1,225 @@
+{
+    "Notification": {
+      "constants": {
+        "notification_types": {
+          "trip_scheduled": "New trip has been scheduled",
+          "trip_updated": "Existing trip has been modified",
+          "trip_cancelled": "Trip has been cancelled",
+          "driver_assigned": "Driver has been assigned to trip",
+          "pickup_reminder": "Upcoming pickup reminder",
+          "dropoff_reminder": "Upcoming dropoff reminder",
+          "route_change": "Route has been modified",
+          "delay_alert": "Trip is delayed",
+          "support_update": "Support ticket status update",
+          "document_expiry": "Document expiration reminder",
+          "billing_update": "Billing status update",
+          "system_alert": "System-level notification"
+        },
+        "recipient_types": {
+          "employee": "Company employee",
+          "driver": "Transport service driver"
+        },
+        "notification_channels": {
+          "in_app": "In-application notification",
+          "email": "Email notification",
+          "sms": "SMS notification",
+          "push": "Push notification"
+        },
+        "notification_priorities": {
+          "low": "Low priority notification",
+          "normal": "Normal priority notification",
+          "high": "High priority notification",
+          "urgent": "Urgent priority notification"
+        }
+      },
+        "endpoints": {
+          "create": {
+            "path": "/api/notifications",
+            "method": "POST",
+            "route_type": "private",
+            "description": "Create a new notification",
+            "request_payload": {
+              "recipient_id": { "type": "UUID", "required": true },
+              "recipient_type": { "type": "string", "enum": ["employee", "driver"], "required": true },
+              "type": { 
+                "type": "string", 
+                "enum": [
+                  "trip_scheduled",
+                  "trip_updated",
+                  "trip_cancelled",
+                  "driver_assigned",
+                  "pickup_reminder",
+                  "dropoff_reminder",
+                  "route_change",
+                  "delay_alert",
+                  "support_update",
+                  "document_expiry",
+                  "billing_update",
+                  "system_alert"
+                ],
+                "required": true 
+              },
+              "content": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string", "required": true },
+                  "message": { "type": "string", "required": true },
+                  "data": { "type": "object" }
+                },
+                "required": true
+              },
+              "reference": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "UUID" },
+                  "type": { "type": "string", "enum": ["trip", "support", "billing", "vehicle", "driver", "route"] }
+                }
+              },
+              "channels": {
+                "type": "object",
+                "properties": {
+                  "in_app": { 
+                    "type": "object",
+                    "properties": {
+                      "enabled": { "type": "boolean", "default": true },
+                      "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                      "sent_at": { "type": "datetime" }
+                    }
+                  },
+                  "email": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": { "type": "boolean", "default": true },
+                      "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                      "sent_at": { "type": "datetime" }
+                    }
+                  },
+                  "sms": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": { "type": "boolean", "default": false },
+                      "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                      "sent_at": { "type": "datetime" }
+                    }
+                  },
+                  "push": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": { "type": "boolean", "default": true },
+                      "status": { "type": "string", "enum": ["pending", "sent", "failed"] },
+                      "sent_at": { "type": "datetime" }
+                    }
+                  }
+                }
+              },
+              "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"], "required": true }
+            },
+            "response": {
+              "notification_id": "UUID",
+              "recipient_id": "UUID",
+              "type": "string",
+              "created_at": "timestamp"
+            }
+          },
+          "read": {
+            "path": "/api/notifications/{notification_id}",
+            "method": "GET",
+            "route_type": "private",
+            "description": "Get notification details",
+            "response": {
+              "notification_id": "UUID",
+              "recipient_id": "UUID",
+              "recipient_type": "string",
+              "type": "string",
+              "content": {
+                "title": "string",
+                "message": "string",
+                "data": "object"
+              },
+              "reference": {
+                "id": "UUID",
+                "type": "string"
+              },
+              "channels": "object",
+              "priority": "string",
+              "status": "string",
+              "read_at": "datetime",
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          },
+          "update": {
+            "path": "/api/notifications/{notification_id}",
+            "method": "PUT",
+            "route_type": "private",
+            "description": "Update notification status",
+            "request_payload": {
+              "status": { "type": "string", "enum": ["unread", "read", "archived"], "required": true },
+              "read_at": { "type": "datetime" }
+            },
+            "response": {
+              "notification_id": "UUID",
+              "status": "string",
+              "updated_at": "timestamp"
+            }
+          },
+          "list": {
+            "path": "/api/notifications",
+            "method": "GET",
+            "route_type": "private",
+            "description": "List notifications with filtering options",
+            "params": {
+              "recipient_id": { "type": "UUID" },
+              "recipient_type": { "type": "string", "enum": ["employee", "driver"] },
+              "type": { "type": "string" },
+              "status": { "type": "string", "enum": ["unread", "read", "archived"] },
+              "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"] },
+              "reference_id": { "type": "UUID" },
+              "reference_type": { "type": "string" },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100
+              },
+              "sort_by": {
+                "type": "string",
+                "enum": ["created_at", "priority", "type"],
+                "default": "created_at"
+              },
+              "sort_order": {
+                "type": "string",
+                "enum": ["asc", "desc"],
+                "default": "desc"
+              }
+            },
+            "response": {
+              "data": [{
+                "notification_id": "UUID",
+                "recipient_id": "UUID",
+                "type": "string",
+                "content": {
+                  "title": "string",
+                  "message": "string"
+                },
+                "priority": "string",
+                "status": "string",
+                "created_at": "timestamp"
+              }],
+              "pagination": {
+                "current_page": "integer",
+                "total_pages": "integer",
+                "total_records": "integer",
+                "has_next": "boolean",
+                "has_previous": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  
