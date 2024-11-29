@@ -1,0 +1,180 @@
+{
+    "EmployeeImage": {
+      "constants": {
+        "file_types": {
+          "jpg": "JPEG image format",
+          "jpeg": "JPEG image format",
+          "png": "PNG image format"
+        },
+        "thumbnail_sizes": {
+          "small": {
+            "width": 50,
+            "height": 50,
+            "usage": "List view thumbnails"
+          },
+          "medium": {
+            "width": 150,
+            "height": 150,
+            "usage": "Profile preview"
+          }
+        },
+        "max_file_size": "5MB",
+        "image_statuses": {
+          "active": "Currently displayed profile image",
+          "inactive": "Previously used profile image"
+        }
+      },
+      "endpoints": {
+        "upload": {
+          "path": "/api/employee-images/upload",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Upload a new employee profile image",
+          "request_payload": {
+            "content_type": "multipart/form-data",
+            "fields": {
+              "employee_id": { 
+                "type": "UUID", 
+                "required": true 
+              },
+              "image": { 
+                "type": "file",
+                "required": true,
+                "mime_types": ["image/jpeg", "image/png"],
+                "max_size": "5MB"
+              }
+            }
+          },
+          "response": {
+            "image_id": "UUID",
+            "employee_id": "UUID",
+            "original_url": "string",
+            "thumbnail_urls": {
+              "small": "string",
+              "medium": "string"
+            },
+            "file_type": "string",
+            "dimensions": {
+              "width": "integer",
+              "height": "integer"
+            },
+            "created_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/employee-images/{image_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Retrieve details of a specific employee image",
+          "response": {
+            "image_id": "UUID",
+            "employee_id": "UUID",
+            "original_url": "string",
+            "thumbnail_urls": {
+              "small": "string",
+              "medium": "string"
+            },
+            "file_type": "string",
+            "dimensions": {
+              "width": "integer",
+              "height": "integer"
+            },
+            "status": "string",
+            "uploaded_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
+          }
+        },
+        "getByEmployee": {
+          "path": "/api/employee-images/employee/{employee_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Get current profile image of an employee",
+          "response": {
+            "image_id": "UUID",
+            "original_url": "string",
+            "thumbnail_urls": {
+              "small": "string",
+              "medium": "string"
+            },
+            "file_type": "string",
+            "dimensions": {
+              "width": "integer",
+              "height": "integer"
+            },
+            "status": "string",
+            "created_at": "timestamp"
+          }
+        },
+        "getHistory": {
+          "path": "/api/employee-images/employee/{employee_id}/history",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Get image history of an employee",
+          "params": {
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 50
+            }
+          },
+          "response": {
+            "data": [{
+              "image_id": "UUID",
+              "original_url": "string",
+              "thumbnail_urls": {
+                "small": "string",
+                "medium": "string"
+              },
+              "status": "string",
+              "created_at": "timestamp"
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
+          }
+        },
+        "updateStatus": {
+          "path": "/api/employee-images/{image_id}/status",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update image status (activate/deactivate)",
+          "request_payload": {
+            "status": {
+              "type": "string",
+              "enum": ["active", "inactive"],
+              "required": true
+            }
+          },
+          "response": {
+            "image_id": "UUID",
+            "message": "Image status updated successfully",
+            "status": "string",
+            "updated_at": "timestamp"
+          }
+        },
+        "delete": {
+          "path": "/api/employee-images/{image_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete an employee image",
+          "response": {
+            "message": "string",
+            "image_id": "UUID"
+          }
+        }
+      }
+    }
+  }

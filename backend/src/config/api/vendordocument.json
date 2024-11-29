@@ -1,0 +1,271 @@
+{
+    "VendorDocument": {
+      "constants": {
+        "document_types": {
+          "gst_certificate": {
+            "description": "GST Registration Certificate",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "company_registration": {
+            "description": "Company Registration Certificate",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "msme_certificate": {
+            "description": "MSME Registration Certificate",
+            "required": false,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "insurance_policy": {
+            "description": "Business Insurance Policy",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": true
+          },
+          "vendor_agreement": {
+            "description": "Signed Service Agreement",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": true
+          },
+          "pan_card": {
+            "description": "PAN Card",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "bank_details": {
+            "description": "Bank Account Proof",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          }
+        },
+        "verification_statuses": {
+          "pending": "Document uploaded, verification pending",
+          "in_review": "Document under review process",
+          "verified": "Document verified and approved",
+          "rejected": "Document verification failed",
+          "expired": "Document has expired"
+        },
+        "file_types": {
+          "pdf": "PDF Document",
+          "jpg": "JPEG Image",
+          "jpeg": "JPEG Image",
+          "png": "PNG Image"
+        },
+        "max_file_size": "10MB"
+      },
+      "endpoints": {
+        "upload": {
+          "path": "/api/vendor-documents/upload",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Upload a new vendor document",
+          "request_payload": {
+            "content_type": "multipart/form-data",
+            "fields": {
+              "vendor_id": { 
+                "type": "UUID", 
+                "required": true 
+              },
+              "document_type": { 
+                "type": "string", 
+                "enum": ["gst_certificate", "company_registration", "msme_certificate", "insurance_policy", "vendor_agreement", "pan_card", "bank_details"],
+                "required": true 
+              },
+              "document": { 
+                "type": "file",
+                "required": true,
+                "mime_types": ["application/pdf", "image/jpeg", "image/png"],
+                "max_size": "10MB"
+              },
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "document_number": { "type": "string", "required": true },
+                  "issuing_authority": { "type": "string", "required": true },
+                  "issue_date": { "type": "date", "required": true },
+                  "expiry_date": { "type": "date" },
+                  "additional_details": { "type": "object" }
+                }
+              }
+            }
+          },
+          "response": {
+            "document_id": "UUID",
+            "vendor_id": "UUID",
+            "document_type": "string",
+            "file_url": "string",
+            "metadata": "object",
+            "verification_status": "string",
+            "created_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/vendor-documents/{document_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Retrieve details of a specific vendor document",
+          "response": {
+            "document_id": "UUID",
+            "vendor_id": "UUID",
+            "document_type": "string",
+            "file_url": "string",
+            "file_type": "string",
+            "metadata": {
+              "document_number": "string",
+              "issuing_authority": "string",
+              "issue_date": "date",
+              "expiry_date": "date",
+              "additional_details": "object"
+            },
+            "verification_status": "string",
+            "verification_notes": "string",
+            "verified_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "verified_at": "timestamp",
+            "uploaded_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
+          }
+        },
+        "getByVendor": {
+          "path": "/api/vendor-documents/vendor/{vendor_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Get all documents of a vendor",
+          "params": {
+            "document_type": {
+              "type": "string",
+              "enum": ["gst_certificate", "company_registration", "msme_certificate", "insurance_policy", "vendor_agreement", "pan_card", "bank_details"]
+            },
+            "verification_status": {
+              "type": "string",
+              "enum": ["pending", "in_review", "verified", "rejected", "expired"]
+            },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 50
+            }
+          },
+          "response": {
+            "data": [{
+              "document_id": "UUID",
+              "document_type": "string",
+              "file_url": "string",
+              "metadata": {
+                "document_number": "string",
+                "issuing_authority": "string",
+                "issue_date": "date",
+                "expiry_date": "date"
+              },
+              "verification_status": "string",
+              "created_at": "timestamp"
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
+          }
+        },
+        "verify": {
+          "path": "/api/vendor-documents/{document_id}/verify",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update document verification status",
+          "request_payload": {
+            "verification_status": {
+              "type": "string",
+              "enum": ["in_review", "verified", "rejected"],
+              "required": true
+            },
+            "verification_notes": {
+              "type": "string"
+            }
+          },
+          "response": {
+            "document_id": "UUID",
+            "message": "Document verification status updated",
+            "verification_status": "string",
+            "verified_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "verified_at": "timestamp"
+          }
+        },
+        "update": {
+          "path": "/api/vendor-documents/{document_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update document metadata",
+          "request_payload": {
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "document_number": { "type": "string" },
+                "issuing_authority": { "type": "string" },
+                "issue_date": { "type": "date" },
+                "expiry_date": { "type": "date" },
+                "additional_details": { "type": "object" }
+              }
+            }
+          },
+          "response": {
+            "document_id": "UUID",
+            "message": "Document updated successfully",
+            "updated_at": "timestamp"
+          }
+        },
+        "delete": {
+          "path": "/api/vendor-documents/{document_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete a vendor document",
+          "response": {
+            "message": "string",
+            "document_id": "UUID"
+          }
+        },
+        "checkCompliance": {
+          "path": "/api/vendor-documents/vendor/{vendor_id}/compliance",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Check vendor document compliance status",
+          "response": {
+            "vendor_id": "UUID",
+            "compliance_status": "boolean",
+            "missing_documents": ["string"],
+            "expiring_documents": [{
+              "document_type": "string",
+              "expiry_date": "date",
+              "days_remaining": "integer"
+            }],
+            "rejected_documents": [{
+              "document_type": "string",
+              "verification_notes": "string"
+            }]
+          }
+        }
+      }
+    }
+  }

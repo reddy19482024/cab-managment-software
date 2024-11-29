@@ -1,0 +1,306 @@
+{
+    "DriverDocument": {
+      "constants": {
+        "document_types": {
+          "driving_license": {
+            "description": "Driver's License",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": true,
+            "renewal_reminder_days": [30, 15, 7]
+          },
+          "police_verification": {
+            "description": "Police Verification Certificate",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": true,
+            "renewal_reminder_days": [30, 15]
+          },
+          "medical_certificate": {
+            "description": "Medical Fitness Certificate",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": true,
+            "renewal_reminder_days": [30, 15]
+          },
+          "background_verification": {
+            "description": "Background Verification Report",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "training_certificate": {
+            "description": "Driver Training Completion Certificate",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "aadhar_card": {
+            "description": "Aadhar Card",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "pan_card": {
+            "description": "PAN Card",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": false
+          },
+          "address_proof": {
+            "description": "Address Proof",
+            "required": true,
+            "requires_verification": true,
+            "expiry_tracking": true,
+            "renewal_reminder_days": [30]
+          }
+        },
+        "verification_statuses": {
+          "pending": "Document uploaded, verification pending",
+          "in_review": "Document under review process",
+          "verified": "Document verified and approved",
+          "rejected": "Document verification failed",
+          "expired": "Document has expired"
+        },
+        "file_types": {
+          "pdf": "PDF Document",
+          "jpg": "JPEG Image",
+          "jpeg": "JPEG Image",
+          "png": "PNG Image"
+        },
+        "max_file_size": "5MB"
+      },
+      "endpoints": {
+        "upload": {
+          "path": "/api/driver-documents/upload",
+          "method": "POST",
+          "route_type": "private",
+          "description": "Upload a new driver document",
+          "request_payload": {
+            "content_type": "multipart/form-data",
+            "fields": {
+              "driver_id": { 
+                "type": "UUID", 
+                "required": true 
+              },
+              "document_type": { 
+                "type": "string", 
+                "enum": [
+                  "driving_license",
+                  "police_verification",
+                  "medical_certificate",
+                  "background_verification",
+                  "training_certificate",
+                  "aadhar_card",
+                  "pan_card",
+                  "address_proof"
+                ],
+                "required": true 
+              },
+              "document": { 
+                "type": "file",
+                "required": true,
+                "mime_types": ["application/pdf", "image/jpeg", "image/png"],
+                "max_size": "5MB"
+              },
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "document_number": { "type": "string", "required": true },
+                  "issuing_authority": { "type": "string", "required": true },
+                  "issue_date": { "type": "date", "required": true },
+                  "expiry_date": { "type": "date" },
+                  "additional_info": { "type": "object" }
+                }
+              }
+            }
+          },
+          "response": {
+            "document_id": "UUID",
+            "driver_id": "UUID",
+            "document_type": "string",
+            "file_url": "string",
+            "metadata": "object",
+            "verification_status": "string",
+            "created_at": "timestamp"
+          }
+        },
+        "read": {
+          "path": "/api/driver-documents/{document_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Retrieve details of a specific driver document",
+          "response": {
+            "document_id": "UUID",
+            "driver_id": "UUID",
+            "document_type": "string",
+            "file_url": "string",
+            "file_type": "string",
+            "metadata": {
+              "document_number": "string",
+              "issuing_authority": "string",
+              "issue_date": "date",
+              "expiry_date": "date",
+              "additional_info": "object"
+            },
+            "verification_status": "string",
+            "verification_notes": "string",
+            "verified_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "verified_at": "timestamp",
+            "uploaded_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "created_at": "timestamp",
+            "updated_at": "timestamp"
+          }
+        },
+        "getByDriver": {
+          "path": "/api/driver-documents/driver/{driver_id}",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Get all documents of a driver",
+          "params": {
+            "document_type": {
+              "type": "string",
+              "enum": [
+                "driving_license",
+                "police_verification",
+                "medical_certificate",
+                "background_verification",
+                "training_certificate",
+                "aadhar_card",
+                "pan_card",
+                "address_proof"
+              ]
+            },
+            "verification_status": {
+              "type": "string",
+              "enum": ["pending", "in_review", "verified", "rejected", "expired"]
+            },
+            "page": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "limit": {
+              "type": "integer",
+              "default": 10,
+              "maximum": 50
+            }
+          },
+          "response": {
+            "data": [{
+              "document_id": "UUID",
+              "document_type": "string",
+              "file_url": "string",
+              "metadata": {
+                "document_number": "string",
+                "issuing_authority": "string",
+                "issue_date": "date",
+                "expiry_date": "date"
+              },
+              "verification_status": "string",
+              "created_at": "timestamp"
+            }],
+            "pagination": {
+              "current_page": "integer",
+              "total_pages": "integer",
+              "total_records": "integer",
+              "has_next": "boolean",
+              "has_previous": "boolean"
+            }
+          }
+        },
+        "verify": {
+          "path": "/api/driver-documents/{document_id}/verify",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update document verification status",
+          "request_payload": {
+            "verification_status": {
+              "type": "string",
+              "enum": ["in_review", "verified", "rejected"],
+              "required": true
+            },
+            "verification_notes": {
+              "type": "string"
+            }
+          },
+          "response": {
+            "document_id": "UUID",
+            "message": "Document verification status updated",
+            "verification_status": "string",
+            "verified_by": {
+              "employee_id": "UUID",
+              "name": "string"
+            },
+            "verified_at": "timestamp"
+          }
+        },
+        "update": {
+          "path": "/api/driver-documents/{document_id}",
+          "method": "PUT",
+          "route_type": "private",
+          "description": "Update document metadata",
+          "request_payload": {
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "document_number": { "type": "string" },
+                "issuing_authority": { "type": "string" },
+                "issue_date": { "type": "date" },
+                "expiry_date": { "type": "date" },
+                "additional_info": { "type": "object" }
+              }
+            }
+          },
+          "response": {
+            "document_id": "UUID",
+            "message": "Document updated successfully",
+            "updated_at": "timestamp"
+          }
+        },
+        "delete": {
+          "path": "/api/driver-documents/{document_id}",
+          "method": "DELETE",
+          "route_type": "private",
+          "description": "Delete a driver document",
+          "response": {
+            "message": "string",
+            "document_id": "UUID"
+          }
+        },
+        "checkCompliance": {
+          "path": "/api/driver-documents/driver/{driver_id}/compliance",
+          "method": "GET",
+          "route_type": "private",
+          "description": "Check driver document compliance status",
+          "response": {
+            "driver_id": "UUID",
+            "compliance_status": "boolean",
+            "missing_documents": ["string"],
+            "expiring_documents": [{
+              "document_type": "string",
+              "expiry_date": "date",
+              "days_remaining": "integer"
+            }],
+            "expired_documents": [{
+              "document_type": "string",
+              "expiry_date": "date",
+              "days_expired": "integer"
+            }],
+            "rejected_documents": [{
+              "document_type": "string",
+              "verification_notes": "string",
+              "rejected_at": "timestamp"
+            }],
+            "can_drive": "boolean"
+          }
+        }
+      }
+    }
+  }

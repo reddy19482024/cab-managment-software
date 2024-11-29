@@ -1,5 +1,238 @@
 {
   "models": {
+    "DriverImage": {
+      "description": "Profile image management for drivers",
+      "fields": {
+        "image_id": { "type": "UUID", "primary_key": true },
+        "driver_id": { "type": "UUID", "foreign_key": "Driver.driver_id", "required": true, "unique": true },
+        "original_url": { "type": "string", "required": true },
+        "thumbnail_urls": {
+          "type": "object",
+          "properties": {
+            "small": { "type": "string", "required": true },
+            "medium": { "type": "string", "required": true }
+          },
+          "required": true
+        },
+        "file_type": { 
+          "type": "string", 
+          "enum": ["jpg", "jpeg", "png"], 
+          "required": true 
+        },
+        "dimensions": {
+          "type": "object",
+          "properties": {
+            "width": { "type": "integer" },
+            "height": { "type": "integer" }
+          },
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive"],
+          "default": "active"
+        },
+        "uploaded_by": { "type": "UUID", "foreign_key": "Employee.employee_id", "required": true },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Driver": { "relation": "belongs_to", "model": "Driver" }
+      },
+      "indexes": [
+        { "fields": ["driver_id"], "type": "btree", "unique": true }
+      ]
+    },
+
+    "EmployeeImage": {
+      "description": "Profile image management for employees",
+      "fields": {
+        "image_id": { "type": "UUID", "primary_key": true },
+        "employee_id": { "type": "UUID", "foreign_key": "Employee.employee_id", "required": true, "unique": true },
+        "original_url": { "type": "string", "required": true },
+        "thumbnail_urls": {
+          "type": "object",
+          "properties": {
+            "small": { "type": "string", "required": true },
+            "medium": { "type": "string", "required": true }
+          },
+          "required": true
+        },
+        "file_type": { 
+          "type": "string", 
+          "enum": ["jpg", "jpeg", "png"], 
+          "required": true 
+        },
+        "dimensions": {
+          "type": "object",
+          "properties": {
+            "width": { "type": "integer" },
+            "height": { "type": "integer" }
+          },
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive"],
+          "default": "active"
+        },
+        "uploaded_by": { "type": "UUID", "foreign_key": "Employee.employee_id", "required": true },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Employee": { "relation": "belongs_to", "model": "Employee" }
+      },
+      "indexes": [
+        { "fields": ["employee_id"], "type": "btree", "unique": true }
+      ]
+    },
+
+    "DriverDocument": {
+      "description": "Document management for driver-specific documents",
+      "fields": {
+        "document_id": { "type": "UUID", "primary_key": true },
+        "driver_id": { "type": "UUID", "foreign_key": "Driver.driver_id", "required": true },
+        "document_type": { 
+          "type": "string", 
+          "enum": [
+            "driving_license",
+            "police_verification",
+            "medical_certificate",
+            "background_verification",
+            "address_proof",
+            "identity_proof"
+          ],
+          "required": true 
+        },
+        "file_url": { "type": "string", "required": true },
+        "file_name": { "type": "string", "required": true },
+        "file_type": { 
+          "type": "string", 
+          "enum": ["pdf", "jpg", "jpeg", "png"], 
+          "required": true 
+        },
+        "document_metadata": {
+          "type": "object",
+          "properties": {
+            "document_number": { "type": "string", "required": true },
+            "issuing_authority": { "type": "string", "required": true },
+            "issue_date": { "type": "date", "required": true },
+            "expiry_date": { "type": "date", "required": true }
+          },
+          "required": true
+        },
+        "verification_status": { 
+          "type": "string",
+          "enum": ["pending", "verified", "rejected"],
+          "default": "pending",
+          "required": true
+        },
+        "verification_notes": { "type": "string" },
+        "verified_by": { "type": "UUID", "foreign_key": "Employee.employee_id" },
+        "verified_at": { "type": "datetime" },
+        "status": { 
+          "type": "string", 
+          "enum": ["active", "expired", "revoked"], 
+          "required": true,
+          "default": "active"
+        },
+        "uploaded_by": { "type": "UUID", "foreign_key": "Employee.employee_id", "required": true },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Driver": { "relation": "belongs_to", "model": "Driver" },
+        "VerifiedBy": { "relation": "belongs_to", "model": "Employee", "foreign_key": "verified_by" }
+      },
+      "indexes": [
+        { "fields": ["driver_id", "document_type"], "type": "btree", "unique": true },
+        { "fields": ["document_metadata.expiry_date"], "type": "btree" },
+        { "fields": ["verification_status"], "type": "btree" }
+      ],
+      "required_documents": [
+        "driving_license",
+        "police_verification",
+        "identity_proof"
+      ]
+    },
+
+    "VendorDocument": {
+      "description": "Document management for vendor-specific documents",
+      "fields": {
+        "document_id": { "type": "UUID", "primary_key": true },
+        "vendor_id": { "type": "UUID", "foreign_key": "Vendor.vendor_id", "required": true },
+        "document_type": { 
+          "type": "string", 
+          "enum": [
+            "gst_certificate",
+            "company_registration",
+            "insurance_policy",
+            "vendor_agreement",
+            "bank_details",
+            "tax_registration",
+            "msme_certificate"
+          ],
+          "required": true 
+        },
+        "file_url": { "type": "string", "required": true },
+        "file_name": { "type": "string", "required": true },
+        "file_type": { 
+          "type": "string", 
+          "enum": ["pdf", "jpg", "jpeg", "png"], 
+          "required": true 
+        },
+        "document_metadata": {
+          "type": "object",
+          "properties": {
+            "document_number": { "type": "string", "required": true },
+            "issuing_authority": { "type": "string", "required": true },
+            "issue_date": { "type": "date", "required": true },
+            "expiry_date": { "type": "date" },
+            "company_details": {
+              "type": "object",
+              "properties": {
+                "company_name": { "type": "string" },
+                "registration_number": { "type": "string" }
+              }
+            }
+          },
+          "required": true
+        },
+        "verification_status": { 
+          "type": "string",
+          "enum": ["pending", "verified", "rejected"],
+          "default": "pending",
+          "required": true
+        },
+        "verification_notes": { "type": "string" },
+        "verified_by": { "type": "UUID", "foreign_key": "Employee.employee_id" },
+        "verified_at": { "type": "datetime" },
+        "status": { 
+          "type": "string", 
+          "enum": ["active", "expired", "revoked"], 
+          "required": true,
+          "default": "active"
+        },
+        "uploaded_by": { "type": "UUID", "foreign_key": "Employee.employee_id", "required": true },
+        "created_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" },
+        "updated_at": { "type": "datetime", "default": "CURRENT_TIMESTAMP" }
+      },
+      "relationships": {
+        "Vendor": { "relation": "belongs_to", "model": "Vendor" },
+        "VerifiedBy": { "relation": "belongs_to", "model": "Employee", "foreign_key": "verified_by" }
+      },
+      "indexes": [
+        { "fields": ["vendor_id", "document_type"], "type": "btree", "unique": true },
+        { "fields": ["document_metadata.expiry_date"], "type": "btree" },
+        { "fields": ["verification_status"], "type": "btree" }
+      ],
+      "required_documents": [
+        "gst_certificate",
+        "company_registration",
+        "vendor_agreement"
+      ]
+    },
     "Vendor": {
       "description": "Manages transport service providers",
       "fields": {
@@ -25,7 +258,8 @@
       },
       "relationships": {
         "Vehicles": { "relation": "has_many", "model": "Vehicle" },
-        "Drivers": { "relation": "has_many", "model": "Driver" }
+        "Drivers": { "relation": "has_many", "model": "Driver" },
+        "Documents": { "relation": "has_many", "model": "VendorDocument" }
       }
     },
 
@@ -38,8 +272,9 @@
         "last_name": { "type": "string", "required": true },
         "email": { "type": "string", "unique": true, "required": true },
         "phone": { "type": "string", "required": true },
-        "department": { "type": "string", "required": true },
+        "department": { "type": "string", "required": true },   
         "role": { "type": "string", "enum": ["admin", "employee", "transport_manager"], "required": true },
+        "gender": { "type": "string", "enum": ["male", "female", "others"], "required": true },
         "pickup_location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
         "dropoff_location_id": { "type": "UUID", "foreign_key": "Location.location_id", "required": true },
         "schedule": {
@@ -57,7 +292,8 @@
       },
       "relationships": {
         "PickupLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "pickup_location_id" },
-        "DropoffLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "dropoff_location_id" }
+        "DropoffLocation": { "relation": "belongs_to", "model": "Location", "foreign_key": "dropoff_location_id" },
+        "ProfileImage": { "relation": "has_one", "model": "EmployeeImage" }
       }
     },
 
@@ -80,7 +316,9 @@
       },
       "relationships": {
         "Vendor": { "relation": "belongs_to", "model": "Vendor" },
-        "Vehicle": { "relation": "belongs_to", "model": "Vehicle", "foreign_key": "current_vehicle" }
+        "Vehicle": { "relation": "belongs_to", "model": "Vehicle", "foreign_key": "current_vehicle" },
+        "ProfileImage": { "relation": "has_one", "model": "DriverImage" },
+        "Documents": { "relation": "has_many", "model": "DriverDocument" }  
       }
     },
 
