@@ -34,6 +34,23 @@ const FormComponent = ({
     initializeForm();
   }, [config, initialValues]);
 
+  const processTransform = (value, transformMap) => {
+    if (!value || !transformMap) return value;
+    
+    if (typeof value === 'object') {
+      const transformedValue = {};
+      Object.entries(transformMap).forEach(([key, path]) => {
+        const val = path.split('.').reduce((obj, p) => obj?.[p], value);
+        if (val !== undefined) {
+          transformedValue[key] = val;
+        }
+      });
+      return transformedValue;
+    }
+    
+    return value;
+  };
+
   const formatInitialValues = async (values) => {
     if (!values || !formSection?.fields) return {};
   
@@ -63,7 +80,16 @@ const FormComponent = ({
             };
           }
           break;
-        
+          case 'profileimage':
+            // Use the response transform configuration from the field
+            if (field.uploadProps?.transform) {
+              const transformMap = field.uploadProps.transform;
+              const transformedUrl = transformMap.thumbnail?.split('.').reduce((obj, key) => obj?.[key], value);
+              formattedValues[key] = transformedUrl || value;
+            } else {
+              formattedValues[key] = value;
+            }
+            break;
         case 'date':
         case 'datetime':
         case 'time':
@@ -228,7 +254,27 @@ const FormComponent = ({
               acc[key] = value?.value || value;
             }
             break;
-          
+            case 'profileimage':
+              // Use the response transform configuration from the field
+              if (typeof value === 'object' && field.uploadProps?.transform) {
+                const transformMap = field.uploadProps.transform;
+                const transformedValue = {};
+                Object.entries(transformMap).forEach(([key, path]) => {
+                  // Create nested structure based on the path
+                  path.split('.').reduce((obj, part, index, arr) => {
+                    if (index === arr.length - 1) {
+                      obj[part] = value[key];
+                    } else {
+                      obj[part] = obj[part] || {};
+                    }
+                    return obj[part];
+                  }, transformedValue);
+                });
+                acc[key] = transformedValue;
+              } else {
+                acc[key] = value;
+              }
+              break;
           case 'date':
           case 'datetime':
           case 'time':
@@ -294,8 +340,21 @@ const FormComponent = ({
           requiredMark={formSection.layout?.requiredMark}
         >
           {formSection.fields?.map((field) => (
-            <FormFieldRenderer key={field.name} field={field} />
-          ))}
+            <FormFieldRenderer 
+            key={field.name} 
+            field={{
+              ...field,
+              value: form.getFieldValue(field.name),
+              onChange: (value) => {
+                // Process any transformations defined in the field config
+                const transformedValue = field.uploadProps?.transform ? 
+                  processTransform(value, field.uploadProps.transform) : 
+                  value;
+                form.setFieldValue(field.name, transformedValue);
+              }
+            }}
+            />          
+            ))}
 
           {formSection.actions?.map((action, index) => (
             <Form.Item key={index} style={action.style}>

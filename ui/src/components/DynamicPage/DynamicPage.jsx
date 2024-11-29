@@ -53,8 +53,15 @@ const DynamicPage = ({ configName }) => {
     try {
       setPageLoading(true);
       const loadedConfig = await configLoader(configName);
+  
+      // Handle layout import
+      if (loadedConfig.layout === '@import: ./layout.json') {
+        const layoutConfig = await configLoader('layout');
+        loadedConfig.layout = layoutConfig;
+      }
+  
       setConfig(loadedConfig);
-
+  
       const formSection = loadedConfig.sections?.find(section => section.type === 'form');
       if (formSection?.table?.pagination?.pageSize) {
         setPageSize(formSection.table.pagination.pageSize);

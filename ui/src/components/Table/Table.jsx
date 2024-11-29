@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Input, Tag, Tooltip, Modal } from 'antd';
+import { Table, Button, Space, Input, Tag, Tooltip, Modal, Card } from 'antd';
 import * as AntdIcons from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import useApi from '../../hooks/useApi';
+import dayjs from 'dayjs';
 
 const { confirm } = Modal;
 
@@ -13,19 +14,20 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: section.table.pagination?.pageSize || 10,
-    total: 0
+    total: 0,
+    showSizeChanger: section.table.pagination?.showSizeChanger,
+    showQuickJumper: section.table.pagination?.showQuickJumper,
+    pageSizeOptions: section.table.pagination?.pageSizeOptions || [10, 20, 50, 100]
   });
   const [relatedData, setRelatedData] = useState({});
   const [currentFilters, setCurrentFilters] = useState({});
   const [currentSorter, setCurrentSorter] = useState(null);
   const [searchText, setSearchText] = useState('');
 
-  // Initial data loading
   useEffect(() => {
     loadTableData();
   }, []);
 
-  // Update data when external data changes
   useEffect(() => {
     if (externalData?.length > 0) {
       setData(externalData);
@@ -34,43 +36,33 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
   }, [externalData]);
 
   const buildQueryParams = (params = {}) => {
+    const { api } = section.table;
     const queryParams = new URLSearchParams();
 
-    // Add pagination parameters
-    if (params.pagination) {
-      if (params.pagination.current) {
-        queryParams.append('page', params.pagination.current);
-      }
-      if (params.pagination.pageSize) {
-        queryParams.append('limit', params.pagination.pageSize);
-      }
-    }
+    Object.entries(api.params || {}).forEach(([key, value]) => {
+      let paramValue = value;
+      
+      // Replace template variables
+      if (typeof value === 'string') {
+        paramValue = value
+          .replace('{current}', params.pagination?.current || pagination.current)
+          .replace('{pageSize}', params.pagination?.pageSize || pagination.pageSize)
+          .replace('{sortField}', params.sorter?.field || '')
+          .replace('{sortOrder}', params.sorter?.order || '')
+          .replace('{searchText}', params.search || '');
 
-    // Add sorter parameters only if they exist and are valid
-    if (params.sorter?.field && params.sorter?.order) {
-      queryParams.append('sort_by', params.sorter.field);
-      queryParams.append('sort_order', params.sorter.order);
-    }
-
-    // Add filter parameters only if they have actual values
-    if (params.filters) {
-      Object.entries(params.filters).forEach(([key, value]) => {
-        if (Array.isArray(value) && value.length > 0) {
-          // Only add filter if it has actual values and isn't a placeholder
-          const validValues = value.filter(v => !v.includes('{') && v.trim() !== '');
-          if (validValues.length > 0) {
-            queryParams.append(`filters[${key}]`, validValues.join(','));
-          }
-        } else if (value && typeof value === 'string' && !value.includes('{')) {
-          queryParams.append(`filters[${key}]`, value);
+        // Handle filters
+        if (params.filters) {
+          Object.entries(params.filters).forEach(([filterKey, filterValue]) => {
+            paramValue = paramValue.replace(`{filters.${filterKey}}`, filterValue);
+          });
         }
-      });
-    }
+      }
 
-    // Add search parameter if it exists and isn't empty
-    if (params.search?.trim()) {
-      queryParams.append('search', params.search.trim());
-    }
+      if (paramValue && !paramValue.includes('{')) {
+        queryParams.append(key, paramValue);
+      }
+    });
 
     return queryParams.toString();
   };
@@ -79,8 +71,6 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
     try {
       setLoading(true);
       const { endpoint } = section.table.api;
-
-      // Build clean query parameters
       const queryString = buildQueryParams({
         pagination: {
           current: params.pagination?.current || pagination.current,
@@ -91,15 +81,12 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
         search: params.search || searchText
       });
 
-      // Construct the final endpoint
       const finalEndpoint = `${endpoint}${queryString ? '?' + queryString : ''}`;
-
-      // Make API request
       const response = await apiRequest(finalEndpoint, 'GET');
 
       if (response?.data) {
         setData(response.data);
-        setPagination((prev) => ({
+        setPagination(prev => ({
           ...prev,
           current: params.pagination?.current || prev.current,
           pageSize: params.pagination?.pageSize || prev.pageSize,
@@ -113,7 +100,6 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
       setLoading(false);
     }
   };
-  
 
   const loadRelatedData = async (tableData) => {
     try {
@@ -123,28 +109,29 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
 
       for (const column of columnsNeedingData) {
         const { api } = column.render;
-        const columnKey = Array.isArray(column.dataIndex) ? column.dataIndex[0] : column.dataIndex;
         const ids = [...new Set(tableData
-          .map(item => item[columnKey])
+          .map(item => {
+            const value = Array.isArray(column.dataIndex) 
+              ? column.dataIndex.reduce((obj, key) => obj?.[key], item)
+              : item[column.dataIndex];
+            return value;
+          })
           .filter(Boolean))];
 
         if (ids.length === 0) continue;
 
-        const params = {
+        const response = await apiRequest(api.endpoint, api.method || 'GET', null, {
           ...(api.params || {}),
           ids: ids.join(',')
-        };
-
-        const response = await apiRequest(api.endpoint, api.method || 'GET', null, params);
+        });
         
         if (response?.data) {
-          const mappedData = response.data.reduce((acc, item) => {
-            acc[item._id] = item;
-            return acc;
-          }, {});
           setRelatedData(prev => ({
             ...prev,
-            [column.key]: mappedData
+            [column.key]: response.data.reduce((acc, item) => {
+              acc[item._id] = item;
+              return acc;
+            }, {})
           }));
         }
       }
@@ -153,16 +140,13 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
     }
   };
 
-  
-  // Rest of your component code (getIcon, handleDelete, renderColumnContent) remains the same...
-    
   const getIcon = (iconName) => {
     const Icon = AntdIcons[iconName];
     return Icon ? React.createElement(Icon) : null;
   };
 
   const handleDelete = (record, modalId) => {
-  confirm({
+    confirm({
       title: 'Are you sure you want to delete this item?',
       icon: React.createElement(AntdIcons.ExclamationCircleOutlined),
       content: 'This action cannot be undone.',
@@ -176,7 +160,12 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
   };
 
   const renderColumnContent = (column, text, record) => {
-    if (!column.render) return text;
+    if (!column.render) {
+      if (Array.isArray(column.dataIndex)) {
+        return column.dataIndex.map(key => record[key]).filter(Boolean).join(' ');
+      }
+      return text;
+    }
 
     switch (column.render.type) {
       case 'tag':
@@ -185,6 +174,14 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
             {text?.toUpperCase()}
           </Tag>
         );
+
+      case 'datetime':
+        return text ? dayjs(text).format(column.render.format || 'YYYY-MM-DD HH:mm') : '-';
+
+      case 'concat':
+        return Array.isArray(column.dataIndex)
+          ? column.dataIndex.map(key => record[key]).filter(Boolean).join(column.render.separator || ' ')
+          : text;
 
       case 'text': {
         const relatedItem = text && column.render.api ? 
@@ -228,9 +225,6 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
         );
 
       default:
-        if (Array.isArray(column.dataIndex)) {
-          return column.dataIndex.reduce((obj, key) => obj?.[key], record) || '-';
-        }
         return text;
     }
   };
@@ -242,7 +236,8 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
       filteredValue: currentFilters[column.dataIndex],
       sortOrder: currentSorter?.columnKey === column.key ? currentSorter.order : null,
       sorter: column.sorter,
-      sortField: column.sortField,
+      ellipsis: column.ellipsis,
+      fixed: column.fixed,
       filters: column.filters,
       filterMode: column.filterMode || 'menu',
       filterSearch: column.filterSearch,
@@ -256,13 +251,11 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
   };
 
   const handleTableChange = async (paginationParams, filters, sorter) => {
-    // Only include valid sorter information
     const validSorter = sorter?.field && sorter?.order ? {
       field: sorter.field,
       order: sorter.order === 'descend' ? 'desc' : 'asc'
     } : null;
 
-    // Clean filters to remove any placeholders or empty values
     const validFilters = {};
     Object.entries(filters).forEach(([key, value]) => {
       if (Array.isArray(value)) {
@@ -279,28 +272,37 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
       pagination: paginationParams,
       filters: validFilters,
       sorter: validSorter,
-      search: searchText.trim()
+      search: searchText
     };
 
     setCurrentFilters(validFilters);
     setCurrentSorter(validSorter);
 
-    await loadTableData(params);
+    if (onTableChange) {
+      onTableChange(params);
+    } else {
+      await loadTableData(params);
+    }
   };
 
   const handleSearch = async (value) => {
-    const newSearchText = value || ''; // Handle empty string case
+    const newSearchText = value || '';
     setSearchText(newSearchText);
     
-    const params = {
-      pagination: { ...pagination, current: 1 }, // Reset to first page
-      filters: currentFilters,
-      sorter: currentSorter,
-      search: newSearchText // This will be empty string when cleared
-    };
-  
-    await loadTableData(params);
+    if (onSearch) {
+      onSearch(newSearchText);
+    } else {
+      const params = {
+        pagination: { ...pagination, current: 1 },
+        filters: currentFilters,
+        sorter: currentSorter,
+        search: newSearchText
+      };
+    
+      await loadTableData(params);
+    }
   };
+
   const renderToolbar = () => (
     <div style={{
       marginBottom: '16px',
@@ -318,7 +320,7 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
           </p>
         )}
       </div>
-  
+
       <Space wrap>
         {section.table.searchConfig && (
           <Input.Search
@@ -326,7 +328,12 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
             onSearch={handleSearch}
             onChange={(e) => {
               setSearchText(e.target.value);
-              // Optional: Add debounced search here if you want to search while typing
+              if (section.table.searchConfig.searchOnChange) {
+                const timer = setTimeout(() => {
+                  handleSearch(e.target.value);
+                }, section.table.searchConfig.searchDelay || 500);
+                return () => clearTimeout(timer);
+              }
             }}
             value={searchText}
             style={{ width: 300 }}
@@ -335,7 +342,7 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
             prefix={getIcon('SearchOutlined')}
           />
         )}
-  
+
         {section.actions?.map((action, index) => (
           <Button
             key={index}
@@ -380,12 +387,14 @@ const TableComponent = ({ section, loading: externalLoading, data: externalData,
                 position: section.table.pagination.position || ['bottomRight']
               }
         }
+        scroll={section.table.scroll}
+        size={section.table.size}
+        rowKey={section.table.rowKey}
       />
     </div>
   );
 };
 
-// PropTypes remain the same but updated to match new configuration
 TableComponent.propTypes = {
   section: PropTypes.shape({
     title: PropTypes.string,
@@ -404,7 +413,7 @@ TableComponent.propTypes = {
         fixed: PropTypes.oneOf(['left', 'right']),
         sorter: PropTypes.bool,
         render: PropTypes.shape({
-          type: PropTypes.oneOf(['tag', 'text', 'actions']),
+          type: PropTypes.oneOf(['tag', 'text', 'actions', 'datetime', 'concat']),
           api: PropTypes.shape({
             endpoint: PropTypes.string,
             method: PropTypes.string,
@@ -413,17 +422,21 @@ TableComponent.propTypes = {
           colorMap: PropTypes.object,
           template: PropTypes.string,
           fallback: PropTypes.string,
-          items: PropTypes.array
+          items: PropTypes.array,
+          format: PropTypes.string,
+          separator: PropTypes.string
         })
       })).isRequired,
       api: PropTypes.shape({
         endpoint: PropTypes.string.isRequired,
         method: PropTypes.string,
         params: PropTypes.object
-      }),
+      }).isRequired,
       searchConfig: PropTypes.shape({
         placeholder: PropTypes.string,
-        fields: PropTypes.arrayOf(PropTypes.string)
+        fields: PropTypes.arrayOf(PropTypes.string),
+        searchOnChange: PropTypes.bool,
+        searchDelay: PropTypes.number
       }),
       pagination: PropTypes.oneOfType([
         PropTypes.bool,
@@ -431,33 +444,58 @@ TableComponent.propTypes = {
           pageSize: PropTypes.number,
           showSizeChanger: PropTypes.bool,
           showQuickJumper: PropTypes.bool,
-          showTotal: PropTypes.bool
+          showTotal: PropTypes.bool,
+          pageSizeOptions: PropTypes.arrayOf(PropTypes.number),
+          position: PropTypes.arrayOf(PropTypes.string)
         })
-      ])
+      ]),
+      toolbarConfig: PropTypes.shape({
+        settings: PropTypes.shape({
+          enabled: PropTypes.bool,
+          items: PropTypes.arrayOf(PropTypes.string)
+        }),
+        refresh: PropTypes.shape({
+          enabled: PropTypes.bool,
+          tooltip: PropTypes.string
+        })
+      })
     }).isRequired
   }).isRequired,
-  loading: PropTypes.bool,
-  data: PropTypes.array.isRequired,
-  onModalOpen: PropTypes.func.isRequired,
-  onSearch: PropTypes.func,
-  onFilter: PropTypes.func,
-  onDelete: PropTypes.func.isRequired,
-  onTableChange: PropTypes.func,
-  pagination: PropTypes.shape({
-    current: PropTypes.number,
-    pageSize: PropTypes.number,
-    total: PropTypes.number
-  })
+  actions: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    buttonProps: PropTypes.shape({
+      type: PropTypes.string,
+      icon: PropTypes.string,
+      danger: PropTypes.bool,
+      size: PropTypes.string
+    }),
+    onClick: PropTypes.shape({
+      type: PropTypes.string,
+      modalId: PropTypes.string
+    })
+  })),
+loading: PropTypes.bool,
+data: PropTypes.array,
+onModalOpen: PropTypes.func.isRequired,
+onSearch: PropTypes.func,
+onFilter: PropTypes.func,
+onDelete: PropTypes.func.isRequired,
+onTableChange: PropTypes.func,
+pagination: PropTypes.shape({
+  current: PropTypes.number,
+  pageSize: PropTypes.number,
+  total: PropTypes.number
+})
 };
 
 TableComponent.defaultProps = {
-  loading: false,
-  data: [],
-  pagination: {
-    current: 1,
-    pageSize: 10,
-    total: 0
-  }
+loading: false,
+data: [],
+pagination: {
+  current: 1,
+  pageSize: 10,
+  total: 0
+}
 };
 
 export default TableComponent;

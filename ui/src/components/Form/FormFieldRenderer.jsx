@@ -11,6 +11,7 @@ import DatePicker from './DatePicker';
 import TimePicker from './TimePicker';
 import InputNumber from './InputNumber';
 import Switch from './Switch'; // Use this for rendering switches
+import ProfileImageUpload from './ProfileImageUpload';
 
 const FormFieldRenderer = ({ field }) => {
   const getIcon = (iconName) => {
@@ -39,7 +40,27 @@ const FormFieldRenderer = ({ field }) => {
             tooltipTitle={field.tooltip}
           />
         );
-
+        case 'profileimage':
+          return (
+            <ProfileImageUpload
+              value={field.value}
+              onChange={field.onChange}
+              size={field.size}
+              disabled={field.disabled}
+              shape={field.shape}
+              maxSize={field.maxSize}
+              showEditOverlay={field.showEditOverlay}
+              employeeId={field.uploadProps?.data?.employee_id}
+              uploadProps={{
+                name: field.uploadProps?.name || 'image',
+                action: field.uploadProps?.action,
+                accept: field.uploadProps?.accept,
+                headers: field.uploadProps?.headers,
+                data: field.uploadProps?.data,
+                responseTransform: field.uploadProps?.transform
+              }}
+            />
+          );
       case 'select':
         return (
           <Select
@@ -224,35 +245,35 @@ const FormFieldRenderer = ({ field }) => {
       default:
         return (
           <Input
-            type="text"
-            {...field.inputProps}
-            size={field.size}
-            placeholder={field.placeholder}
-            icon={field.prefix}
-            iconPosition="prefix"
-            allowClear={field.allowClear}
-            theme={field.theme}
-            variant={field.variant}
-            borderless={field.borderless}
-            round={field.round}
-            customColors={field.customColors}
-            tooltipTitle={field.tooltip}
-          />
+          type="text"
+          {...field.inputProps}
+          size={field.size}
+          placeholder={field.placeholder}
+          icon={field.prefix}
+          iconPosition="prefix"
+          allowClear={field.allowClear}
+          theme={field.theme}
+          variant={field.variant}
+          borderless={field.borderless}
+          round={field.round}
+          customColors={field.customColors}
+          tooltipTitle={field.tooltip}
+        />
         );
     }
   };
 
   return (
     <Form.Item
-      name={field.name}
-      label={field.type === 'checkbox' ? null : field.label}
-      rules={field.rules}
-      dependencies={field.dependencies}
-      tooltip={field.tooltip}
-      valuePropName={['checkbox', 'radio', 'switch'].includes(field.type) ? 'checked' : 'value'}
-    >
-      {renderFormField()}
-    </Form.Item>
+    name={field.name}
+    label={field.type === 'checkbox' ? null : field.label}
+    rules={field.rules}
+    dependencies={field.dependencies}
+    tooltip={field.tooltip}
+    valuePropName={['checkbox', 'radio', 'switch', 'profileimage'].includes(field.type) ? 'checked' : 'value'}
+  >
+    {renderFormField()}
+  </Form.Item>
   );
 };
 
@@ -271,7 +292,8 @@ FormFieldRenderer.propTypes = {
       'checkbox-group',
       'radio',
       'radio-group',
-      'switch'
+      'switch',
+      'profileimage'
     ]).isRequired,
     label: PropTypes.string,
     rules: PropTypes.array,
@@ -283,6 +305,16 @@ FormFieldRenderer.propTypes = {
     variant: PropTypes.oneOf(['filled', 'outlined']),
     borderless: PropTypes.bool,
     round: PropTypes.bool,
+    // Add new prop types for profileimage
+    shape: PropTypes.oneOf(['circle', 'square']),
+    showEditOverlay: PropTypes.bool,
+    maxSize: PropTypes.number,
+    uploadProps: PropTypes.shape({
+      action: PropTypes.string,
+      customRequest: PropTypes.func,
+      headers: PropTypes.object,
+      accept: PropTypes.string
+    }),
     customColors: PropTypes.shape({
       background: PropTypes.string,
       text: PropTypes.string,
