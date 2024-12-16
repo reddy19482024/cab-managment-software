@@ -1,0 +1,244 @@
+{
+    "pageConfig": {
+      "name": "loginPage",
+      "type": "auth",
+      "layout": {
+        "type": "centered",
+        "className": "min-h-screen flex items-center justify-center"
+      },
+      "sections": [
+        {
+          "id": "loginForm",
+          "type": "form",
+          "component": "Card",
+          "className": "w-full max-w-md bg-white shadow-lg",
+          "api": {
+            "endpoint": "/api/login",
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "requestMapping": {
+              "type": "direct",
+              "fields": {
+                "email": "email",
+                "password": "password",
+                "remember": "remember"
+              }
+            },
+            "responseMapping": {
+              "success": {
+                "path": "data.user",
+                "fields": {
+                  "token": "accessToken",
+                  "userId": "id",
+                  "role": "userRole"
+                }
+              },
+              "error": {
+                "path": "error",
+                "fields": {
+                  "message": "message",
+                  "code": "errorCode"
+                }
+              }
+            }
+          },
+          "actions": {
+            "onSubmit": {
+              "type": "sequence",
+              "steps": [
+                {
+                  "type": "validate",
+                  "showErrors": true
+                },
+                {
+                  "type": "api",
+                  "action": "login",
+                  "showLoading": true
+                },
+                {
+                  "type": "condition",
+                  "conditions": [
+                    {
+                      "when": "success",
+                      "steps": [
+                        {
+                          "type": "storage",
+                          "action": "set",
+                          "items": [
+                            {
+                              "key": "token",
+                              "value": "response.data.accessToken"
+                            },
+                            {
+                              "key": "user",
+                              "value": "response.data.user"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "redirect",
+                          "path": "/dashboard"
+                        }
+                      ]
+                    },
+                    {
+                      "when": "error",
+                      "steps": [
+                        {
+                          "type": "notify",
+                          "variant": "error",
+                          "message": "response.error.message",
+                          "duration": 3000
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "onSignupClick": {
+              "type": "redirect",
+              "path": "/signup"
+            }
+          },
+          "validation": {
+            "type": "realtime",
+            "schema": {
+              "email": {
+                "required": "Email is required",
+                "pattern": {
+                  "value": "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$",
+                  "message": "Invalid email address"
+                }
+              },
+              "password": {
+                "required": "Password is required",
+                "minLength": {
+                  "value": 6,
+                  "message": "Password must be at least 6 characters"
+                }
+              }
+            }
+          },
+          "notifications": {
+            "success": {
+              "type": "toast",
+              "position": "top-right",
+              "styles": {
+                "container": "bg-green-50 p-4 rounded-md",
+                "text": "text-green-800",
+                "icon": "text-green-400"
+              }
+            },
+            "error": {
+              "type": "inline",
+              "styles": {
+                "container": "text-sm text-red-500 text-center",
+                "icon": "h-4 w-4 inline-block mr-1"
+              }
+            },
+            "loading": {
+              "text": "Signing in...",
+              "styles": {
+                "spinner": "animate-spin h-4 w-4 mr-2",
+                "text": "text-gray-500"
+              }
+            }
+          },
+          "parts": {
+            "header": {
+              "type": "header",
+              "className": "space-y-1",
+              "content": {
+                "title": {
+                  "text": "Welcome back",
+                  "className": "text-2xl font-bold text-center text-gray-900"
+                },
+                "description": {
+                  "text": "Enter your credentials to access your account",
+                  "className": "text-center text-gray-500"
+                }
+              }
+            },
+            "body": {
+              "type": "formFields",
+              "className": "space-y-4",
+              "fields": [
+                {
+                  "type": "input",
+                  "inputType": "email",
+                  "name": "email",
+                  "label": "Email",
+                  "placeholder": "m@example.com",
+                  "icon": {
+                    "name": "Mail",
+                    "position": "left-3 top-3"
+                  },
+                  "styles": {
+                    "container": "space-y-2",
+                    "input": "pl-10 w-full border border-gray-300 rounded-md",
+                    "error": "pl-10 w-full border-red-500 focus:ring-red-500 rounded-md",
+                    "label": "text-sm font-medium text-gray-700"
+                  }
+                },
+                {
+                  "type": "input",
+                  "inputType": "password",
+                  "name": "password",
+                  "label": "Password",
+                  "icon": {
+                    "name": "LockKeyhole",
+                    "position": "left-3 top-3"
+                  },
+                  "styles": {
+                    "container": "space-y-2",
+                    "input": "pl-10 w-full border border-gray-300 rounded-md",
+                    "error": "pl-10 w-full border-red-500 focus:ring-red-500 rounded-md",
+                    "label": "text-sm font-medium text-gray-700"
+                  }
+                },
+                {
+                  "type": "checkbox",
+                  "name": "remember",
+                  "label": "Remember me",
+                  "styles": {
+                    "container": "flex items-center space-x-2",
+                    "label": "text-sm text-gray-500"
+                  }
+                }
+              ]
+            },
+            "footer": {
+              "type": "footer",
+              "className": "flex flex-col space-y-4",
+              "content": {
+                "submitButton": {
+                  "text": "Sign in",
+                  "loadingText": "Signing in...",
+                  "styles": {
+                    "default": "w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md",
+                    "loading": "w-full bg-blue-400 text-white py-2 rounded-md cursor-not-allowed"
+                  }
+                },
+                "links": [
+                  {
+                    "type": "text-with-link",
+                    "text": "Don't have an account? ",
+                    "link": {
+                      "text": "Sign up",
+                      "href": "/signup",
+                      "className": "text-blue-600 hover:underline",
+                      "action": "onSignupClick"
+                    },
+                    "className": "text-sm text-center text-gray-500"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
